@@ -959,29 +959,6 @@ class NenoHelperBackend
 	}
 
 	/**
-	 * Get memory details about database content
-	 *
-	 * @return array
-	 */
-	public static function getMemoryDetails()
-	{
-		$db    = JFactory::getDbo();
-		$query = $db->getQuery(true);
-		$query
-			->select(
-				array (
-					'sum( data_length + index_length ) AS current_data_space',
-					'sum( data_free ) AS free_space'
-				)
-			)
-			->from('information_schema.TABLES')
-			->where('table_schema = DATABASE()');
-		$db->setQuery($query);
-
-		return $db->loadAssoc();
-	}
-
-	/**
 	 * Get configuration setting for default action when loading a string
 	 *
 	 * @return  int

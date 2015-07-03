@@ -1224,16 +1224,23 @@ class NenoHelper
 	 */
 	public static function loadTranslationMethods()
 	{
-		$db    = JFactory::getDbo();
-		$query = $db->getQuery(true);
-		$query
-			->select('*')
-			->from('#__neno_translation_methods');
+		$cacheId = NenoCache::getCacheId(__FUNCTION__, array ());
 
-		$db->setQuery($query);
-		$rows = $db->loadObjectList('id');
+		if (NenoCache::getCacheData($cacheId) === null)
+		{
+			$db    = JFactory::getDbo();
+			$query = $db->getQuery(true);
+			$query
+				->select('*')
+				->from('#__neno_translation_methods');
 
-		return $rows;
+			$db->setQuery($query);
+			$rows = $db->loadObjectList('id');
+
+			NenoCache::setCacheData($cacheId, $rows);
+		}
+
+		return NenoCache::getCacheData($cacheId);
 	}
 
 	/**
@@ -3024,5 +3031,35 @@ class NenoHelper
 	public static function readLanguageFile($filename)
 	{
 		return NenoHelper::unifiedLanguageStrings(parse_ini_file($filename));
+	}
+
+	/**
+	 * Get translation method
+	 *
+	 * @param int $id Translation method Id
+	 *
+	 * @return stdClass|null
+	 */
+	public static function getTranslationMethodById($id)
+	{
+		$cacheId = NenoCache::getCacheId(__FUNCTION__, func_get_args());
+
+		if (NenoCache::getCacheData($cacheId) === null)
+		{
+			$db    = JFactory::getDbo();
+			$query = $db->getQuery(true);
+
+			$query
+				->select('*')
+				->from('#__neno_translation_methods')
+				->where('id = ' . (int) $id);
+
+			$db->setQuery($query);
+
+			NenoCache::setCacheData($cacheId, $db->loadObject());
+		}
+
+		return NenoCache::getCacheData($cacheId);
+
 	}
 }

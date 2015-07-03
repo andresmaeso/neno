@@ -34,11 +34,6 @@ class NenoViewDashboard extends JViewLegacy
 	protected $sidebar;
 
 	/**
-	 * @var bool
-	 */
-	protected $canInstallLanguages;
-
-	/**
 	 * @var string
 	 */
 	protected $extraSidebar;
@@ -68,7 +63,6 @@ class NenoViewDashboard extends JViewLegacy
 	{
 		$this->state                       = $this->get('State');
 		$this->items                       = $this->get('Items');
-		$this->canInstallLanguages         = $this->get('IsPossibleToInstallLanguage');
 		$this->isLanguageSwitcherPublished = $this->get('IsSwitcherPublished');
 
 		if (!$this->isLanguageSwitcherPublished)

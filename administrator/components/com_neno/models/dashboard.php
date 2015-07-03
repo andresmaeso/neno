@@ -123,23 +123,6 @@ class NenoModelDashboard extends JModelList
 	}
 
 	/**
-	 * Check if it's possible to install a language
-	 *
-	 * @return bool
-	 */
-	public function getIsPossibleToInstallLanguage()
-	{
-		$memoryDetails = NenoHelperBackend::getMemoryDetails();
-
-		if (!empty($memoryDetails))
-		{
-			return $memoryDetails['free_space'] == 0 || $memoryDetails['free_space'] > $memoryDetails['current_data_space'];
-		}
-
-		return true;
-	}
-
-	/**
 	 * Get position field
 	 *
 	 * @return string

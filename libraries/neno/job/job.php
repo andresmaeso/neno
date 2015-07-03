@@ -118,16 +118,7 @@ class NenoJob extends NenoObject
 
 		if (!empty($this->translationMethod))
 		{
-			$db    = JFactory::getDbo();
-			$query = $db->getQuery(true);
-
-			$query
-				->select('*')
-				->from('#__neno_translation_methods')
-				->where('id = ' . (int) $this->translationMethod);
-
-			$db->setQuery($query);
-			$this->translationMethod = $db->loadObject();
+			$this->translationMethod = NenoHelper::getTranslationMethodById($this->translationMethod);
 		}
 	}
 
@@ -461,7 +452,7 @@ class NenoJob extends NenoObject
 			'translation_method' => NenoHelper::convertTranslationMethodIdToName($this->getTranslationMethod()->id),
 			'from'               => $this->getFromLanguage(),
 			'to'                 => $this->getToLanguage(),
-			'comment'           => NenoSettings::get('external_translators_notes'),
+			'comment'            => NenoSettings::get('external_translators_notes'),
 			'strings'            => $this->getTranslations()
 		);
 

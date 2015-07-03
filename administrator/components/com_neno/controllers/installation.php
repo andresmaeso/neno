@@ -114,7 +114,6 @@ class NenoControllerInstallation extends JControllerAdmin
 				}
 
 				$data->languages           = $languagesData;
-				$data->canInstallLanguages = true;
 
 				break;
 			case 4:

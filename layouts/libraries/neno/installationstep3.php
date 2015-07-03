@@ -30,7 +30,7 @@ $items = $displayData->languages;
 		<?php endforeach; ?>
 
 		<button type="button" class="btn btn-primary"
-		        id="add-languages-button" <?php echo $displayData->canInstallLanguages ? '' : 'disabled'; ?>>
+		        id="add-languages-button">
 			<?php echo JText::_('COM_NENO_INSTALLATION_TARGET_LANGUAGES_ADD_LANGUAGE_BUTTON'); ?>
 		</button>
 

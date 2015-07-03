@@ -120,7 +120,7 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 			<?php echo JLayoutHelper::render('languageconfiguration', $item, JPATH_NENO_LAYOUTS); ?>
 		<?php endforeach; ?>
 		<button type="button" class="btn btn-primary"
-		        id="add-languages-button" <?php echo $this->canInstallLanguages ? '' : 'disabled'; ?>>
+		        id="add-languages-button">
 			<?php echo JText::_('COM_NENO_INSTALLATION_TARGET_LANGUAGES_ADD_LANGUAGE_BUTTON'); ?>
 		</button>
 	</div>
