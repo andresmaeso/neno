@@ -160,7 +160,8 @@ class NenoControllerDashboard extends JControllerAdmin
 				$db->insertObject('#__modules', $module, 'id');
 			}
 
-			$module->position = $jform['position'];
+			$module->position  = $jform['position'];
+			$module->published = 1;
 			$db->updateObject('#__modules', $module, 'id');
 
 			// Assigning items
