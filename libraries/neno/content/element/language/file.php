@@ -286,7 +286,7 @@ class NenoContentElementLanguageFile extends NenoContentElement implements NenoC
 				foreach ($strings as $constant => $string)
 				{
 					// If this language string exists already, let's load it
-					$languageString = NenoContentElementLanguageString::load(array ('constant' => $constant));
+					$languageString = NenoContentElementLanguageString::load(array ('constant' => $constant, 'languagefile_id' => $this->id));
 
 					// If it's not, let's create it
 					if (empty($languageString))
