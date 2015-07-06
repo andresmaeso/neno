@@ -627,6 +627,40 @@ class NenoContentElementGroup extends NenoContentElement implements NenoContentE
 		{
 			$this->persist();
 		}
+
+		// Once the structure is saved, let's go through the translations.
+		if (!empty($tables))
+		{
+			/* @var $table NenoContentElementTable */
+			foreach ($tables as $table)
+			{
+				$fields = $table->getFields(false, true);
+
+				/* @var $field NenoContentElementField */
+				foreach ($fields as $field)
+				{
+					$field->persistTranslations();
+				}
+			}
+		}
+
+		if (!empty($languageFiles))
+		{
+			/* @var $languageFile NenoContentElementLanguageFile */
+			foreach ($languageFiles as $languageFile)
+			{
+				if ($languageFile->loadStringsFromFile())
+				{
+					$languageStrings = $languageFile->getLanguageStrings();
+
+					/* @var $languageString NenoContentElementLanguageString */
+					foreach ($languageStrings as $languageString)
+					{
+						$languageString->persistTranslations();
+					}
+				}
+			}
+		}
 	}
 
 	/**
