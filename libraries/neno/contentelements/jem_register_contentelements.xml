@@ -18,10 +18,10 @@
 				       translate="0">uid</field>
 							<field type="text"
 				       name="uip"
-				       translate="1">uip</field>
+				       translate="0">uip</field>
 							<field type="text"
 				       name="uregdate"
-				       translate="1">uregdate</field>
+				       translate="0">uregdate</field>
 							<field type="text"
 				       name="waiting"
 				       translate="0">waiting</field>

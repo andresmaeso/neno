@@ -9,13 +9,13 @@
 		<table name="jem_cats_event_relations">
 							<field type="referenceid"
 				       name="catid"
-				       translate="0">catid</field>
+				       translate="1">catid</field>
 							<field type="referenceid"
 				       name="id"
-				       translate="0">id</field>
+				       translate="1">id</field>
 							<field type="referenceid"
 				       name="itemid"
-				       translate="0">itemid</field>
+				       translate="1">itemid</field>
 							<field type="text"
 				       name="ordering"
 				       translate="0">ordering</field>

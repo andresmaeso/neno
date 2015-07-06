@@ -9,37 +9,37 @@
 		<table name="jem_groups">
 							<field type="text"
 				       name="addevent"
-				       translate="0">addevent</field>
+				       translate="1">addevent</field>
 							<field type="text"
 				       name="addvenue"
-				       translate="0">addvenue</field>
+				       translate="1">addvenue</field>
 							<field type="text"
 				       name="checked_out"
-				       translate="0">checked_out</field>
+				       translate="1">checked_out</field>
 							<field type="text"
 				       name="checked_out_time"
-				       translate="0">checked_out_time</field>
+				       translate="1">checked_out_time</field>
 							<field type="text"
 				       name="description"
 				       translate="1">description</field>
 							<field type="text"
 				       name="editevent"
-				       translate="0">editevent</field>
+				       translate="1">editevent</field>
 							<field type="text"
 				       name="editvenue"
-				       translate="0">editvenue</field>
+				       translate="1">editvenue</field>
 							<field type="referenceid"
 				       name="id"
-				       translate="0">id</field>
+				       translate="1">id</field>
 							<field type="text"
 				       name="name"
 				       translate="1">name</field>
 							<field type="text"
 				       name="publishevent"
-				       translate="0">publishevent</field>
+				       translate="1">publishevent</field>
 							<field type="text"
 				       name="publishvenue"
-				       translate="0">publishvenue</field>
+				       translate="1">publishvenue</field>
 					</table>
 	</reference>
 </neno>

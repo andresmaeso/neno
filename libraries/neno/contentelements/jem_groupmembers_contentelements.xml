@@ -9,13 +9,13 @@
 		<table name="jem_groupmembers">
 							<field type="text"
 				       name="group_id"
-				       translate="0">group_id</field>
+				       translate="1">group_id</field>
 							<field type="referenceid"
 				       name="id"
-				       translate="0">id</field>
+				       translate="1">id</field>
 							<field type="text"
 				       name="member"
-				       translate="0">member</field>
+				       translate="1">member</field>
 					</table>
 	</reference>
 </neno>
