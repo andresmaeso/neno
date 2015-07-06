@@ -109,7 +109,9 @@ CREATE TABLE IF NOT EXISTS `#__neno_tasks` (
   `time_started`       DATETIME    NOT NULL,
   `number_of_attempts` TINYINT(1)  NOT NULL,
   `task_data`          TEXT        NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `task_task_data` (`task`, `task_data`(45)),
+  KEY `task` (`task`)
 )
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
