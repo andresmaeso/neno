@@ -397,7 +397,8 @@ CREATE TABLE IF NOT EXISTS `#__neno_language_external_translators_comments` (
   `id`       INT(11)    NOT NULL AUTO_INCREMENT,
   `language` VARCHAR(6) NOT NULL,
   `comment`  TEXT       NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `language` (`language`)
 )
   ENGINE = InnoDB;
 
