@@ -12,7 +12,7 @@
 				       translate="0">id</field>
 							<field type="text"
 				       name="parent_id"
-				       translate="1">parent_id</field>
+				       translate="0">parent_id</field>
 							<field type="text"
 				       name="catname"
 				       translate="1">catname</field>

@@ -4,18 +4,18 @@
 	<author>Neno - http://www.neno-translate.com</author>
 	<version>1.0.0</version>
 	<description>Definition of the table jem_groupmembers</description>
-	<translate>1</translate>
+	<translate>0</translate>
 	<reference type="content">
 		<table name="jem_groupmembers">
 							<field type="text"
 				       name="group_id"
-				       translate="1">group_id</field>
+				       translate="0">group_id</field>
 							<field type="referenceid"
 				       name="id"
-				       translate="1">id</field>
+				       translate="0">id</field>
 							<field type="text"
 				       name="member"
-				       translate="1">member</field>
+				       translate="0">member</field>
 					</table>
 	</reference>
 </neno>
