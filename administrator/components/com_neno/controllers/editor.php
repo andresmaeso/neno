@@ -109,9 +109,9 @@ class NenoControllerEditor extends NenoControllerStrings
 	/**
 	 * Save translation into the database
 	 *
-	 * @param   int      $translationId   Translation ID
-	 * @param   string   $translationText Translation Text
-	 * @param   int|bool $changeState     Translation status
+	 * @param   int    $translationId   Translation ID
+	 * @param   string $translationText Translation Text
+	 * @param   int    $changeState     Translation status
 	 *
 	 * @return bool
 	 *

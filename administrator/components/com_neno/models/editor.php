@@ -49,8 +49,6 @@ class NenoModelEditor extends NenoModelStrings
 	{
 		/* @var $translation NenoContentElementTranslation */
 		$translation = NenoContentElementTranslation::load($translationId);
-		$db          = JFactory::getDbo();
-		$query       = $db->getQuery(true);
 
 		if (!empty($translation))
 		{
