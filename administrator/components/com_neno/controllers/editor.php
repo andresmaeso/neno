@@ -117,7 +117,7 @@ class NenoControllerEditor extends NenoControllerStrings
 	 *
 	 * @throws Exception
 	 */
-	protected function saveTranslation($translationId, $translationText, $changeState = false)
+	protected function saveTranslation($translationId, $translationText, $changeState)
 	{
 		/* @var $translation NenoContentElementTranslation */
 		$translation = NenoContentElementTranslation::load($translationId, false, true);

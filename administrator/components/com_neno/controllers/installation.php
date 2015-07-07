@@ -113,7 +113,7 @@ class NenoControllerInstallation extends JControllerAdmin
 					$db->execute();
 				}
 
-				$data->languages           = $languagesData;
+				$data->languages = $languagesData;
 
 				break;
 			case 4:
@@ -326,6 +326,7 @@ class NenoControllerInstallation extends JControllerAdmin
 			}
 			else
 			{
+				/* @var $element NenoContentElementGroup */
 				$element->discoverElement();
 			}
 		}
@@ -389,6 +390,7 @@ class NenoControllerInstallation extends JControllerAdmin
 						$group = new NenoContentElementGroup(array ('group_name' => $extension['name']));
 					}
 
+					/* @var $group NenoContentElementGroup */
 					$group->addExtension($extension['extension_id']);
 
 					$extensionName = NenoHelper::getExtensionName($extension);

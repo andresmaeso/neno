@@ -17,7 +17,7 @@ defined('_JEXEC') or die;
 class NenoContentElementGroup extends NenoContentElement implements NenoContentElementInterface
 {
 	/**
-	 * @var array
+	 * @var array|null
 	 */
 	public $assignedTranslationMethods;
 
