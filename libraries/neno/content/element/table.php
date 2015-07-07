@@ -533,13 +533,23 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 	 */
 	public function checkTranslatableStatusFromContentElementFile()
 	{
-		$filePath = JPATH_NENO . '/contentelements/' . str_replace('#__', '', $this->tableName) . '_contentelements.xml';
+		$filePath = $this->getContentElementFilename();
 
 		if (file_exists($filePath))
 		{
 			$xml             = simplexml_load_file($filePath);
 			$this->translate = ((int) $xml->translate) == 1;
 		}
+	}
+
+	/**
+	 * Get content element filename
+	 *
+	 * @return string
+	 */
+	public function getContentElementFilename()
+	{
+		return JPATH_NENO . '/contentelements/' . str_replace('#__', '', $this->tableName) . '_contentelements.xml';
 	}
 
 	/**

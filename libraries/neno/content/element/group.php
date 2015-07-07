@@ -450,6 +450,7 @@ class NenoContentElementGroup extends NenoContentElement implements NenoContentE
 	 */
 	public function persist()
 	{
+		$isNew  = $this->isNew();
 		$result = parent::persist();
 
 		// Check if the saving process has been completed successfully
@@ -488,6 +489,26 @@ class NenoContentElementGroup extends NenoContentElement implements NenoContentE
 
 				$db->setQuery($insertQuery);
 				$db->execute();
+			}
+
+			// check whether or not this group should have translation methods (For unknown groups we set them as do not translate)
+			if ($isNew)
+			{
+				$fileFound = false;
+				/* @var $table NenoContentElementTable */
+				foreach ($this->tables as $table)
+				{
+					if (file_exists($table->getContentElementFilename()))
+					{
+						$fileFound = true;
+						break;
+					}
+				}
+
+				if (!$fileFound)
+				{
+					$this->assignedTranslationMethods = null;
+				}
 			}
 
 			if (!empty($this->assignedTranslationMethods))
