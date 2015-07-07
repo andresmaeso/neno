@@ -41,7 +41,7 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 	protected $translate;
 
 	/**
-	 * @var array
+	 * @var array|null
 	 */
 	protected $fields;
 
@@ -67,11 +67,6 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 		$this->tableName = NenoHelper::unifyTableName($this->tableName);
 
 		$this->primaryKey = is_array($this->primaryKey) ? json_encode($this->primaryKey) : json_decode($this->primaryKey);
-
-		if (!is_array($data))
-		{
-			$data = get_object_vars($data);
-		}
 
 		if (!empty($data['groupId']) && $loadParent)
 		{

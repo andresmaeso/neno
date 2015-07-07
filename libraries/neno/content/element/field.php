@@ -510,7 +510,7 @@ class NenoContentElementField extends NenoContentElement implements NenoContentE
 				'comment'     => $this->comment
 			);
 
-			if ($language != null)
+			if ($language !== null)
 			{
 				$languageData            = new stdClass;
 				$languageData->lang_code = $language;
