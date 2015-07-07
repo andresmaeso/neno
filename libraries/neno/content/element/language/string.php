@@ -32,7 +32,7 @@ class NenoContentElementLanguageString extends NenoContentElement implements Nen
 	protected $string;
 
 	/**
-	 * @var DateTime
+	 * @var DateTime|string
 	 */
 	protected $timeAdded;
 
@@ -47,7 +47,7 @@ class NenoContentElementLanguageString extends NenoContentElement implements Nen
 	protected $timeDeleted;
 
 	/**
-	 * @var array
+	 * @var array|null
 	 */
 	protected $translations;
 
@@ -369,7 +369,7 @@ class NenoContentElementLanguageString extends NenoContentElement implements Nen
 				'comment'     => $this->comment
 			);
 
-			if ($language != null)
+			if ($language !== null)
 			{
 				$languageData            = new stdClass;
 				$languageData->lang_code = $language;

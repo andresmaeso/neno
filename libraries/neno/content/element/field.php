@@ -64,7 +64,7 @@ class NenoContentElementField extends NenoContentElement implements NenoContentE
 	protected $translate;
 
 	/**
-	 * @var array
+	 * @var array|null
 	 */
 	protected $translations;
 
@@ -325,7 +325,9 @@ class NenoContentElementField extends NenoContentElement implements NenoContentE
 		}
 		elseif (!empty($this->table) && $convertToDatabase)
 		{
-			$object->table_id = $this->table->id;
+			/* @var $table stdClass */
+			$table            = $this->table;
+			$object->table_id = $table->id;
 		}
 
 		return $object;

@@ -323,7 +323,6 @@ class NenoModelStrings extends JModelList
 			{
 				$languageFileStrings->select('g2.id AS group_id');
 				$dbStrings->select('g1.id AS group_id');
-				$groupIdAdded = true;
 			}
 
 			// Do not show any strings for this language file

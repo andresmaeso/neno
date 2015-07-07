@@ -32,7 +32,7 @@ class NenoContentElementGroup extends NenoContentElement implements NenoContentE
 	public $wordCount;
 
 	/**
-	 * @var array
+	 * @var array|null
 	 */
 	public $languageFiles;
 
@@ -47,7 +47,7 @@ class NenoContentElementGroup extends NenoContentElement implements NenoContentE
 	protected $groupName;
 
 	/**
-	 * @var array
+	 * @var array|null
 	 */
 	protected $tables;
 
@@ -338,12 +338,13 @@ class NenoContentElementGroup extends NenoContentElement implements NenoContentE
 					/* @var $fieldData DOMElement */
 					foreach ($fields as $fieldData)
 					{
-						$fieldData = array (
-							'fieldName' => $fieldData->getAttribute('name'),
-							'translate' => intval($fieldData->getAttribute('translate')),
-							'table'     => $table
+						$field = new NenoContentElementField(
+							array (
+								'fieldName' => $fieldData->getAttribute('name'),
+								'translate' => intval($fieldData->getAttribute('translate')),
+								'table'     => $table
+							)
 						);
-						$field     = new NenoContentElementField($fieldData);
 
 						$table->addField($field);
 
