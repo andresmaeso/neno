@@ -2077,8 +2077,7 @@ class NenoHelper
 				'#__finder_tokens',
 				'#__finder_tokens_aggregate',
 				'#__newsfeeds',
-				'#__tags',
-				'#__weblinks'
+				'#__tags'
 			);
 
 			$unionQueries = array ();
@@ -2666,8 +2665,7 @@ class NenoHelper
 			'#__finder_tokens',
 			'#__finder_tokens_aggregate',
 			'#__newsfeeds',
-			'#__tags',
-			'#__weblinks'
+			'#__tags'
 		);
 
 		foreach ($joomlaTablesUsingLanguageField as $joomlaTableUsingLanguageField)

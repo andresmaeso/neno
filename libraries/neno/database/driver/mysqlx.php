@@ -642,6 +642,25 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
 	}
 
 	/**
+	 * Set from All ('*') to source language
+	 *
+	 * @param $sourceTableName
+	 * @param $sourceLanguage
+	 *
+	 * @throws Exception
+	 */
+	public function setContentForAllLanguagesToSourceLanguage($sourceTableName, $sourceLanguage)
+	{
+		$query = $this->getQuery(true);
+		$query
+			->update($sourceTableName)
+			->set('language =' . $this->quote($sourceLanguage))
+			->where('language = ' . $this->quote('*'));
+		$this->setQuery($query);
+		$this->execute();
+	}
+
+	/**
 	 * Copy the content to a table that uses Joomla language field
 	 *
 	 * @param   string $tableName Table name
