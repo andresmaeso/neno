@@ -71,7 +71,7 @@ class NenoContentElementTranslation extends NenoContentElement
 	public $charactersCounter;
 
 	/**
-	 * @var int
+	 * @var array
 	 */
 	public $translationMethods;
 
@@ -621,7 +621,7 @@ class NenoContentElementTranslation extends NenoContentElement
 
 			if ($this->state == self::TRANSLATED_STATE)
 			{
-				$this->moveTranslationToTarget($this->language);
+				$this->moveTranslationToTarget();
 			}
 
 			return true;

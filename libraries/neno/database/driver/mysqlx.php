@@ -86,7 +86,7 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
 
 			$data = $this->executeQuery($query, true, true);
 
-			$sql = 'ALTER TABLE ' . $shadowTable . ' AUTO_INCREMENT= ' . (int) $data[0]->AUTO_INCREMENT;
+			$sql = 'ALTER TABLE ' . $this->quoteName($shadowTable) . ' AUTO_INCREMENT= ' . $this->quote((int) $data[0]->AUTO_INCREMENT);
 			$this->executeQuery($sql);
 
 			return true;
@@ -597,7 +597,7 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
 			if ($knownLanguage->lang_code !== $defaultLanguage)
 			{
 				$shadowTableName            = $this->generateShadowTableName($tableName, $knownLanguage->lang_code);
-				$shadowTableCreateStatement = 'CREATE TABLE IF NOT EXISTS ' . $this->quoteName($shadowTableName) . ' LIKE ' . $tableName;
+				$shadowTableCreateStatement = 'CREATE TABLE IF NOT EXISTS ' . $this->quoteName($shadowTableName) . ' LIKE ' . $this->quoteName($tableName);
 				$this->executeQuery($shadowTableCreateStatement);
 
 				if ($copyContent)
@@ -618,8 +618,8 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
 	 */
 	public function copyContentElementsFromSourceTableToShadowTables($sourceTableName, $shadowTableName)
 	{
-		$columns = array_map(array ($this, 'quoteName'), array_keys($this->getTableColumns($sourceTableName)));
-		$query   = 'REPLACE INTO ' . $shadowTableName . ' (' . implode(',', $columns) . ' ) SELECT * FROM ' . $sourceTableName;
+		$columns = $this->getTableColumns($sourceTableName);
+		$query   = 'REPLACE INTO ' . $this->quoteName($shadowTableName) . ' (' . implode(',', $this->quoteName($columns)) . ' ) SELECT * FROM ' . $this->quoteName($sourceTableName);
 		$this->executeQuery($query);
 	}
 
@@ -716,7 +716,7 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
 	 */
 	public function getPrimaryKey($tableName)
 	{
-		$query       = 'SHOW INDEX FROM ' . $tableName . ' WHERE Key_name = \'PRIMARY\' OR Non_unique = 0';
+		$query       = 'SHOW INDEX FROM ' . $this->quoteName($tableName) . ' WHERE Key_name = \'PRIMARY\' OR Non_unique = 0';
 		$results     = $this->executeQuery($query, true, true);
 		$foreignKeys = array ();
 
