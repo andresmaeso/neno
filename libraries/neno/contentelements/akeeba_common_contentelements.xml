@@ -12,7 +12,7 @@
 				       translate="1">key</field>
 							<field type="text"
 				       name="value"
-				       translate="1">value</field>
+				       translate="0">value</field>
 					</table>
 	</reference>
 </neno>
