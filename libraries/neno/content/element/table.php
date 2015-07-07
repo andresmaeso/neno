@@ -517,6 +517,8 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 							$db->deleteContentElementsFromSourceTableToShadowTables($this->tableName, $language->lang_code);
 						}
 					}
+
+					$db->setContentForAllLanguagesToSourceLanguage($this->tableName, $defaultLanguage);
 				}
 			}
 		}

@@ -59,7 +59,29 @@ class NenoControllerGroupElement extends JControllerForm
 		header('Content-Type: application/xml; charset=utf-8');
 		header('Content-Disposition: attachment; filename="' . $fileName . '"');
 
-		echo JLayoutHelper::render('contentelementxml', $displayData, JPATH_NENO_LAYOUTS);
+		// Creating XML file (the right way to do it!)
+		$nenoXml = new SimpleXMLElement('<neno />');
+		$nenoXml->addAttribute('type', 'contentelement');
+		$nenoXml->addChild('name', $tableName);
+		$nenoXml->addChild('author', 'Neno - http://www.neno-translate.com');
+		$nenoXml->addChild('version', '1.0.0');
+		$nenoXml->addChild('description', 'Definition of the table ' . $tableName);
+		$nenoXml->addChild('translate', $tableObject->translate);
+
+		$reference = $nenoXml->addChild('reference');
+		$reference->addAttribute('type', 'content');
+		$tableNode = $reference->addChild('table');
+		$tableNode->addAttribute('name', $tableName);
+
+		foreach ($tableObject->fields as $field)
+		{
+			$fieldNode = $tableNode->addChild('field', $field->field_name);
+			$fieldNode->addAttribute('type', (in_array($field->field_name, $displayData['table']->primary_key)) ? 'referenceid' : 'text');
+			$fieldNode->addAttribute('name', $field->field_name);
+			$fieldNode->addAttribute('translate', $field->translate);
+		}
+
+		echo $nenoXml->asXML();
 
 		JFactory::getApplication()->close();
 	}
