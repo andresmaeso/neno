@@ -82,7 +82,7 @@ abstract class NenoContentElement extends NenoObject
 	 * @param   bool  $loadParent    Load parent
 	 * @param   bool  $cache         Allows to cache the result
 	 *
-	 * @return $this|array
+	 * @return mixed|array
 	 */
 	public static function load($pk, $loadExtraData = true, $loadParent = false, $cache = true)
 	{
