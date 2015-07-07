@@ -284,6 +284,7 @@ tests/_output/*
 cli/*
 !/cli/neno.php
 !pack.php
+!neno.php
 !.travis.yml
 !phpmd.xml
 !RoboFile.php
