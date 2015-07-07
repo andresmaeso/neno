@@ -1,9 +1,9 @@
 <?php
 
+$compress    = ($argc > 1 && $argv[1] == '--compress');
 $extractPath = dirname(__FILE__);
 $folders     = folders(dirname(__FILE__));
 $packagePath = $extractPath;
-
 
 // Neno Component folders
 $componentPath = $packagePath . DIRECTORY_SEPARATOR . 'com_neno';
@@ -134,6 +134,11 @@ if (rmdirRecursive($extractPath . DIRECTORY_SEPARATOR . 'layouts') !== true)
 	return false;
 }
 
+if (rmdirRecursive($extractPath . DIRECTORY_SEPARATOR . 'media') !== true)
+{
+	return false;
+}
+
 $files = files($extractPath);
 
 $rootFiles          = array ('pkg_neno.xml', 'script.php', 'codeception.yml', 'composer.json', 'RoboFile.php');
@@ -181,6 +186,74 @@ foreach ($folders as $extensionFolder)
 
 		file_put_contents($extractPath . DIRECTORY_SEPARATOR . $extensionFolder . DIRECTORY_SEPARATOR . 'neno.xml', $installationFileContent);
 	}
+}
+
+if ($compress)
+{
+	// Compress component
+	$files   = files($componentPath, true);
+	$zipData = array ();
+
+	foreach ($files as $file)
+	{
+		$zipData[] = array (
+			'name' => str_replace($componentPath . DIRECTORY_SEPARATOR, '', $file),
+			'file' => $file
+		);
+	}
+
+	createZip($packagePath . DIRECTORY_SEPARATOR . 'packages' . DIRECTORY_SEPARATOR . 'com_neno.zip', $zipData);
+
+	rmdirRecursive($componentPath);
+
+	// Compress plugin
+	$files   = files($extractPath . DIRECTORY_SEPARATOR . 'plg_system_neno', true);
+	$zipData = array ();
+
+	foreach ($files as $file)
+	{
+		$zipData[] = array (
+			'name' => str_replace($extractPath . DIRECTORY_SEPARATOR . 'plg_system_neno' . DIRECTORY_SEPARATOR, '', $file),
+			'file' => $file
+		);
+	}
+
+	createZip($packagePath . DIRECTORY_SEPARATOR . 'packages' . DIRECTORY_SEPARATOR . 'plg_system_neno.zip', $zipData);
+
+	rmdirRecursive($extractPath . DIRECTORY_SEPARATOR . 'plg_system_neno');
+
+	// Compress library
+	$files   = files($extractPath . DIRECTORY_SEPARATOR . 'lib_neno', true);
+	$zipData = array ();
+
+	foreach ($files as $file)
+	{
+		$zipData[] = array (
+			'name' => str_replace($extractPath . DIRECTORY_SEPARATOR . 'lib_neno' . DIRECTORY_SEPARATOR, '', $file),
+			'file' => $file
+		);
+	}
+
+	createZip($packagePath . DIRECTORY_SEPARATOR . 'packages' . DIRECTORY_SEPARATOR . 'lib_neno.zip', $zipData);
+	rmdirRecursive($extractPath . DIRECTORY_SEPARATOR . 'lib_neno');
+
+	// Compress library
+	$files   = files($extractPath, true);
+	$zipData = array ();
+
+	foreach ($files as $file)
+	{
+		$zipData[] = array (
+			'name' => str_replace($extractPath . DIRECTORY_SEPARATOR, '', $file),
+			'file' => $file
+		);
+	}
+
+	createZip($packagePath . DIRECTORY_SEPARATOR . 'pkg_neno.zip', $zipData);
+
+	rmdirRecursive($packagePath . DIRECTORY_SEPARATOR . 'packages');
+	unlink($packagePath . DIRECTORY_SEPARATOR . 'pkg_neno.xml');
+	unlink($packagePath . DIRECTORY_SEPARATOR . 'script.php');
 }
 
 function folders($path)
@@ -234,7 +307,10 @@ function createZip($path, $zipData)
 
 	foreach ($zipData as $element)
 	{
-		$zip->addFile($element['file'], $element['name']);
+		if (!$zip->addFile($element['file'], $element['name']))
+		{
+			echo "Error adding " . $element['name'] . "\n";
+		}
 	}
 
 	$zip->close();
