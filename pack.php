@@ -302,7 +302,7 @@ function createZip($path, $zipData)
 
 	if ($zip->open($path, ZipArchive::CREATE) !== true)
 	{
-		exit("cannot open <$path>\n");
+		return false;
 	}
 
 	foreach ($zipData as $element)

@@ -289,7 +289,7 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 	{
 		if (!is_array($this->primaryKey))
 		{
-			$this->primaryKey = json_decode($this->primaryKey);
+			$this->primaryKey = (array) json_decode($this->primaryKey);
 		}
 
 		return $this->primaryKey;

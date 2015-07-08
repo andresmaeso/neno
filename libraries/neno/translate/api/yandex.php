@@ -59,8 +59,6 @@ class NenoTranslateApiYandex extends NenoTranslateApi
 			// Invoke the POST request.
 			$response = $this->post($url, array ('text' => $text));
 
-			$text = null;
-
 			// Log it if server response is not OK.
 			if ($response->code != 200)
 			{

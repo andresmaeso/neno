@@ -53,7 +53,7 @@ class NenoTask extends NenoObject
 
 		if (is_string($this->taskData))
 		{
-			$this->taskData = json_decode($this->taskData, true);
+			$this->taskData = (array) json_decode($this->taskData, true);
 		}
 	}
 

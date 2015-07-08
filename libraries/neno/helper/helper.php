@@ -1029,7 +1029,7 @@ class NenoHelper
 		$string = htmlspecialchars($string);
 		$ending = '';
 
-		if ($truncate)
+		if ($truncate !== null)
 		{
 			$parts       = preg_split('/([\s\n\r]+)/', $string, null, PREG_SPLIT_DELIM_CAPTURE);
 			$parts_count = count($parts);
@@ -1078,7 +1078,6 @@ class NenoHelper
 			/* @var $db NenoDatabaseDriverMysqlX */
 			$db     = JFactory::getDbo();
 			$query  = $db->getQuery(true);
-			$string = null;
 
 			$query
 				->select('content_id')
@@ -2083,7 +2082,7 @@ class NenoHelper
 			$unionQueries = array ();
 			$query->select('COUNT(*) AS counter');
 
-			if ($language == null)
+			if ($language === null)
 			{
 				$query->where('language <> ' . $db->quote($defaultLanguage));
 			}

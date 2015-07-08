@@ -81,7 +81,7 @@ class NenoContentElementTranslation extends NenoContentElement
 	protected $originalText;
 
 	/**
-	 * @var integer
+	 * @var string
 	 */
 	protected $contentType;
 
@@ -850,7 +850,7 @@ class NenoContentElementTranslation extends NenoContentElement
 
 			if (!$found)
 			{
-				if ($ordering == null)
+				if ($ordering === null)
 				{
 					$this->translationMethods[] = $translationMethod;
 				}

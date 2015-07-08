@@ -45,8 +45,6 @@ class NenoTranslateApiGoogle extends NenoTranslateApi
 				array ('X-HTTP-Method-Override' => 'GET')
 			);
 
-			$text = null;
-
 			// Log it if server response is not OK.
 			if ($response->code != 200)
 			{

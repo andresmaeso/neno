@@ -269,7 +269,7 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
 		$pattern        = '/(#__|' . preg_quote($databasePrefix) . ')(\w+)/';
 		$matches        = null;
 
-		if ($languageTagSelected == null)
+		if ($languageTagSelected === null)
 		{
 			$languageTagSelected = $this->getLanguageTagSelected();
 		}
