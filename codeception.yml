@@ -1,4 +1,7 @@
 actor: Tester
+extensions:
+  enabled:
+    - Codeception\Extension\Recorder
 paths:
     tests: tests
     log: tests/_output
