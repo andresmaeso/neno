@@ -7,10 +7,7 @@
 class_name: AcceptanceTester
 modules:
     enabled:
-        - JoomlaBrowser
-        - AcceptanceHelper
-    config:
-        JoomlaBrowser:
+        - JoomlaBrowser:
             url: 'http://localhost/tests/joomla-cms/'     # the url that points to the joomla installation at /tests/system/joomla-cms
             browser: 'firefox'
             window_size: 1024x768
@@ -29,5 +26,5 @@ modules:
             admin email: 'admin@mydomain.com'      # email Id of the Admin
             language: 'English (United Kingdom)'   # Language in which you want the Application to be Installed
             joomla folder: '/home/travis/build/Jensen-Technologies/neno/tests/joomla-cms' # Path to Joomla installation where we execute the tests
-        AcceptanceHelper:
+        - AcceptanceHelper:
             repo_folder: '/home/travis/build/Jensen-Technologies/neno/'
