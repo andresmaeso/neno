@@ -52,6 +52,11 @@ class NenoContentElementGroup extends NenoContentElement implements NenoContentE
 	protected $tables;
 
 	/**
+	 * @var bool
+	 */
+	protected $otherGroup;
+
+	/**
 	 * {@inheritdoc}
 	 *
 	 * @param   mixed $data          Group data
@@ -629,8 +634,12 @@ class NenoContentElementGroup extends NenoContentElement implements NenoContentE
 	 */
 	public function refresh()
 	{
-		$tables        = NenoHelper::getComponentTables($this);
-		$languageFiles = NenoHelper::getLanguageFiles($this->getGroupName());
+		$tables = NenoHelper::getComponentTables($this);
+
+		if (!$this->isOtherGroup())
+		{
+			$languageFiles = NenoHelper::getLanguageFiles($this->getGroupName());
+		}
 
 		// If there are tables, let's assign to the group
 		if (!empty($tables))
@@ -683,6 +692,24 @@ class NenoContentElementGroup extends NenoContentElement implements NenoContentE
 				}
 			}
 		}
+	}
+
+	/**
+	 * Check if it's other group
+	 *
+	 * @return boolean
+	 */
+	public function isOtherGroup()
+	{
+		return $this->otherGroup;
+	}
+
+	/**
+	 * @param boolean $otherGroup
+	 */
+	public function setOtherGroup($otherGroup)
+	{
+		$this->otherGroup = $otherGroup;
 	}
 
 	/**

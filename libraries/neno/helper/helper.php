@@ -601,7 +601,7 @@ class NenoHelper
 	{
 		/* @var $db NenoDatabaseDriverMysqlx */
 		$db     = JFactory::getDbo();
-		$tables = $db->getComponentTables($tablePattern === null ? $group->getGroupName() : $tablePattern);
+		$tables = $group->isOtherGroup() ? NenoHelperBackend::getTablesNotDiscovered() : $db->getComponentTables($tablePattern === null ? $group->getGroupName() : $tablePattern);
 
 		$result = array ();
 
@@ -620,7 +620,7 @@ class NenoHelper
 					$tableData = array (
 						'tableName'  => $tableName,
 						'primaryKey' => $db->getPrimaryKey($tableName),
-						'translate'  => 1,
+						'translate'  => !$group->isOtherGroup(),
 						'group'      => $group
 					);
 
@@ -1076,8 +1076,8 @@ class NenoHelper
 		if ($cachedData === null)
 		{
 			/* @var $db NenoDatabaseDriverMysqlX */
-			$db     = JFactory::getDbo();
-			$query  = $db->getQuery(true);
+			$db    = JFactory::getDbo();
+			$query = $db->getQuery(true);
 
 			$query
 				->select('content_id')

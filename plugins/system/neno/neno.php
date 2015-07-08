@@ -84,19 +84,31 @@ class PlgSystemNeno extends JPlugin
 	 */
 	public function onExtensionAfterInstall($installer, $extensionId)
 	{
-		$db    = JFactory::getDbo();
-		$query = $db->getQuery(true);
+		$this->discoverExtension($extensionId);
+	}
+
+	protected function discoverExtension($extensionId)
+	{
+		$db         = JFactory::getDbo();
+		$query      = $db->getQuery(true);
+		$extensions = $db->quote(NenoHelper::whichExtensionsShouldBeTranslated());
 
 		$query
 			->select('*')
 			->from('#__extensions')
-			->where('extension_id = ' . (int) $extensionId);
+			->where(
+				array (
+					'extension_id = ' . (int) $extensionId,
+					'type IN (' . implode(',', $extensions) . ')',
+				)
+			);
 
 		$db->setQuery($query);
 		$extensionData = $db->loadAssoc();
 
 		if (!empty($extensionData) && strpos($extensionData['element'], 'neno') === false)
 		{
+
 			NenoHelper::discoverExtension($extensionData);
 		}
 	}
@@ -111,21 +123,7 @@ class PlgSystemNeno extends JPlugin
 	 */
 	public function onExtensionAfterUpdate($installer, $extensionId)
 	{
-		$db    = JFactory::getDbo();
-		$query = $db->getQuery(true);
-
-		$query
-			->select('*')
-			->from('#__extensions')
-			->where('extension_id = ' . (int) $extensionId);
-
-		$db->setQuery($query);
-		$extensionData = $db->loadAssoc();
-
-		if (!empty($extensionData) && strpos($extensionData['element'], 'neno') === false)
-		{
-			NenoHelper::discoverExtension($extensionData);
-		}
+		$this->discoverExtension($extensionId);
 	}
 
 	/**

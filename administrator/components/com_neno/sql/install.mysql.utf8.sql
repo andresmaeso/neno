@@ -123,6 +123,7 @@ CREATE TABLE IF NOT EXISTS `#__neno_tasks` (
 CREATE TABLE IF NOT EXISTS `#__neno_content_element_groups` (
   `id`         INT(11)      NOT NULL AUTO_INCREMENT,
   `group_name` VARCHAR(150) NOT NULL,
+  `other_group` TINYINT(1)   NOT NULL,
   PRIMARY KEY (`id`)
 )
   ENGINE = InnoDB

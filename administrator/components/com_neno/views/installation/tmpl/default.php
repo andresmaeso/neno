@@ -180,7 +180,7 @@ if (!empty($this->extra_sidebar))
 
 	</div>
 	<div class="modal-footer">
-		<a href="#" class="btn" data-dismiss="modal">Close</a>
+		<a href="#" class="btn close-button" data-dismiss="modal">Close</a>
 	</div>
 </div>
 

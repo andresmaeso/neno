@@ -26,8 +26,11 @@ class NenoTaskWorkerScan extends NenoTaskWorker
 	{
 		/* @var $group NenoContentElementGroup */
 		$group = NenoContentElementGroup::load(array ('_order' => array ('id' => 'asc'), '_limit' => 1, '_offset' => $taskData['group'] - 1));
-		$group->refresh();
 
-		NenoTaskMonitor::addTask('scan', array ('group' => $taskData['group'] + 1));
+		if (!empty($group))
+		{
+			$group->refresh();
+			NenoTaskMonitor::addTask('scan', array ('group' => $taskData['group'] + 1));
+		}
 	}
 }

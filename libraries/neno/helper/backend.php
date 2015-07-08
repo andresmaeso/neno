@@ -279,7 +279,7 @@ class NenoHelperBackend
 	 *
 	 * @return array
 	 */
-	protected static function getTablesNotDiscovered()
+	public static function getTablesNotDiscovered()
 	{
 		/* @var $db NenoDatabaseDriverMysqlx */
 		$db    = JFactory::getDbo();
@@ -313,7 +313,17 @@ class NenoHelperBackend
 		$db->setQuery($query);
 		$tablesNotDiscovered = $db->loadArray();
 
-		return $tablesNotDiscovered;
+		$query
+			->clear()
+			->select('t.table_name')
+			->from('#__neno_content_element_tables AS t')
+			->innerJoin('#__neno_content_element_groups AS g ON t.group_id = g.id')
+			->where('g.other_group = 1');
+
+		$db->setQuery($query);
+		$discoveredTablesInOtherGroup = $db->loadArray();
+
+		return array_merge($discoveredTablesInOtherGroup, $tablesNotDiscovered);
 	}
 
 	/**
