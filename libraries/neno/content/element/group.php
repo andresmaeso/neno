@@ -537,25 +537,29 @@ class NenoContentElementGroup extends NenoContentElement implements NenoContentE
 
 				foreach ($this->assignedTranslationMethods as $translationMethod)
 				{
-					$deleteQuery
-						->clear()
-						->delete('#__neno_content_element_groups_x_translation_methods')
-						->where(
-							array (
-								'group_id = ' . $this->id,
-								'lang = ' . $db->quote($translationMethod->lang)
-							)
-						);
 
-					$db->setQuery($deleteQuery);
-					$db->execute();
-
-					if (!empty($translationMethod))
+					if (!empty($translationMethod->lang))
 					{
-						$insert = true;
-						$insertQuery->values(
-							$this->id . ',' . $db->quote($translationMethod->lang) . ', ' . $db->quote($translationMethod->translation_method_id) . ', ' . $db->quote($translationMethod->ordering)
-						);
+						$deleteQuery
+							->clear()
+							->delete('#__neno_content_element_groups_x_translation_methods')
+							->where(
+								array (
+									'group_id = ' . $this->id,
+									'lang = ' . $db->quote($translationMethod->lang)
+								)
+							);
+
+						$db->setQuery($deleteQuery);
+						$db->execute();
+
+						if (!empty($translationMethod))
+						{
+							$insert = true;
+							$insertQuery->values(
+								$this->id . ',' . $db->quote($translationMethod->lang) . ', ' . $db->quote($translationMethod->translation_method_id) . ', ' . $db->quote($translationMethod->ordering)
+							);
+						}
 					}
 				}
 
@@ -632,7 +636,7 @@ class NenoContentElementGroup extends NenoContentElement implements NenoContentE
 	 *
 	 * @return void
 	 */
-	public function refresh()
+	public function refresh($language = null)
 	{
 		$tables = NenoHelper::getComponentTables($this);
 
@@ -670,7 +674,7 @@ class NenoContentElementGroup extends NenoContentElement implements NenoContentE
 				/* @var $field NenoContentElementField */
 				foreach ($fields as $field)
 				{
-					$field->persistTranslations();
+					$field->persistTranslations(null, $language);
 				}
 			}
 		}
@@ -687,7 +691,7 @@ class NenoContentElementGroup extends NenoContentElement implements NenoContentE
 					/* @var $languageString NenoContentElementLanguageString */
 					foreach ($languageStrings as $languageString)
 					{
-						$languageString->persistTranslations();
+						$languageString->persistTranslations($language);
 					}
 				}
 			}

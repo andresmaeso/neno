@@ -526,22 +526,7 @@ class NenoContentElementField extends NenoContentElement implements NenoContentE
 			$strings            = $this->getStrings($recordId);
 			$primaryKeyData     = $this->getTable()->getPrimaryKey();
 
-			/* @var $db NenoDatabaseDriverMysqlx */
-			$db    = JFactory::getDbo();
-			$query = $db->getQuery(true);
-			$query
-				->select(
-					array (
-						'gtm.lang',
-						'gtm.translation_method_id',
-					)
-				)
-				->from('#__neno_content_element_tables AS t')
-				->innerJoin('#__neno_content_element_groups AS g ON t.group_id = g.id')
-				->innerJoin('#__neno_content_element_groups_x_translation_methods AS gtm ON gtm.group_id = g.id')
-				->where('t.id = ' . $this->table->getId());
-			$db->setQuery($query);
-			$translationmethods = $db->loadObjectListMultiIndex('lang');
+			$translationmethods = NenoHelper::getTranslationMethodsByTableId($this->table->getId());
 
 			if (!empty($strings))
 			{
@@ -624,7 +609,7 @@ class NenoContentElementField extends NenoContentElement implements NenoContentE
 			{
 				$translation = $this->translations[$i];
 				/* @var $translation NenoContentElementTranslation */
-				$translation->setState(NenoContentElementTranslation::SOURCE_CHANGED_STATE);
+				$translation->refresh();
 
 				$this->translations[$i] = $translation;
 			}

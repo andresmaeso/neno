@@ -314,4 +314,23 @@ class NenoControllerGroupsElements extends JControllerAdmin
 
 		$app->close();
 	}
+
+	public function scanForContent()
+	{
+		$input  = $this->input;
+		$groups = $input->get('groups', array (), 'ARRAY');
+
+		foreach ($groups as $groupId)
+		{
+			/* @var $group NenoContentElementGroup */
+			$group = NenoContentElementGroup::load($groupId);
+
+			if (!empty($group))
+			{
+				$group->refresh(NenoHelper::getWorkingLanguage());
+			}
+		}
+
+		JFactory::getApplication()->redirect('index.php?option=com_neno&view=groupselements');
+	}
 }

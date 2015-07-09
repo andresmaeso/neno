@@ -510,299 +510,6 @@ class NenoContentElementTranslation extends NenoContentElement
 	}
 
 	/**
-	 * {@inheritdoc}
-	 *
-	 * @return bool
-	 */
-	public function persist()
-	{
-		// Update word counter
-		$this->wordCounter = str_word_count($this->getString());
-
-		if ($this->contentType == self::DB_STRING)
-		{
-			/* @var $field NenoContentElementField */
-			$field = $this->element;
-
-			if ($field instanceof NenoContentElementField)
-			{
-				$this->string = $field->applyFilter($this->string);
-			}
-		}
-
-		if ($this->getState() == self::TRANSLATED_STATE)
-		{
-			$this->timeCompleted = new DateTime;
-		}
-
-		// Check if this record is new
-		$isNew = $this->isNew();
-
-		if (!$isNew)
-		{
-			// Updating changed time
-			$this->timeChanged = new DateTime;
-		}
-
-		// Only execute this task when the translation is new and there are no records about how to find it.
-		if (parent::persist())
-		{
-			$db    = JFactory::getDbo();
-			$query = $db->getQuery(true);
-
-			if ($isNew && $this->contentType == self::DB_STRING)
-			{
-				if (!empty($this->sourceElementData))
-				{
-					$query
-						->insert('#__neno_content_element_fields_x_translations')
-						->columns(
-							array (
-								'field_id',
-								'translation_id',
-								'value'
-							)
-						);
-
-					$inserted = array ();
-
-					// Loop through the data
-					foreach ($this->sourceElementData as $sourceData)
-					{
-						/* @var $field NenoContentElementField */
-						$field      = $sourceData['field'];
-						$fieldValue = $sourceData['value'];
-
-						// Checks if this row has been inserted already
-						if (!in_array($field->getId() . '|' . $this->getId(), $inserted))
-						{
-							$query->values($field->getId() . ',' . $this->getId() . ',' . $db->quote($fieldValue));
-							$inserted[] = $field->getId() . '|' . $this->getId();
-						}
-
-					}
-
-					$db->setQuery($query);
-					$db->execute();
-				}
-			}
-
-			$query
-				->clear()
-				->delete('#__neno_content_element_translation_x_translation_methods')
-				->where('translation_id = ' . $this->id);
-			$db->setQuery($query);
-			$db->execute();
-
-			if (!empty($this->translationMethods))
-			{
-				$query
-					->clear()
-					->insert('#__neno_content_element_translation_x_translation_methods')
-					->columns(
-						array (
-							'translation_id',
-							'translation_method_id',
-							'ordering'
-						)
-					);
-
-				foreach ($this->translationMethods as $key => $translationMethod)
-				{
-					$query->values($this->id . ',' . $translationMethod->id . ',' . ($key + 1));
-				}
-
-				$db->setQuery($query);
-				$db->execute();
-			}
-
-			$this->originalText = $this->loadOriginalText();
-			parent::persist();
-
-			if ($this->state == self::TRANSLATED_STATE)
-			{
-				$this->moveTranslationToTarget();
-			}
-
-			return true;
-		}
-
-		return false;
-	}
-
-	/**
-	 * Get the translation state
-	 *
-	 * @return int
-	 */
-	public function getState()
-	{
-		return $this->state;
-	}
-
-	/**
-	 * Set the translation state
-	 *
-	 * @param   int $state Translation state
-	 *
-	 * @return NenoContentElementTranslation
-	 */
-	public function setState($state)
-	{
-		$this->state = $state;
-
-		return $this;
-	}
-
-	/**
-	 * Load Original text
-	 *
-	 * @return string
-	 */
-	private function loadOriginalText()
-	{
-		$string = NenoHelper::getTranslationOriginalText($this->getId(), $this->getContentType());
-
-		return $string;
-	}
-
-	/**
-	 * Get type of the content to translate
-	 *
-	 * @return int
-	 */
-	public function getContentType()
-	{
-		return $this->contentType;
-	}
-
-	/**
-	 * Set content type
-	 *
-	 * @param   int $contentType content type
-	 *
-	 * @return NenoContentElement
-	 */
-	public function setContentType($contentType)
-	{
-		$this->contentType = $contentType;
-
-		return $this;
-	}
-
-	/**
-	 * Move the translation to its place in the shadow table
-	 *
-	 * @return bool
-	 */
-	public function moveTranslationToTarget()
-	{
-		/* @var $db NenoDatabaseDriverMysqlx */
-		$db    = JFactory::getDbo();
-		$query = $db->getQuery(true);
-
-		// If the translation comes from database content, let's load it
-		if ($this->contentType == self::DB_STRING)
-		{
-			$query->clear()
-				->select(
-					array (
-						'f.field_name',
-						't.table_name'
-					)
-				)
-				->from('`#__neno_content_element_fields` AS f')
-				->innerJoin('`#__neno_content_element_tables` AS t ON f.table_id = t.id')
-				->where('f.id = ' . $this->element->id);
-
-			$db->setQuery($query);
-			$row = $db->loadRow();
-
-			list($fieldName, $tableName) = $row;
-
-			// Ensure data integrity
-			$this->string = NenoHelperData::ensureDataIntegrity($this->element->id, $this->string, $this->language);
-
-			$query
-				->clear()
-				->select(
-					array (
-						'f.field_name',
-						'ft.value',
-					)
-				)
-				->from('`#__neno_content_element_fields_x_translations` AS ft')
-				->innerJoin('`#__neno_content_element_fields` AS f ON f.id = ft.field_id')
-				->where('ft.translation_id = ' . $this->id);
-
-			$db->setQuery($query);
-			$whereValues = $db->loadAssocList('field_name');
-
-			$shadowTableName = $db->generateShadowTableName($tableName, $this->language);
-
-			$query
-				->clear()
-				->update($shadowTableName)
-				->set($db->quoteName($fieldName) . ' = ' . $db->quote($this->string));
-
-			foreach ($whereValues as $whereField => $where)
-			{
-				$query->where($db->quoteName($whereField) . ' = ' . $db->quote($where['value']));
-			}
-
-			$db->setQuery($query);
-			$db->execute();
-
-			return true;
-		}
-		else
-		{
-			$query
-				->select(
-					array (
-						'REPLACE(lf.filename, lf.language, ' . $db->quote($this->language) . ') AS filename',
-						'lf.filename as originalFilename',
-						'ls.constant'
-					)
-				)
-				->from('#__neno_content_element_translations AS tr')
-				->innerJoin('#__neno_content_element_language_strings AS ls ON ls.id = tr.content_id')
-				->innerJoin('#__neno_content_element_language_files AS lf ON ls.languagefile_id = lf.id')
-				->where('tr.id = ' . (int) $this->id);
-
-			$db->setQuery($query);
-			$translationData = $db->loadAssoc();
-
-			$existingStrings = array ();
-
-			if (!empty($translationData))
-			{
-				$filePath = JPATH_ROOT . "/language/" . $this->language . '/' . $translationData['filename'];
-
-				if (file_exists($filePath))
-				{
-					$existingStrings = NenoHelper::readLanguageFile($filePath);
-				}
-				else
-				{
-					$defaultLanguage = NenoSettings::get('source_language');
-
-					if (file_exists(JPATH_ROOT . "/language/$defaultLanguage/" . $translationData['originalFilename']))
-					{
-						$existingStrings = NenoHelper::readLanguageFile(JPATH_ROOT . "/language/$defaultLanguage/" . $translationData['originalFilename']);
-					}
-				}
-
-				$existingStrings[$translationData['constant']] = $this->string;
-
-				NenoHelper::saveIniFile($filePath, $existingStrings);
-			}
-		}
-
-		return false;
-	}
-
-	/**
 	 * Get the method used to translate the string
 	 *
 	 * @return string
@@ -822,14 +529,7 @@ class NenoContentElementTranslation extends NenoContentElement
 	 */
 	public function addTranslationMethod($translationMethod, $ordering = null)
 	{
-		$db    = JFactory::getDbo();
-		$query = $db->getQuery(true);
-		$query
-			->select('*')
-			->from('#__neno_translation_methods')
-			->where('id = ' . (int) $translationMethod);
-		$db->setQuery($query);
-		$translationMethod = $db->loadObject();
+		$translationMethod = NenoHelper::getTranslationMethodById($translationMethod);
 
 		if (!is_array($this->translationMethods) || empty($this->translationMethods))
 		{
@@ -1040,7 +740,320 @@ class NenoContentElementTranslation extends NenoContentElement
 			$this->originalText = $currentOriginalText;
 			$this->state        = self::SOURCE_CHANGED_STATE;
 
+			$this->persist();
+
 			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Load Original text
+	 *
+	 * @return string
+	 */
+	private function loadOriginalText()
+	{
+		$string = NenoHelper::getTranslationOriginalText($this->getId(), $this->getContentType());
+
+		return $string;
+	}
+
+	/**
+	 * Get type of the content to translate
+	 *
+	 * @return int
+	 */
+	public function getContentType()
+	{
+		return $this->contentType;
+	}
+
+	/**
+	 * Set content type
+	 *
+	 * @param   int $contentType content type
+	 *
+	 * @return NenoContentElement
+	 */
+	public function setContentType($contentType)
+	{
+		$this->contentType = $contentType;
+
+		return $this;
+	}
+
+	/**
+	 * {@inheritdoc}
+	 *
+	 * @return bool
+	 */
+	public function persist()
+	{
+		// Update word counter
+		$this->wordCounter = str_word_count($this->getString());
+
+		if ($this->contentType == self::DB_STRING)
+		{
+			/* @var $field NenoContentElementField */
+			$field = $this->element;
+
+			if ($field instanceof NenoContentElementField)
+			{
+				$this->string = $field->applyFilter($this->string);
+			}
+		}
+
+		if ($this->getState() == self::TRANSLATED_STATE)
+		{
+			$this->timeCompleted = new DateTime;
+		}
+
+		// Check if this record is new
+		$isNew = $this->isNew();
+
+		if (!$isNew)
+		{
+			// Updating changed time
+			$this->timeChanged = new DateTime;
+		}
+
+		// Only execute this task when the translation is new and there are no records about how to find it.
+		if (parent::persist())
+		{
+			$db    = JFactory::getDbo();
+			$query = $db->getQuery(true);
+
+			if ($isNew && $this->contentType == self::DB_STRING)
+			{
+				if (!empty($this->sourceElementData))
+				{
+					$query
+						->insert('#__neno_content_element_fields_x_translations')
+						->columns(
+							array (
+								'field_id',
+								'translation_id',
+								'value'
+							)
+						);
+
+					$inserted = array ();
+
+					// Loop through the data
+					foreach ($this->sourceElementData as $sourceData)
+					{
+						/* @var $field NenoContentElementField */
+						$field      = $sourceData['field'];
+						$fieldValue = $sourceData['value'];
+
+						// Checks if this row has been inserted already
+						if (!in_array($field->getId() . '|' . $this->getId(), $inserted))
+						{
+							$query->values($field->getId() . ',' . $this->getId() . ',' . $db->quote($fieldValue));
+							$inserted[] = $field->getId() . '|' . $this->getId();
+						}
+
+					}
+
+					$db->setQuery($query);
+					$db->execute();
+				}
+			}
+
+			$query
+				->clear()
+				->delete('#__neno_content_element_translation_x_translation_methods')
+				->where('translation_id = ' . $this->id);
+			$db->setQuery($query);
+			$db->execute();
+
+			if (!empty($this->translationMethods))
+			{
+				$query
+					->clear()
+					->insert('#__neno_content_element_translation_x_translation_methods')
+					->columns(
+						array (
+							'translation_id',
+							'translation_method_id',
+							'ordering'
+						)
+					);
+
+				foreach ($this->translationMethods as $key => $translationMethod)
+				{
+					$query->values($this->id . ',' . $translationMethod->id . ',' . ($key + 1));
+				}
+
+				$db->setQuery($query);
+				$db->execute();
+			}
+
+			$this->originalText = $this->loadOriginalText();
+
+			if ($this->originalText != '')
+			{
+				$this->updateOriginalText();
+			}
+
+			if ($this->state == self::TRANSLATED_STATE)
+			{
+				$this->moveTranslationToTarget();
+			}
+
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Get the translation state
+	 *
+	 * @return int
+	 */
+	public function getState()
+	{
+		return $this->state;
+	}
+
+	/**
+	 * Set the translation state
+	 *
+	 * @param   int $state Translation state
+	 *
+	 * @return NenoContentElementTranslation
+	 */
+	public function setState($state)
+	{
+		$this->state = $state;
+
+		return $this;
+	}
+
+	protected function updateOriginalText()
+	{
+		$db    = JFactory::getDbo();
+		$query = $db->getQuery(true);
+
+		$query
+			->update('#__neno_content_element_translations')
+			->set('original_text = ' . $db->quote($this->originalText))
+			->where('id = ' . $this->id);
+
+		$db->setQuery($query);
+		$db->execute();
+	}
+
+	/**
+	 * Move the translation to its place in the shadow table
+	 *
+	 * @return bool
+	 */
+	public function moveTranslationToTarget()
+	{
+		/* @var $db NenoDatabaseDriverMysqlx */
+		$db    = JFactory::getDbo();
+		$query = $db->getQuery(true);
+
+		// If the translation comes from database content, let's load it
+		if ($this->contentType == self::DB_STRING)
+		{
+			$query->clear()
+				->select(
+					array (
+						'f.field_name',
+						't.table_name'
+					)
+				)
+				->from('`#__neno_content_element_fields` AS f')
+				->innerJoin('`#__neno_content_element_tables` AS t ON f.table_id = t.id')
+				->where('f.id = ' . $this->element->id);
+
+			$db->setQuery($query);
+			$row = $db->loadRow();
+
+			list($fieldName, $tableName) = $row;
+
+			// Ensure data integrity
+			$this->string = NenoHelperData::ensureDataIntegrity($this->element->id, $this->string, $this->language);
+
+			$query
+				->clear()
+				->select(
+					array (
+						'f.field_name',
+						'ft.value',
+					)
+				)
+				->from('`#__neno_content_element_fields_x_translations` AS ft')
+				->innerJoin('`#__neno_content_element_fields` AS f ON f.id = ft.field_id')
+				->where('ft.translation_id = ' . $this->id);
+
+			$db->setQuery($query);
+			$whereValues = $db->loadAssocList('field_name');
+
+			$shadowTableName = $db->generateShadowTableName($tableName, $this->language);
+
+			$query
+				->clear()
+				->update($shadowTableName)
+				->set($db->quoteName($fieldName) . ' = ' . $db->quote($this->string));
+
+			foreach ($whereValues as $whereField => $where)
+			{
+				$query->where($db->quoteName($whereField) . ' = ' . $db->quote($where['value']));
+			}
+
+			$db->setQuery($query);
+			$db->execute();
+
+			return true;
+		}
+		else
+		{
+			$query
+				->select(
+					array (
+						'REPLACE(lf.filename, lf.language, ' . $db->quote($this->language) . ') AS filename',
+						'lf.filename as originalFilename',
+						'ls.constant'
+					)
+				)
+				->from('#__neno_content_element_translations AS tr')
+				->innerJoin('#__neno_content_element_language_strings AS ls ON ls.id = tr.content_id')
+				->innerJoin('#__neno_content_element_language_files AS lf ON ls.languagefile_id = lf.id')
+				->where('tr.id = ' . (int) $this->id);
+
+			$db->setQuery($query);
+			$translationData = $db->loadAssoc();
+
+			$existingStrings = array ();
+
+			if (!empty($translationData))
+			{
+				$filePath = JPATH_ROOT . "/language/" . $this->language . '/' . $translationData['filename'];
+
+				if (file_exists($filePath))
+				{
+					$existingStrings = NenoHelper::readLanguageFile($filePath);
+				}
+				else
+				{
+					$defaultLanguage = NenoSettings::get('source_language');
+
+					if (file_exists(JPATH_ROOT . "/language/$defaultLanguage/" . $translationData['originalFilename']))
+					{
+						$existingStrings = NenoHelper::readLanguageFile(JPATH_ROOT . "/language/$defaultLanguage/" . $translationData['originalFilename']);
+					}
+				}
+
+				$existingStrings[$translationData['constant']] = $this->string;
+
+				NenoHelper::saveIniFile($filePath, $existingStrings);
+			}
 		}
 
 		return false;
@@ -1088,6 +1101,7 @@ class NenoContentElementTranslation extends NenoContentElement
 	 *
 	 * @return bool
 	 */
+
 	public function markTranslationMethodAsCompleted($translationMethodId)
 	{
 		$db    = JFactory::getDbo();
@@ -1132,5 +1146,111 @@ class NenoContentElementTranslation extends NenoContentElement
 		$result = $db->loadResult();
 
 		return empty($result);
+	}
+
+	/**
+	 * Prepare content for external translations
+	 *
+	 * @return string
+	 */
+	public function prepareStringForExternalTranslations()
+	{
+		$string = $this->string;
+
+		// Check if the string is html and DOM extension is enabled
+		if (preg_match('/<[^<]+>/', $string) && class_exists('DOMDocument'))
+		{
+			$dom = new DOMDocument;
+			$dom->loadHTML($string);
+			$strings = $this->recursiveDomReplacement($dom->documentElement);
+			$string  = '';
+
+			foreach ($strings as $key => $string)
+			{
+				$string .= '<p id="' . $key . '">' . $string . '</p>';
+			}
+		}
+
+		return $string;
+	}
+
+	/**
+	 * Recursive function that goes through the DOM and fetch and replace every content it finds.
+	 *
+	 * @param   DOMElement $domElement Element of DOM
+	 * @param   int        $index      Current replacing index.
+	 *
+	 * @return array
+	 */
+	protected function recursiveDomReplacement(DOMElement $domElement, &$index = 1)
+	{
+		$humanReadableAttributes = array ('alt', 'title', 'summary');
+		$strings                 = array ();
+
+		/* @var $node DomElement */
+		foreach ($domElement->childNodes as $node)
+		{
+			if ($node->nodeName == '#text')
+			{
+				$text            = trim($node->nodeValue);
+				$strings[$index] = $text;
+				$node->nodeValue = str_replace($text, '[{|' . $index . '|}]}', $node->nodeValue);
+				$index++;
+			}
+			else
+			{
+				foreach ($humanReadableAttributes as $humanAttribute)
+				{
+					if ($node->hasAttribute($humanAttribute))
+					{
+						$attribute       = $node->getAttribute($humanAttribute);
+						$text            = trim($attribute);
+						$strings[$index] = $text;
+						$node->setAttribute($humanAttribute, str_replace($text, '[{|' . $index . '|}]}', $attribute));
+						$index++;
+					}
+				}
+			}
+
+			// If the node has children, let's go through them
+			if ($node->hasChildNodes())
+			{
+				$strings = $strings + $this->recursiveDomReplacement($node, $index);
+			}
+		}
+
+		return $strings;
+	}
+
+	/**
+	 * Check whether or not a string is HTML
+	 *
+	 * @param   string $string String to check
+	 *
+	 * @return bool
+	 */
+	protected function isHtml($string)
+	{
+		return preg_match('/<[^<]+>/', $string) != 0;
+	}
+
+	/**
+	 * Get real string from DOMDocument class
+	 *
+	 * @param   DOMDocument $document HTML document
+	 *
+	 * @return bool|string
+	 */
+	protected function fromDomDocumentToString(DOMDocument $document)
+	{
+		$matches = null;
+
+		// Get content between body tags (DOMDocument class add it)
+		if (preg_match('@<body>(.+)<\/body>@', $document->saveHTML(), $matches) != 0)
+		{
+			return $matches[1];
+		}
+
+		return false;
 	}
 }

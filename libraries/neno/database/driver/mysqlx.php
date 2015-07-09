@@ -624,6 +624,29 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
 	}
 
 	/**
+	 * Retrieves field information about a given table.
+	 *
+	 * @param   string  $table    The name of the database table.
+	 * @param   boolean $typeOnly True to only return field types.
+	 *
+	 * @return  array  An array of fields for the database table.
+	 *
+	 * @since   12.2
+	 * @throws  RuntimeException
+	 */
+	public function getTableColumns($table, $typeOnly = true)
+	{
+		$cacheId = NenoCache::getCacheId(__FUNCTION__, func_get_args());
+
+		if (NenoCache::getCacheData($cacheId) === null)
+		{
+			NenoCache::setCacheData($cacheId, parent::getTableColumns($table, $typeOnly));
+		}
+
+		return NenoCache::getCacheData($cacheId);
+	}
+
+	/**
 	 * Copy all the content to the shadow table
 	 *
 	 * @param   string $sourceTableName Name of the source table
@@ -740,11 +763,28 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
 	 */
 	public function getComponentTables($componentName)
 	{
-		$tablePattern = NenoHelper::getTableNamePatternBasedOnComponentName($componentName);
-		$query        = 'SHOW TABLES LIKE ' . $this->quote($tablePattern . '%');
-		$tablesList   = $this->executeQuery($query, true, true);
+		$cacheId = NenoCache::getCacheId(__FUNCTION__, func_get_args());
 
-		return NenoHelper::convertOnePropertyObjectListToArray($tablesList);
+		if (NenoCache::getCacheData($cacheId) === null)
+		{
+			$tablePattern = NenoHelper::getTableNamePatternBasedOnComponentName($componentName);
+			$query        = $this->getQuery(true);
+			$query
+				->select('TABLE_NAME')
+				->from('information_schema.tables')
+				->where(
+					array (
+						'table_schema = DATABASE()',
+						'table_name LIKE ' . $this->quote($tablePattern . '%')
+					)
+				);
+
+			$tablesList = $this->executeQuery($query, true, true);
+
+			NenoCache::setCacheData($cacheId, NenoHelper::convertOnePropertyObjectListToArray($tablesList));
+		}
+
+		return NenoCache::getCacheData($cacheId);
 	}
 
 	/**
