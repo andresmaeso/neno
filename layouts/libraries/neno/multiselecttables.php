@@ -14,13 +14,34 @@ $document = JFactory::getDocument();
 $tables   = $displayData['tables'];
 $files    = $displayData['files'];
 
-$isOverlay     = isset($displayData->isOverlay);
-$elements      = $displayData['state']->get('filter.element', array ());
-$filesSelected = $displayData['state']->get('filter.files', array ());
+$isOverlay      = isset($displayData->isOverlay);
+$elements       = $displayData['state']->get('filter.element', array ());
+$filesSelected  = $displayData['state']->get('filter.files', array ());
+$fieldsSelected = $displayData['state']->get('filter.field', array ());
+$tablesSelected = array ();
+
+foreach ($fieldsSelected as $fieldSelected)
+{
+	foreach ($tables as $table)
+	{
+		foreach ($table->fields as $field)
+		{
+			if ($fieldSelected == $field->id)
+			{
+				if (!in_array($table->id, $tablesSelected))
+				{
+					$tablesSelected[] = $table->id;
+					break 2;
+				}
+			}
+		}
+	}
+}
 ?>
 <?php foreach ($tables as $table): ?>
 	<?php $class = !empty($table->fields) ? 'cell-expand' : ''; ?>
-	<tr class="row-table element-row collapsed" data-level="2"
+	<tr class="row-table element-row <?php echo in_array($table->id, $tablesSelected) ? 'expanded' : 'collapsed'; ?>"
+	    data-level="2"
 	    data-id="table-<?php echo $table->id; ?>"
 	    data-parent="group-<?php echo $table->group->id; ?>"
 	    data-label="<?php echo $table->table_name; ?>">
@@ -51,7 +72,8 @@ $filesSelected = $displayData['state']->get('filter.files', array ());
 			<td></td>
 			<td></td>
 			<td class="cell-check">
-				<input id="input-field-<?php echo $field->id; ?>" type="checkbox"/>
+				<input id="input-field-<?php echo $field->id; ?>"
+				       type="checkbox" <?php echo in_array($field->id, $fieldsSelected) ? 'checked="checked"' : ''; ?>/>
 			</td>
 			<td title="<?php echo $field->field_name; ?>">
 				<label for="input-field-<?php echo $field->id; ?>">

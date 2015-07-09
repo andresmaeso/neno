@@ -135,7 +135,7 @@ class NenoModelStrings extends JModelList
 		if (!empty($elements))
 		{
 			$app->setUserState($this->context . '.filter.elements', $elements);
-			$this->setState('filter.group_id', array ());
+			//$this->setState('filter.group_id', array ());
 		}
 
 		$this->setState('filter.element', $app->getUserState($this->context . '.filter.elements'));
@@ -146,7 +146,7 @@ class NenoModelStrings extends JModelList
 		if (!empty($elements))
 		{
 			$app->setUserState($this->context . '.filter.files', $elements);
-			$this->setState('filter.group_id', array ());
+			//$this->setState('filter.group_id', array ());
 		}
 
 		$this->setState('filter.files', $app->getUserState($this->context . '.filter.files'));
@@ -206,8 +206,6 @@ class NenoModelStrings extends JModelList
 	{
 		$db              = JFactory::getDbo();
 		$workingLanguage = NenoHelper::getWorkingLanguage();
-
-		NenoLog::log('Querying #__neno_content_element_tables from getListQuery of NenoModelStrings', 3);
 
 		// Create a new query object.
 		$dbStrings           = parent::getListQuery();
