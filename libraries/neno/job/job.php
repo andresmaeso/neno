@@ -567,7 +567,7 @@ class NenoJob extends NenoObject
 					$translation['content_id']
 				);
 				$this->translations[$translation['id']] = array (
-					'text'    => $translationOriginalText,
+					'text'    => NenoHelper::splitHtmlText($translationOriginalText),
 					'comment' => $translation['comment']
 				);
 			}
