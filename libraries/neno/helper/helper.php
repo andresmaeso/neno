@@ -1550,7 +1550,7 @@ class NenoHelper
 			->leftJoin('#__menu AS m ON mt.menutype = m.menutype')
 			->where(
 				array (
-					'NOT EXISTS(SELECT 1 FROM #__associations AS a WHERE a.id = m.id)',
+					'NOT EXISTS(SELECT 1 FROM #__associations AS a WHERE a.id = m.id AND a.`key` = ' . $db->quote('com_menus.item') . ')',
 					'client_id = 0',
 					'level <> 0',
 					'published <> -2'

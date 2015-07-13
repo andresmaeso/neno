@@ -395,6 +395,9 @@ CREATE TABLE IF NOT EXISTS `#__neno_installation_messages` (
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
 
+--
+-- Table structure for table `#__neno_language_external_translators_comments`
+--
 
 CREATE TABLE IF NOT EXISTS `#__neno_language_external_translators_comments` (
   `id`       INT(11)    NOT NULL AUTO_INCREMENT,
