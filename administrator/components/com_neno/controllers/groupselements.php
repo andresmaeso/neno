@@ -337,17 +337,46 @@ class NenoControllerGroupsElements extends JControllerAdmin
 
 	public function scanForContent()
 	{
-		$input  = $this->input;
-		$groups = $input->get('groups', array (), 'ARRAY');
+		$input = $this->input;
 
-		foreach ($groups as $groupId)
+		// Refresh content for groups
+		$groups          = $input->get('groups', array (), 'ARRAY');
+		$tables          = $input->get('tables', array (), 'ARRAY');
+		$workingLanguage = NenoHelper::getWorkingLanguage();
+
+		if (!empty($groups))
 		{
-			/* @var $group NenoContentElementGroup */
-			$group = NenoContentElementGroup::load($groupId);
-
-			if (!empty($group))
+			foreach ($groups as $groupId)
 			{
-				$group->refresh(NenoHelper::getWorkingLanguage());
+				/* @var $group NenoContentElementGroup */
+				$group = NenoContentElementGroup::load($groupId);
+
+				if (!empty($group))
+				{
+					$group->refresh($workingLanguage);
+				}
+			}
+		}
+		elseif (!empty($tables))
+		{
+			foreach ($tables as $tableId)
+			{
+				/* @var $table NenoContentElementTable */
+				$table = NenoContentElementTable::load($tableId);
+
+				if (!empty($table))
+				{
+					$fields = $table->getFields(false, true);
+
+					if (!empty($fields))
+					{
+						/* @var $field NenoContentElementField */
+						foreach ($fields as $field)
+						{
+							$field->persistTranslations(null, $workingLanguage);
+						}
+					}
+				}
 			}
 		}
 
