@@ -624,4 +624,11 @@ class NenoController extends JControllerLegacy
 
 		JFactory::getApplication()->close();
 	}
+
+	public function fixMenus()
+	{
+		NenoHelper::createMenuStructure();
+
+		JFactory::getApplication()->redirect('index.php?option=com_neno&view=dashboard');
+	}
 }

@@ -92,39 +92,46 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 
 </script>
 
-
-<div id="j-sidebar-container" class="span2">
-	<?php echo $this->sidebar; ?>
-</div>
-<div id="j-main-container" class="span10">
-	<?php if (!$this->isLanguageSwitcherPublished): ?>
-		<div class="alert">
-			<form action="index.php?option=com_neno&task=dashboard.publishSwitcher" method="POST">
-				<h3><?php echo JText::_('COM_NENO_DASHBOARD_LANGUAGE_SWITCHER_NOT_PUBLISHED_H3'); ?></h3>
-
-				<p><?php echo JText::_('COM_NENO_DASHBOARD_LANGUAGE_SWITCHER_NOT_PUBLISHED_P1'); ?></p>
-
-				<p><?php echo JText::sprintf('COM_NENO_DASHBOARD_LANGUAGE_SWITCHER_NOT_PUBLISHED_P2', $this->positionField); ?></p>
-				<button class="btn btn-success">
-					<?php echo JText::_('COM_NENO_DASHBOARD_LANGUAGE_SWITCHER_NOT_PUBLISHED_PUBLISH_BUTTON'); ?>
-				</button>
-				<a href="index.php?option=com_neno&task=dashboard.doNotShowWarningMessage" class="btn">
-					<?php echo JText::_('COM_NENO_DASHBOARD_LANGUAGE_SWITCHER_NOT_PUBLISHED_DO_NOT_REMIND_ME_BUTTON'); ?>
-				</a>
-			</form>
-		</div>
-	<?php endif; ?>
-	<div class="languages-holder">
-		<?php foreach ($this->items as $item): ?>
-			<?php $item->placement = 'dashboard'; ?>
-			<?php echo JLayoutHelper::render('languageconfiguration', $item, JPATH_NENO_LAYOUTS); ?>
-		<?php endforeach; ?>
-		<button type="button" class="btn btn-primary"
-		        id="add-languages-button">
-			<?php echo JText::_('COM_NENO_INSTALLATION_TARGET_LANGUAGES_ADD_LANGUAGE_BUTTON'); ?>
-		</button>
+<form action="index.php?option=com_neno&view=dashboard" method="post" name="adminForm"
+      id="adminForm">
+	<div id="j-sidebar-container" class="span2">
+		<?php echo $this->sidebar; ?>
 	</div>
-</div>
+	<div id="j-main-container" class="span10">
+
+
+		<input type="hidden" name="task" value=""/>
+		<input type="hidden" name="boxchecked" value="0"/>
+		<?php echo JHtml::_('form.token'); ?>
+		<?php if (!$this->isLanguageSwitcherPublished): ?>
+			<div class="alert">
+				<form action="index.php?option=com_neno&task=dashboard.publishSwitcher" method="POST">
+					<h3><?php echo JText::_('COM_NENO_DASHBOARD_LANGUAGE_SWITCHER_NOT_PUBLISHED_H3'); ?></h3>
+
+					<p><?php echo JText::_('COM_NENO_DASHBOARD_LANGUAGE_SWITCHER_NOT_PUBLISHED_P1'); ?></p>
+
+					<p><?php echo JText::sprintf('COM_NENO_DASHBOARD_LANGUAGE_SWITCHER_NOT_PUBLISHED_P2', $this->positionField); ?></p>
+					<button class="btn btn-success">
+						<?php echo JText::_('COM_NENO_DASHBOARD_LANGUAGE_SWITCHER_NOT_PUBLISHED_PUBLISH_BUTTON'); ?>
+					</button>
+					<a href="index.php?option=com_neno&task=dashboard.doNotShowWarningMessage" class="btn">
+						<?php echo JText::_('COM_NENO_DASHBOARD_LANGUAGE_SWITCHER_NOT_PUBLISHED_DO_NOT_REMIND_ME_BUTTON'); ?>
+					</a>
+				</form>
+			</div>
+		<?php endif; ?>
+		<div class="languages-holder">
+			<?php foreach ($this->items as $item): ?>
+				<?php $item->placement = 'dashboard'; ?>
+				<?php echo JLayoutHelper::render('languageconfiguration', $item, JPATH_NENO_LAYOUTS); ?>
+			<?php endforeach; ?>
+			<button type="button" class="btn btn-primary"
+			        id="add-languages-button">
+				<?php echo JText::_('COM_NENO_INSTALLATION_TARGET_LANGUAGES_ADD_LANGUAGE_BUTTON'); ?>
+			</button>
+		</div>
+	</div>
+</form>
 <div class="modal hide fade" id="languages-modal">
 	<div class="modal-header">
 		&nbsp;
