@@ -1484,6 +1484,30 @@ class NenoHelper
 		$db->setQuery($query);
 		$db->execute();
 
+		// Delete associations with just one item
+		$query
+			->clear()
+			->select('DISTINCT id')
+			->from('#__associations')
+			->group('`key`')
+			->having('COUNT(*) = 1');
+
+		$db->setQuery($query);
+		$ids = $db->loadArray();
+
+		$query
+			->clear()
+			->delete('#__associations')
+			->where(
+				array (
+					'context = ' . $db->quote('com_menus.item'),
+					'id IN (' . implode(', ', $db->quote($ids)) . ')'
+				)
+			);
+
+		$db->setQuery($query);
+		$db->execute();
+
 		$query
 			->clear()
 			->update('#__modules')
