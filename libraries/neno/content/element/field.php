@@ -275,12 +275,60 @@ class NenoContentElementField extends NenoContentElement implements NenoContentE
 	 * Mark this field as translatable
 	 *
 	 * @param   boolean $translate If field should be translated
+	 * @param   boolean $force     Force the translate status
 	 *
 	 * @return $this
 	 */
-	public function setTranslate($translate)
+	public function setTranslate($translate, $force = false)
 	{
 		$this->translate = $translate;
+
+		if ($this->translate && !$force)
+		{
+			$this->checkTranslatableStatusFromContentElementFile();
+		}
+
+		return $this;
+	}
+
+	/**
+	 * Check if the table should be translatable
+	 *
+	 * @return void
+	 */
+	public function checkTranslatableStatusFromContentElementFile()
+	{
+		$filePath = JPATH_NENO . '/contentelements/' . str_replace('#__', '', $this->getTable()->getTableName()) . '_contentelements.xml';
+
+		// If the file exists, let's check what is there
+		if (file_exists($filePath))
+		{
+			$xml             = simplexml_load_file($filePath);
+			$translate       = $xml->xpath('/neno/reference/table/field[@name=\'' . $this->fieldName . '\']/@translate');
+			$this->translate = $translate[0]['translate'] == 1;
+		}
+	}
+
+	/**
+	 * Get the table that contains this field
+	 *
+	 * @return NenoContentElementTable
+	 */
+	public function getTable()
+	{
+		return $this->table;
+	}
+
+	/**
+	 * Set Table
+	 *
+	 * @param   NenoContentElementTable $table Table
+	 *
+	 * @return $this
+	 */
+	public function setTable(NenoContentElementTable $table)
+	{
+		$this->table = $table;
 
 		return $this;
 	}
@@ -439,30 +487,6 @@ class NenoContentElementField extends NenoContentElement implements NenoContentE
 				->setDiscovered(true)
 				->persist();
 		}
-	}
-
-	/**
-	 * Get the table that contains this field
-	 *
-	 * @return NenoContentElementTable
-	 */
-	public function getTable()
-	{
-		return $this->table;
-	}
-
-	/**
-	 * Set Table
-	 *
-	 * @param   NenoContentElementTable $table Table
-	 *
-	 * @return $this
-	 */
-	public function setTable(NenoContentElementTable $table)
-	{
-		$this->table = $table;
-
-		return $this;
 	}
 
 	/**
@@ -738,11 +762,6 @@ class NenoContentElementField extends NenoContentElement implements NenoContentE
 	 */
 	public function persist()
 	{
-		if ($this->translate)
-		{
-			$this->checkTranslatableStatusFromContentElementFile();
-		}
-
 		if ($this->isNew())
 		{
 			$this->filter = 'RAW';
@@ -755,24 +774,6 @@ class NenoContentElementField extends NenoContentElement implements NenoContentE
 		}
 
 		return parent::persist();
-	}
-
-	/**
-	 * Check if the table should be translatable
-	 *
-	 * @return void
-	 */
-	public function checkTranslatableStatusFromContentElementFile()
-	{
-		$filePath = JPATH_NENO . '/contentelements/' . str_replace('#__', '', $this->getTable()->getTableName()) . '_contentelements.xml';
-
-		// If the file exists, let's check what is there
-		if (file_exists($filePath))
-		{
-			$xml             = simplexml_load_file($filePath);
-			$translate       = $xml->xpath('/neno/reference/table/field[@name=\'' . $this->fieldName . '\']/@translate');
-			$this->translate = $translate[0]['translate'] == 1;
-		}
 	}
 
 	/**

@@ -472,12 +472,6 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 	 */
 	public function persist()
 	{
-		// If the table has been marked as translatable, let's check for the content element file
-		if ($this->translate)
-		{
-			$this->checkTranslatableStatusFromContentElementFile();
-		}
-
 		$result = parent::persist();
 
 		if ($result)
@@ -522,6 +516,37 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 	}
 
 	/**
+	 * Check if the table is translatable
+	 *
+	 * @return boolean
+	 */
+	public function isTranslate()
+	{
+		return $this->translate;
+	}
+
+	/**
+	 * Mark this table as translatable/untranslatable
+	 *
+	 * @param   boolean $translate Translation status
+	 * @param   boolean $force     Force the status
+	 *
+	 * @return $this
+	 */
+	public function setTranslate($translate, $force = false)
+	{
+		$this->translate = $translate;
+
+		// If the table has been marked as translatable, let's check for the content element file
+		if ($this->translate && !$force)
+		{
+			$this->checkTranslatableStatusFromContentElementFile();
+		}
+
+		return $this;
+	}
+
+	/**
 	 * Check if the table should be translatable
 	 *
 	 * @return void
@@ -545,30 +570,6 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 	public function getContentElementFilename()
 	{
 		return JPATH_NENO . '/contentelements/' . str_replace('#__', '', $this->tableName) . '_contentelements.xml';
-	}
-
-	/**
-	 * Check if the table is translatable
-	 *
-	 * @return boolean
-	 */
-	public function isTranslate()
-	{
-		return $this->translate;
-	}
-
-	/**
-	 * Mark this table as translatable/untranslatable
-	 *
-	 * @param   boolean $translate Translation status
-	 *
-	 * @return $this
-	 */
-	public function setTranslate($translate)
-	{
-		$this->translate = $translate;
-
-		return $this;
 	}
 
 	/**

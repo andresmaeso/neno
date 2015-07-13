@@ -182,9 +182,29 @@ class NenoControllerGroupsElements extends JControllerAdmin
 		// If the table exists, let's work with it.
 		if ($table !== false)
 		{
-			$table->setTranslate($translateStatus);
+			$table->setTranslate($translateStatus, true);
 
-			if ($table->persist() === false)
+			if ($table->persist() !== false)
+			{
+				$fields = $table->getFields(false);
+
+				/* @var $field NenoContentElementField */
+				foreach ($fields as $field)
+				{
+					$oldStatus = $field->isTranslate();
+					$field->setTranslate(
+						$translateStatus === true ? NenoContentElementField::isTranslatableType($field->getFieldType()) : $translateStatus,
+						true
+					);
+
+					// Only persist element that have changed their translate status
+					if ($oldStatus != $field->isTranslate())
+					{
+						$field->persist();
+					}
+				}
+			}
+			else
 			{
 				NenoLog::log('Error saving new state!', NenoLog::PRIORITY_ERROR);
 			}
