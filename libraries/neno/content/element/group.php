@@ -634,6 +634,8 @@ class NenoContentElementGroup extends NenoContentElement implements NenoContentE
 	/**
 	 * Refresh NenoContentElementGroup data
 	 *
+	 * @param   string|null $language Language to update. Null for none
+	 *
 	 * @return void
 	 */
 	public function refresh($language = null)

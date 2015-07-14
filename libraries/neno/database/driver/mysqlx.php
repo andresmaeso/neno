@@ -825,4 +825,132 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
 
 		return $array;
 	}
+
+	/**
+	 * Sync database table
+	 *
+	 * @param string $tableName Table name
+	 *
+	 * @return void
+	 */
+	public function syncTable($tableName)
+	{
+		$languages = NenoHelper::getTargetLanguages(false);
+
+		foreach ($languages as $language)
+		{
+			$shadowTableName = $this->generateShadowTableName($tableName, $language->lang_code);
+
+			$diff = $this->tablesDiff($tableName, $shadowTableName);
+
+			// If diff is not empty, let's try to sync both tables
+			if (!empty($diff))
+			{
+				// Are there fields that needs to be added?
+				if (!empty($diff['add']))
+				{
+					foreach ($diff['add'] as $field)
+					{
+						$this->addColumn($shadowTableName, $field->Field, $this->generateColumnType($field));
+					}
+				}
+
+				// Are there fields that needs to be dropped?
+				if (!empty($diff['drop']))
+				{
+					foreach ($diff['drop'] as $field)
+					{
+						$this->dropColumn($shadowTableName, $field->Field);
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Get diff between tables
+	 *
+	 * @param   string $table1 Table 1
+	 * @param   string $table2 Table 2
+	 *
+	 * @return array
+	 */
+	public function tablesDiff($table1, $table2)
+	{
+		$diff              = array ();
+		$table1Columns     = $this->getTableColumns($table1, false);
+		$table2Columns     = $this->getTableColumns($table2, false);
+		$table1ColumnNames = array_keys($table1Columns);
+		$table2ColumnNames = array_keys($table2Columns);
+
+		$newFields = array_diff($table1ColumnNames, $table2ColumnNames);
+		$oldFields = array_diff($table2ColumnNames, $table1ColumnNames);
+
+		if (!empty($newFields))
+		{
+			$diff['add'] = array ();
+
+			foreach ($newFields as $newField)
+			{
+				$diff['add'][] = $table1Columns[$newField];
+			}
+		}
+
+		if (!empty($oldFields))
+		{
+			$diff['drop'] = array ();
+
+			foreach ($oldFields as $oldField)
+			{
+				$diff['drop'][] = $table2Columns[$oldField];
+			}
+		}
+
+		return $diff;
+	}
+
+	/**
+	 * Add column
+	 *
+	 * @param   string $tableName  Table name
+	 * @param   string $columnName Column name
+	 * @param   string $columnType Column type
+	 *
+	 * @return bool
+	 */
+	public function addColumn($tableName, $columnName, $columnType)
+	{
+		$sql = JText::sprintf('ALTER TABLE %s ADD %s %s', $this->quoteName($tableName), $this->quoteName($columnName), $columnType);
+		$this->setQuery($sql);
+
+		return $this->execute() !== false;
+	}
+
+	/**
+	 * Generate
+	 *
+	 * @param stdClass $fieldData
+	 *
+	 * @return string
+	 */
+	protected function generateColumnType(stdClass $fieldData)
+	{
+		return $fieldData->Type . ($fieldData->Null == 'NO' ? ' NOT NULL' : '');
+	}
+
+	/**
+	 * Drop column
+	 *
+	 * @param   string $tableName  Table name
+	 * @param   string $columnName Column name
+	 *
+	 * @return bool
+	 */
+	public function dropColumn($tableName, $columnName)
+	{
+		$sql = JText::sprintf('ALTER TABLE %s DROP COLUMN %s', $this->quoteName($tableName), $this->quoteName($columnName));
+		$this->setQuery($sql);
+
+		return $this->execute() !== false;
+	}
 }

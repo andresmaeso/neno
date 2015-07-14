@@ -487,6 +487,7 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 	 */
 	public function persist()
 	{
+		$isNew  = $this->isNew();
 		$result = parent::persist();
 
 		if ($result)
@@ -499,6 +500,12 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 			{
 				// Creates shadow tables and copy the content on it
 				$db->createShadowTables($this->tableName);
+
+				if (!$isNew)
+				{
+					// Sync existing tables,
+					$db->syncTable($this->tableName);
+				}
 			}
 
 			/* @var $field NenoContentElementField */
@@ -635,6 +642,7 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 	}
 
 	/**
+	 * Get primary keys field
 	 *
 	 * @return array
 	 */
