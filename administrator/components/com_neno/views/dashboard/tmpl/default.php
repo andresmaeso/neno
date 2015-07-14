@@ -88,6 +88,12 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 				}
 			);
 		});
+
+		jQuery('#publish-module').off('click').on('click', function () {
+			jQuery("input[name='task']").val('dashboard.publishSwitcher');
+			jQuery('#adminForm').submit();
+
+		})
 	}
 
 </script>
@@ -111,7 +117,7 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 					<p><?php echo JText::_('COM_NENO_DASHBOARD_LANGUAGE_SWITCHER_NOT_PUBLISHED_P1'); ?></p>
 
 					<p><?php echo JText::sprintf('COM_NENO_DASHBOARD_LANGUAGE_SWITCHER_NOT_PUBLISHED_P2', $this->positionField); ?></p>
-					<button class="btn btn-success">
+					<button class="btn btn-success" type="button" id="publish-module">
 						<?php echo JText::_('COM_NENO_DASHBOARD_LANGUAGE_SWITCHER_NOT_PUBLISHED_PUBLISH_BUTTON'); ?>
 					</button>
 					<a href="index.php?option=com_neno&task=dashboard.doNotShowWarningMessage" class="btn">
