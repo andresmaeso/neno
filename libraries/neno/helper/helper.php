@@ -3353,4 +3353,27 @@ class NenoHelper
 
 		return $structure;
 	}
+
+	/**
+	 * Get language translator comment
+	 *
+	 * @param    string $languageTag Language tag
+	 *
+	 * @return string|null
+	 */
+	public static function getLanguageTranslatorComment($languageTag)
+	{
+		$db = JFactory::getDbo();
+
+		$query = $db->getQuery(true);
+
+		$query
+			->select('comment')
+			->from('#__neno_language_external_translators_comments')
+			->where('language = ' . $db->quote($languageTag));
+
+		$db->setQuery($query);
+
+		return $db->loadResult();
+	}
 }

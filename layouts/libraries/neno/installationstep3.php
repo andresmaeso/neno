@@ -56,4 +56,27 @@ $items = $displayData->languages;
 		});
 	});
 	loadMissingTranslationMethodSelectors();
+
+	jQuery('.save-translator-comment').on('click', function () {
+		var language = jQuery(this).data('language');
+
+		jQuery.post(
+			'index.php?option=com_neno&task=saveExternalTranslatorsComment',
+			{
+				placement: 'language',
+				language: language,
+				comment: jQuery(".comment-to-translator[data-language='" + language + "']").val()
+			},
+			function (response) {
+
+				if (response == 'ok') {
+					var text = '<?php echo JText::_('COM_NENO_COMMENTS_TO_TRANSLATOR_LANGUAGE_EDIT'); ?>';
+					text = text.replace('%s', language);
+					jQuery(".add-comment-to-translator-button[data-language='" + language + "']").html('<span class="icon-pencil"></span> ' + text);
+				}
+
+				jQuery('#addCommentFor' + language).modal('toggle');
+			}
+		);
+	});
 </script>
