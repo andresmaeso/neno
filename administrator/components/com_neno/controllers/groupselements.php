@@ -364,7 +364,7 @@ class NenoControllerGroupsElements extends JControllerAdmin
 				/* @var $table NenoContentElementTable */
 				$table = NenoContentElementTable::load($tableId);
 
-				if (!empty($table))
+				if (!empty($table) && $table->isTranslate())
 				{
 					$fields = $table->getFields(false, true);
 

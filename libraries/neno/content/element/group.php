@@ -669,12 +669,15 @@ class NenoContentElementGroup extends NenoContentElement implements NenoContentE
 			/* @var $table NenoContentElementTable */
 			foreach ($tables as $table)
 			{
-				$fields = $table->getFields(false, true);
-
-				/* @var $field NenoContentElementField */
-				foreach ($fields as $field)
+				if ($table->isTranslate())
 				{
-					$field->persistTranslations(null, $language);
+					$fields = $table->getFields(false, true);
+
+					/* @var $field NenoContentElementField */
+					foreach ($fields as $field)
+					{
+						$field->persistTranslations(null, $language);
+					}
 				}
 			}
 		}

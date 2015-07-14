@@ -153,6 +153,21 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 				}
 			}
 		}
+		elseif ($onlyTranslatable)
+		{
+			$reArrange = false;
+			$fields    = array ();
+			/* @var $field NenoContentElementField */
+			foreach ($this->fields as $key => $field)
+			{
+				if ($field->isTranslatable())
+				{
+					$fields[] = $field;
+				}
+			}
+
+			return $fields;
+		}
 
 		return $this->fields;
 	}
