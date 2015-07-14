@@ -4,8 +4,50 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "a4fe5403db2cbbbe0b1d46943fb228de",
-    "packages": [],
+    "hash": "8c41f32fec4fdd871a536ff13b63e604",
+    "packages": [
+        {
+            "name": "jakoch/phantomjs-installer",
+            "version": "2.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/jakoch/phantomjs-installer.git",
+                "reference": "42b85cc0680b56c6ebeb5ced842d547cfd7c616a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/jakoch/phantomjs-installer/zipball/42b85cc0680b56c6ebeb5ced842d547cfd7c616a",
+                "reference": "42b85cc0680b56c6ebeb5ced842d547cfd7c616a",
+                "shasum": ""
+            },
+            "require": {
+                "ext-openssl": "*"
+            },
+            "type": "custom-installer",
+            "autoload": {
+                "psr-0": {
+                    "PhantomInstaller\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Jens-André Koch",
+                    "email": "jakoch@web.de"
+                }
+            ],
+            "description": "A Composer package which installs the PhantomJS binary (Linux, Windows, Mac) into `/bin` of your project.",
+            "keywords": [
+                "binaries",
+                "headless",
+                "phantomjs"
+            ],
+            "time": "2015-03-08 12:51:25"
+        }
+    ],
     "packages-dev": [
         {
             "name": "cloudinary/cloudinary_php",
@@ -670,7 +712,7 @@
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/joomla-projects/joomla-browser/zipball/9d440fdebd3717f18b90ea965740daeb59679263",
+                "url": "https://api.github.com/repos/joomla-projects/joomla-browser/zipball/6d0984409820583887d565087d74b29ed24f822a",
                 "reference": "9d440fdebd3717f18b90ea965740daeb59679263",
                 "shasum": ""
             },

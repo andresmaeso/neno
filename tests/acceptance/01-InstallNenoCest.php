@@ -35,51 +35,43 @@ class InstallNenoCest
 
 		// Going to Neno
 		$I->click("Components");
-		$I->click("Neno");
-		$I->wait(5);
+		$I->wait(1);
+		$I->click("Neno Translate");
+		$I->wait(1);
 
 		// Get started Screen
 		$I->click('Get Started');
 		$I->waitForJS('return jQuery.active == 0', 5);
-		$I->wait(5);
+		$I->wait(1);
 
 		// First step - Source language
 		$I->see('Next');
-		$I->click(['xpath' => "//button[@type='button']"]);
-//		$I->waitForJS('return jQuery.active == 0', 5);
-		$I->wait(5);
+		$I->click(['xpath' => "//button[@type=\"button\"]"]);
+		$I->wait(1);
 
 		// Second step - Translation methods
-		$I->canSee('Next');
 		$I->click('Next');
 		$I->waitForJS('return jQuery.active == 0', 5);
-		//$I->wait(5);
 
 		// Third step- Install language(s)
-		$I->click(['css' => "#add-languages-button"]);
-		$I->waitForJS('return jQuery.active == 0', 5);
-		$I->wait(5);
-		$I->waitForElementVisible(['css' => '#languages-modal']);
-		$I->click(['css' => "[data-language='de-DE']"]);
-		$I->click(['css' => "[data-language='es-ES']"]);
-		$I->wait(10);
-		$I->seeElement(['css' => ".loading-iso-de-DE"]);
-		$I->seeElement(['css' => ".loading-iso-es-ES"]);
-		$I->see('Close');
-		$I->click(".close-button", '#languages-modal');
-		$I->click(['xpath' => "(//button[@type='button'])[4]"]);
+		$I->wait(1);
+		$I->click("//*[@id=\"add-languages-button\"]");
+		$I->waitForJS("return jQuery.active == 0", 5);
+		$I->waitForElementVisible(['class' => 'ar-AA'], 5);
+		$I->wait(1);
+		$I->click(['class' => 'ar-AA']);
+		$I->see('Close', ['class' => 'close-button']);
+		$I->click(['class' => 'close-button'], ['xpath' => "//*[@id=\"languages-modal\"]"]);
+		$I->click(['xpath' => "(//button[@type=\"button\"])[4]"]);
 
 		// Fourth step- Installing Neno
-		$I->wait(5);
+		$I->wait(1);
 		$I->click("#backup-created-checkbox");
 		$I->click("#proceed-button");
 
 		// Fifth step- Installing Neno has been accomplish successfully
-		$I->wait(5);
-		$I->makeScreenshot('lol1');
-		\Codeception\Util\Debug::debug($I->getVisibleText());
-		$I->makeScreenshot('lol2');
-		$I->waitForElement("#submenu > li > a", 300);
+		//$I->waitForJS('return jQuery.installation == 1', 1000);
+		$I->waitForElement(".icon-thumbs-up", 300);
 		$I->doAdministratorLogout();
 	}
 }

@@ -81,7 +81,6 @@ JHtml::_('bootstrap.tooltip');
 
 <script>
 	jQuery('#proceed-button').off('click').on('click', function () {
-
 		if (jQuery('#backup-created-checkbox').prop('checked')) {
 			jQuery('#warning-message').slideToggle(400, function () {
 				jQuery('#installation-wrapper').slideToggle();
@@ -95,6 +94,8 @@ JHtml::_('bootstrap.tooltip');
 				}
 			});
 		}
+
+		jQuery.installation = false;
 
 		sendDiscoveringStep();
 	});
@@ -111,6 +112,7 @@ JHtml::_('bootstrap.tooltip');
 					sendDiscoveringStep();
 				} else {
 					checkStatus();
+					jQuery.installation = true;
 					processInstallationStep();
 					window.clearInterval(interval);
 				}

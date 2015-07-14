@@ -9,11 +9,8 @@ modules:
     enabled:
         - JoomlaBrowser:
             url: 'http://localhost/tests/joomla-cms/'     # the url that points to the joomla installation at /tests/system/joomla-cms
-            browser: 'phantomjs'
-            port: 7055
+            browser: 'chrome'
             window_size: 1024x768
-            capabilities:
-              unexpectedAlertBehaviour: 'accept'
             username: 'admin'
             password: 'admin'
             database host: 'localhost'             # place where the Application is Hosted #server Address

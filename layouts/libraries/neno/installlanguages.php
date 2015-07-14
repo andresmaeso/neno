@@ -23,7 +23,7 @@ $languages = $displayData->languages;
 			<td><?php echo $language['name']; ?></td>
 			<td><?php echo $language['version']; ?></td>
 			<td class="action-cell" data-language-iso="<?php echo $language['iso'] ?>">
-				<button type="button" class="btn" data-update="<?php echo $language['update_id']; ?>"
+				<button type="button" class="btn <?php echo $language['iso'] ?>" data-update="<?php echo $language['update_id']; ?>"
 				        data-language="<?php echo $language['iso'] ?>">
 					<?php echo JText::_('JTOOLBAR_INSTALL'); ?>
 				</button>
