@@ -61,8 +61,8 @@ $document->addStyleSheet(JUri::root() . '/media/neno/css/toolbar.css');
 	<?php else: ?>
 		<ul id="workingLangSelect">
 			<li class="dropdown">
-				<?php echo JText::_('COM_NENO_TOOLBAR_TRANSLATING_TITLE'); ?>
-				[<?php echo $workingLanguageTitleNative; ?>]
+				<?php echo JText::_('COM_NENO_TOOLBAR_TRANSLATING_TITLE'); ?> <img
+					src="<?php echo $workingLanguageImage; ?>"/> <?php echo $workingLanguageTitleNative; ?>
 			</li>
 		</ul>
 	<?php endif; ?>
