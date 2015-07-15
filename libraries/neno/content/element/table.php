@@ -662,4 +662,65 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 
 		return $primaryKeys;
 	}
+
+	/**
+	 * Sync table hierarchy with the content in the database
+	 *
+	 * @return void
+	 */
+	public function sync()
+	{
+		/* @var $db NenoDatabaseDriverMysqlx */
+		$db = JFactory::getDbo();
+
+		$fieldNames = array_keys($db->getTableColumns($this->tableName));
+
+		$query = $db->getQuery(true);
+
+		$query
+			->select('id')
+			->from('#__neno_content_element_fields')
+			->where(
+				array (
+					'field_name NOT IN (' . implode(',', $db->quote($fieldNames)) . ')',
+					'table_id = ' . (int) $this->id
+				)
+			);
+
+		$db->setQuery($query);
+		$fieldIds        = $db->loadArray();
+		$reArrangeFields = false;
+
+		foreach ($fieldIds as $fieldId)
+		{
+			/* @var $field NenoContentElementField */
+			$field = NenoContentElementField::load($fieldId);
+
+			if (!empty($field))
+			{
+				if ($field->remove())
+				{
+					if (!empty($this->fields))
+					{
+						foreach ($this->fields as $key => $field)
+						{
+							if ($field->getId() == $fieldId)
+							{
+								$reArrangeFields = true;
+								unset($this->fields[$key]);
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if ($reArrangeFields)
+		{
+			$this->fields = array_values($this->fields);
+		}
+
+		$db->syncTable($this->tableName);
+	}
 }
