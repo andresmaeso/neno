@@ -1687,49 +1687,6 @@ class NenoHelper
 						$associations[] = $newMenuItem->id;
 					}
 				}
-
-				$query
-					->clear()
-					->select($db->quoteName('key', 'associationKey'))
-					->from('#__associations')
-					->where(
-						array (
-							'id IN (' . implode(',', array_merge($associations, array ($menuItem->id))) . ')',
-							'context = ' . $db->quote('com_menus.item')
-						)
-					);
-
-				$db->setQuery($query);
-				$associationKey = $db->loadResult();
-
-				if (empty($associationKey))
-				{
-					if (!in_array($menuItem->id, $associations))
-					{
-						$associations[] = $menuItem->id;
-					}
-
-					$associations   = array_unique($associations);
-					$associationKey = md5(json_encode($associations));
-				}
-				else
-				{
-					$query
-						->clear()
-						->select('id')
-						->from('#__associations')
-						->where($db->quoteName('key') . ' = ' . $db->quote($associationKey));
-
-					$db->setQuery($query);
-					$alreadyInserted = $db->loadArray();
-					$associations    = array_diff($associations, $alreadyInserted);
-				}
-
-				foreach ($associations as $association)
-				{
-					$insertQuery->values($association . ',' . $db->quote('com_menus.item') . ',' . $db->quote($associationKey));
-					$insert = true;
-				}
 			}
 
 			// Get all the modules assigned to this menu item using a different language from *
@@ -1787,6 +1744,49 @@ class NenoHelper
 
 				$db->setQuery($query);
 				$db->execute();
+			}
+
+			$query
+				->clear()
+				->select($db->quoteName('key', 'associationKey'))
+				->from('#__associations')
+				->where(
+					array (
+						'id IN (' . implode(',', array_merge($associations, array ($menuItem->id))) . ')',
+						'context = ' . $db->quote('com_menus.item')
+					)
+				);
+
+			$db->setQuery($query);
+			$associationKey = $db->loadResult();
+
+			if (empty($associationKey))
+			{
+				if (!in_array($menuItem->id, $associations))
+				{
+					$associations[] = $menuItem->id;
+				}
+
+				$associations   = array_unique($associations);
+				$associationKey = md5(json_encode($associations));
+			}
+			else
+			{
+				$query
+					->clear()
+					->select('id')
+					->from('#__associations')
+					->where($db->quoteName('key') . ' = ' . $db->quote($associationKey));
+
+				$db->setQuery($query);
+				$alreadyInserted = $db->loadArray();
+				$associations    = array_diff($associations, $alreadyInserted);
+			}
+
+			foreach ($associations as $association)
+			{
+				$insertQuery->values($association . ',' . $db->quote('com_menus.item') . ',' . $db->quote($associationKey));
+				$insert = true;
 			}
 
 			if ($insert)
