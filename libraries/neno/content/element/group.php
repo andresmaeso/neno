@@ -659,6 +659,8 @@ class NenoContentElementGroup extends NenoContentElement implements NenoContentE
 			$this->setLanguageFiles($languageFiles);
 		}
 
+		$this->sync();
+
 		// If there are tables or language strings assigned, save the group
 		if (!empty($tables) || !empty($languageFiles))
 		{
@@ -743,6 +745,62 @@ class NenoContentElementGroup extends NenoContentElement implements NenoContentE
 		$this->groupName = $groupName;
 
 		return $this;
+	}
+
+	/**
+	 * Sync group level hierarchy
+	 *
+	 * @return void
+	 */
+	public function sync()
+	{
+		/* @var $db NenoDatabaseDriverMysqlx */
+		$db     = JFactory::getDbo();
+		$tables = $db->getTableList();
+
+		foreach ($tables as $key => $table)
+		{
+			$tables[$key] = str_replace($db->getPrefix(), '#__', $table);
+		}
+
+		$query = $db->getQuery(true);
+		$query
+			->select('id')
+			->from('#__neno_content_element_tables')
+			->where(
+				array (
+					'table_name NOT IN (' . implode(',', $db->quote($tables)) . ')',
+					'group_id = ' . (int) $this->id
+				)
+			);
+
+		$db->setQuery($query);
+		$tableIds        = $db->loadArray();
+		$reArrangeTables = false;
+
+		foreach ($tableIds as $tableId)
+		{
+			/* @var $table NenoContentElementTable */
+			$table = NenoContentElementTable::load($tableId);
+
+			if (!empty($table) && $table->remove())
+			{
+				/* @var $tableObject NenoContentElementTable */
+				foreach ($this->tables as $key => $tableObject)
+				{
+					if ($tableObject->getId() == $tableId)
+					{
+						$reArrangeTables = true;
+						unset($this->tables[$key]);
+					}
+				}
+			}
+		}
+
+		if ($reArrangeTables)
+		{
+			$this->tables = array_values($this->tables);
+		}
 	}
 
 	/**
