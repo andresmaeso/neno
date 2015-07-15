@@ -2328,6 +2328,17 @@ class NenoHelper
 
 				break;
 			case 'language_file_out_of_date':
+
+				// Delete update for this language
+				$db    = JFactory::getDbo();
+				$query = $db->getQuery(true);
+				$query
+					->delete('#__updates')
+					->where('element LIKE ' . $db->quote('%' . $language));
+				$db->setQuery($query);
+				$db->execute();
+
+				// Find update for this language
 				$languages = self::findLanguages();
 
 				foreach ($languages as $updateLanguage)
