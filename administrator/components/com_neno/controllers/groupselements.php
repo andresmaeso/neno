@@ -366,6 +366,9 @@ class NenoControllerGroupsElements extends JControllerAdmin
 
 				if (!empty($table) && $table->isTranslate())
 				{
+					// Sync table
+					$table->sync();
+
 					$fields = $table->getFields(false, true);
 
 					if (!empty($fields))
