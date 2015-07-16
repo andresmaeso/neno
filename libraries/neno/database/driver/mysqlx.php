@@ -282,7 +282,7 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
 				{
 					if ($this->isTranslatable($match))
 					{
-						$sql = str_replace($match . ' ', $this->generateShadowTableName($match, $languageTagSelected) . ' ', $sql);
+						$sql = preg_replace('/`?' . $match . '`? /', $this->generateShadowTableName($match, $languageTagSelected) . ' ', $sql);
 					}
 				}
 			}
