@@ -382,6 +382,7 @@ class NenoContentElementLanguageString extends NenoContentElement implements Nen
 
 			$defaultLanguage    = NenoSettings::get('source_language');
 			$this->translations = array ();
+			$languageFilename   = $this->getLanguageFile()->getFilename();
 
 			foreach ($languages as $language)
 			{
@@ -390,8 +391,15 @@ class NenoContentElementLanguageString extends NenoContentElement implements Nen
 					// If the string is empty or is a number, let's mark as translated.
 					$string = $this->getString();
 
-					// If the string is empty or is a number, let's mark as translated.
-					if (empty($string['string']) || is_numeric($string['string']))
+					// Check if this string already exists in other language file
+					$StringTranslation = NenoHelper::existsStringInsideOfLanguageFile(str_replace($defaultLanguage, $language->lang_code, $languageFilename), $this->getConstant());
+
+					if ($StringTranslation !== false)
+					{
+						$commonData['state']  = NenoContentElementTranslation::TRANSLATED_STATE;
+						$commonData['string'] = $StringTranslation;
+					}
+					elseif (empty($string['string']) || is_numeric($string['string'])) // If the string is empty or is a number, let's mark as translated.
 					{
 						$commonData['state'] = NenoContentElementTranslation::TRANSLATED_STATE;
 					}
@@ -399,6 +407,7 @@ class NenoContentElementLanguageString extends NenoContentElement implements Nen
 					{
 						$commonData['state'] = NenoContentElementTranslation::NOT_TRANSLATED_STATE;
 					}
+
 
 					$commonData['language'] = $language->lang_code;
 					$translation            = new NenoContentElementTranslation($commonData);

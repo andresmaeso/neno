@@ -3116,18 +3116,6 @@ class NenoHelper
 	}
 
 	/**
-	 * Read language file
-	 *
-	 * @param string $filename
-	 *
-	 * @return array
-	 */
-	public static function readLanguageFile($filename)
-	{
-		return NenoHelper::unifiedLanguageStrings(parse_ini_file($filename));
-	}
-
-	/**
 	 * Get translation method
 	 *
 	 * @param int $id Translation method Id
@@ -3386,5 +3374,32 @@ class NenoHelper
 		$db->setQuery($query);
 
 		return $db->loadResult();
+	}
+
+	/**
+	 * Search for a string into a language file based on its constant
+	 *
+	 * @param $languageFile
+	 * @param $constant
+	 *
+	 * @return bool
+	 */
+	public static function existsStringInsideOfLanguageFile($languageFile, $constant)
+	{
+		$strings = self::readLanguageFile($languageFile);
+
+		return isset($strings[$constant]) ? $strings[$constant] : false;
+	}
+
+	/**
+	 * Read language file
+	 *
+	 * @param string $filename
+	 *
+	 * @return array
+	 */
+	public static function readLanguageFile($filename)
+	{
+		return NenoHelper::unifiedLanguageStrings(parse_ini_file($filename));
 	}
 }
