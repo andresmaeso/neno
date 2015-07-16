@@ -582,28 +582,56 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
 	/**
 	 * Create all the shadow tables needed for
 	 *
-	 * @param   string $tableName   Table name
-	 * @param   bool   $copyContent Copy the content of the source table
+	 * @param   string      $tableName   Table name
+	 * @param   bool        $copyContent Copy the content of the source table
+	 * @param   string|null $language    Generate shadow table for this particular language
 	 *
 	 * @return void
 	 */
-	public function createShadowTables($tableName, $copyContent = true)
+	public function createShadowTables($tableName, $copyContent = true, $language = null)
 	{
 		$defaultLanguage = NenoSettings::get('source_language');
-		$knownLanguages  = NenoHelper::getLanguages();
+		$tableColumns    = array_keys($this->getTableColumns($tableName));
+		$hasLanguage     = in_array('language', $tableColumns);
 
-		foreach ($knownLanguages as $knownLanguage)
+		// If there's no language passed, let's execute this for each language
+		if ($language === null)
 		{
-			if ($knownLanguage->lang_code !== $defaultLanguage)
-			{
-				$shadowTableName            = $this->generateShadowTableName($tableName, $knownLanguage->lang_code);
-				$shadowTableCreateStatement = 'CREATE TABLE IF NOT EXISTS ' . $this->quoteName($shadowTableName) . ' LIKE ' . $this->quoteName($tableName);
-				$this->executeQuery($shadowTableCreateStatement);
+			$knownLanguages = NenoHelper::getLanguages();
 
-				if ($copyContent)
+			foreach ($knownLanguages as $knownLanguage)
+			{
+				if ($knownLanguage->lang_code !== $defaultLanguage)
 				{
-					$this->copyContentElementsFromSourceTableToShadowTables($tableName, $shadowTableName);
+					$shadowTableName            = $this->generateShadowTableName($tableName, $knownLanguage->lang_code);
+					$shadowTableCreateStatement = 'CREATE TABLE IF NOT EXISTS ' . $this->quoteName($shadowTableName) . ' LIKE ' . $this->quoteName($tableName);
+					$this->executeQuery($shadowTableCreateStatement);
+
+					if ($copyContent)
+					{
+						$this->copyContentElementsFromSourceTableToShadowTables($tableName, $shadowTableName);
+
+						if ($hasLanguage)
+						{
+							$query = $this->getQuery(true);
+							$query
+								->update($shadowTableName)
+								->set('language = ' . $this->quote($knownLanguage->lang_code));
+							$this->executeQuery($query);
+						}
+					}
 				}
+			}
+		}
+		else
+		{
+			$shadowTableName            = $this->generateShadowTableName($tableName, $language);
+			$shadowTableCreateStatement = 'CREATE TABLE IF NOT EXISTS ' . $this->quoteName($shadowTableName) . ' LIKE ' . $this->quoteName($tableName);
+			$this->executeQuery($shadowTableCreateStatement);
+
+			if ($copyContent)
+			{
+				$this->copyContentElementsFromSourceTableToShadowTables($tableName, $shadowTableName);
 			}
 		}
 	}
@@ -618,7 +646,7 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
 	 */
 	public function copyContentElementsFromSourceTableToShadowTables($sourceTableName, $shadowTableName)
 	{
-		$columns = $this->getTableColumns($sourceTableName);
+		$columns = array_keys($this->getTableColumns($sourceTableName));
 		$query   = 'REPLACE INTO ' . $this->quoteName($shadowTableName) . ' (' . implode(',', $this->quoteName($columns)) . ' ) SELECT * FROM ' . $this->quoteName($sourceTableName);
 		$this->executeQuery($query);
 	}
@@ -836,10 +864,17 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
 	public function syncTable($tableName)
 	{
 		$languages = NenoHelper::getTargetLanguages(false);
+		$tables    = $this->getTableList();
 
 		foreach ($languages as $language)
 		{
 			$shadowTableName = $this->generateShadowTableName($tableName, $language->lang_code);
+
+			// If the table does not exists, let's create it
+			if (!in_array($shadowTableName, $tables))
+			{
+				$this->createShadowTables($tableName, true, $language->lang_code);
+			}
 
 			$diff = $this->tablesDiff($tableName, $shadowTableName);
 
@@ -866,6 +901,27 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
 			}
 		}
 	}
+
+	/**
+	 * Method to get an array of all tables in the database.
+	 *
+	 * @return  array  An array of all the tables in the database.
+	 *
+	 * @since   12.2
+	 * @throws  RuntimeException
+	 */
+	public function getTableList()
+	{
+		$tableList = parent::getTableList();
+
+		foreach ($tableList as $key => $table)
+		{
+			$tableList[$key] = str_replace($this->getPrefix(), '#__', $table);
+		}
+
+		return $tableList;
+	}
+
 
 	/**
 	 * Get diff between tables
