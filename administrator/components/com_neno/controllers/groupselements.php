@@ -414,7 +414,8 @@ class NenoControllerGroupsElements extends JControllerAdmin
 			->where(
 				array (
 					'tr.content_type = ' . $db->quote(NenoContentElementTranslation::DB_STRING),
-					'tr.state = ' . $db->quote(NenoContentElementTranslation::TRANSLATED_STATE)
+					'tr.state = ' . $db->quote(NenoContentElementTranslation::TRANSLATED_STATE),
+					'tr.language = ' . $db->quote($workingLanguage)
 				)
 			);
 
@@ -436,7 +437,7 @@ class NenoControllerGroupsElements extends JControllerAdmin
 		foreach ($translationIds as $translationId)
 		{
 			/* @var $translation NenoContentElementTranslation */
-			$translation = NenoContentElementTranslation::load($translationId);
+			$translation = NenoContentElementTranslation::load($translationId, false, true);
 
 			$translation->moveTranslationToTarget();
 		}
