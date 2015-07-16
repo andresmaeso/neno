@@ -616,32 +616,7 @@ class NenoHelper
 			{
 				if (!self::isTableAlreadyDiscovered($tableName))
 				{
-					// Create an array with the table information
-					$tableData = array (
-						'tableName'  => $tableName,
-						'primaryKey' => $db->getPrimaryKey($tableName),
-						'translate'  => !$group->isOtherGroup(),
-						'group'      => $group
-					);
-
-					// Create ContentElement object
-					$table = new NenoContentElementTable($tableData);
-
-					// Get all the columns a table contains
-					$fields = $db->getTableColumns($table->getTableName());
-
-					foreach ($fields as $fieldName => $fieldType)
-					{
-						$fieldData = array (
-							'fieldName' => $fieldName,
-							'fieldType' => $fieldType,
-							'translate' => NenoContentElementField::isTranslatableType($fieldType),
-							'table'     => $table
-						);
-
-						$field = new NenoContentElementField($fieldData);
-						$table->addField($field);
-					}
+					$table = self::createTableInstance($tableName, $group);
 				}
 				elseif ($includeDiscovered)
 				{
@@ -656,6 +631,48 @@ class NenoHelper
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Create Table instance
+	 *
+	 * @param string                  $tableName Table name
+	 * @param NenoContentElementGroup $group     Group
+	 *
+	 * @return NenoContentElementTable
+	 */
+	public static function createTableInstance($tableName, NenoContentElementGroup $group)
+	{
+		/* @var $db NenoDatabaseDriverMysqlx */
+		$db = JFactory::getDbo();
+		// Create an array with the table information
+		$tableData = array (
+			'tableName'  => $tableName,
+			'primaryKey' => $db->getPrimaryKey($tableName),
+			'translate'  => !$group->isOtherGroup(),
+			'group'      => $group
+		);
+
+		// Create ContentElement object
+		$table = new NenoContentElementTable($tableData);
+
+		// Get all the columns a table contains
+		$fields = $db->getTableColumns($table->getTableName());
+
+		foreach ($fields as $fieldName => $fieldType)
+		{
+			$fieldData = array (
+				'fieldName' => $fieldName,
+				'fieldType' => $fieldType,
+				'translate' => NenoContentElementField::isTranslatableType($fieldType),
+				'table'     => $table
+			);
+
+			$field = new NenoContentElementField($fieldData);
+			$table->addField($field);
+		}
+
+		return $table;
 	}
 
 	/**

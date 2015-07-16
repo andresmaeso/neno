@@ -253,4 +253,33 @@ class PlgSystemNeno extends JPlugin
 			}
 		}
 	}
+
+	/**
+	 * This event discover/sync tables
+	 *
+	 * @param string $tableName Table name
+	 *
+	 * @return void
+	 */
+	public function onDatabaseStructure($tableName)
+	{
+		$db = JFactory::getDbo();
+
+		// Unify table name
+		$tableName = str_replace($db->getPrefix(), '#__', $tableName);
+
+		/* @var $table NenoContentElementTable */
+		$table = NenoContentElementTable::load(array ('table_name' => $tableName));
+
+		if (empty($table))
+		{
+			$otherGroup = NenoContentElementGroup::load(array ('other_group' => 1));
+			$table      = NenoHelper::createTableInstance($tableName, $otherGroup);
+			$table->persist();
+		}
+		else
+		{
+			$table->sync();
+		}
+	}
 }
