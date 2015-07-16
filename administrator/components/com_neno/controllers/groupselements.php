@@ -385,4 +385,62 @@ class NenoControllerGroupsElements extends JControllerAdmin
 
 		JFactory::getApplication()->redirect('index.php?option=com_neno&view=groupselements');
 	}
+
+	/**
+	 * Move completed translations to the shadow tables
+	 *
+	 * @return void
+	 *
+	 * @throws Exception
+	 */
+	public function moveTranslationsToShadowTables()
+	{
+		$input = $this->input;
+
+		// Refresh content for groups
+		$groups          = $input->get('groups', array (), 'ARRAY');
+		$tables          = $input->get('tables', array (), 'ARRAY');
+		$workingLanguage = NenoHelper::getWorkingLanguage();
+
+		/* @var $db NenoDatabaseDriverMysqlx */
+		$db    = JFactory::getDbo();
+		$query = $db->getQuery(true);
+
+		$query
+			->select('tr.id')
+			->from('#__neno_content_element_translations AS tr')
+			->innerJoin('#__neno_content_element_fields AS f ON tr.content_id = f.id')
+			->innerJoin('#__neno_content_element_tables AS t ON t.id = f.table_id')
+			->where(
+				array (
+					'tr.content_type = ' . $db->quote(NenoContentElementTranslation::DB_STRING),
+					'tr.state = ' . $db->quote(NenoContentElementTranslation::TRANSLATED_STATE)
+				)
+			);
+
+		if (!empty($groups))
+		{
+			$query
+				->innerJoin('#__neno_content_element_groups AS g ON t.group_id = g.id')
+				->where('g.id IN (' . implode(',', $db->quote($groups)) . ')');
+		}
+		elseif (!empty($tables))
+		{
+			$query
+				->where('t.id IN (' . implode(',', $db->quote($tables)) . ')');
+		}
+
+		$db->setQuery($query);
+		$translationIds = $db->loadArray();
+
+		foreach ($translationIds as $translationId)
+		{
+			/* @var $translation NenoContentElementTranslation */
+			$translation = NenoContentElementTranslation::load($translationId);
+
+			$translation->moveTranslationToTarget();
+		}
+
+		JFactory::getApplication()->redirect('index.php?option=com_neno&view=groupselements');
+	}
 }
