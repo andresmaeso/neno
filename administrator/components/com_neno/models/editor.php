@@ -64,6 +64,12 @@ class NenoModelEditor extends NenoModelStrings
 				)
 			);
 
+			// Making sure that is an array
+			if (!is_array($translationsToConsolidate))
+			{
+				$translationsToConsolidate = array ($translationsToConsolidate);
+			}
+
 			/* @var $translationToConsolidate NenoContentElementTranslation */
 			foreach ($translationsToConsolidate as $translationToConsolidate)
 			{
