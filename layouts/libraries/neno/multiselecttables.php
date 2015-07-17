@@ -39,16 +39,33 @@ foreach ($fieldsSelected as $fieldSelected)
 }
 ?>
 <?php foreach ($tables as $table): ?>
-	<?php $class = !empty($table->fields) ? 'cell-expand' : ''; ?>
-	<tr class="row-table element-row <?php echo in_array($table->id, $tablesSelected) ? 'expanded' : 'collapsed'; ?>"
+	<?php
+		$classTR = 'collapsed';
+		if (in_array($table->id, $tablesSelected)) {
+			$classTR = 'expanded';
+		} else {
+			foreach ($table->fields as $field) {
+				if (in_array($field->id, $fieldsSelected)) {
+					$classTR = 'expanded';
+					break;
+				}
+			}
+		}
+		$classTD = !empty($table->fields) ? 'cell-expand' : '';
+	?>
+	<tr class="row-table element-row <?php echo $classTR; ?>"
 	    data-level="2"
 	    data-id="table-<?php echo $table->id; ?>"
 	    data-parent="group-<?php echo $table->group->id; ?>"
 	    data-label="<?php echo $table->table_name; ?>">
 		<td></td>
-		<td class="<?php echo $class; ?>">
+		<td class="<?php echo $classTD; ?>">
 			<?php if (!empty($table->fields)): ?>
-				<span class="icon-arrow-right-3"></span>
+				<?php if ($classTR == 'collapsed'): ?>
+					<span class="icon-arrow-right-3"></span>
+				<?php else: ?>
+					<span class="icon-arrow-down-3"></span>
+				<?php endif; ?>
 			<?php endif; ?>
 		</td>
 		<td class="cell-check"><input
@@ -64,7 +81,7 @@ foreach ($fieldsSelected as $fieldSelected)
 		</td>
 	</tr>
 	<?php foreach ($table->fields as $field): ?>
-		<tr class="row-field element-row hide" data-level="3" data-id="field-<?php echo $field->id; ?>"
+		<tr class="row-field element-row <?php echo $classTR == 'collapsed'?'hide':'' ?>" data-level="3" data-id="field-<?php echo $field->id; ?>"
 		    data-parent="table-<?php echo $table->id; ?>"
 		    data-label="<?php echo $field->field_name; ?>">
 			<td></td>
