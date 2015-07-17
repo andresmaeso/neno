@@ -470,4 +470,5 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 
 </form>
 
+<?php echo NenoHelperBackend::renderVersionInfoBox(); ?>
 

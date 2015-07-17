@@ -26,20 +26,31 @@ defined('_JEXEC') or die;
 		font-size: 14px;
 	}
 
+	.icon-warning, .icon-checkmark {
+		margin-left: 23px;
+		margin-top: 7px;
+	}
+
 	#versionbox .update-inner {
-		font-size: 11px;
+		font-size: 13px;
 		margin-left: 44px;
 	}
 </style>
 
 <div class="j-sidebar-container" id="versionbox">
-	<i class="icon-checkmark text-success"></i> Neno version
-	<strong><?php echo !empty($displayData->newVersion) ? $displayData->newVersion : $displayData->currentVersion; ?></strong>
+	<div<?php echo !empty($displayData->newVersion) ? ' class="text-error"' : ''; ?>>
+		<i class="icon-<?php echo !empty($displayData->newVersion) ? 'warning' : 'checkmark'; ?> <?php echo !empty($displayData->newVersion) ? '' : 'text-success'; ?>"></i>
+		<?php echo JText::_('COM_NENO_VERSION_BOX_NENO_VERSION'); ?>
+		<strong><?php echo !empty($displayData->newVersion) ? $displayData->newVersion : $displayData->currentVersion; ?></strong>
+		<?php echo !empty($displayData->newVersion) ? JText::_('COM_NENO_VERSION_BOX_NEW_VERSION_IS_AVAILABLE') : ''; ?>
+	</div>
 
 	<?php if (!empty($displayData->newVersion)): ?>
 		<div class="update-inner">
-			<p>Currently installed Neno version: <?php echo $displayData->currentVersion; ?></p>
-			<a href="index.php?option=com_installer&view=update">Please update</a>
+			<p><?php echo JText::_('COM_NENO_VERSION_BOX_UPDATE_P'); ?>
+				<strong><?php echo $displayData->currentVersion; ?></strong></p>
+			<a href="index.php?option=com_installer&view=update"><?php echo JText::_('COM_NENO_VERSION_BOX_UPDATE_LINK_TEXT'); ?>
+			</a>
 		</div>
 	<?php endif; ?>
 </div>

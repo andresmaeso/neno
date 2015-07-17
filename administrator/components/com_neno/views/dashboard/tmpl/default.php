@@ -179,3 +179,4 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 		});
 	})
 </script>
+<?php echo NenoHelperBackend::renderVersionInfoBox(); ?>

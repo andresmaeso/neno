@@ -347,3 +347,4 @@ if (!empty($this->extraSidebar))
 		});
 	});
 </script>
+<?php echo NenoHelperBackend::renderVersionInfoBox(); ?>

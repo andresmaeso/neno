@@ -75,3 +75,4 @@ $next = JFactory::getApplication()->input->getString('next', 'dashboard');
 		}
 	}
 </script>
+<?php echo NenoHelperBackend::renderVersionInfoBox(); ?>

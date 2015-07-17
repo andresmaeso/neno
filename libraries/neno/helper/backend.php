@@ -988,4 +988,42 @@ class NenoHelperBackend
 
 		return $db->loadResult();
 	}
+
+	/**
+	 * Render infobox
+	 *
+	 * @return string
+	 */
+	public static function renderVersionInfoBox()
+	{
+		$db    = JFactory::getDbo();
+		$query = $db->getQuery(true);
+
+		$query
+			->select('manifest_cache')
+			->from('#__extensions')
+			->where('element = ' . $db->quote('pkg_neno'));
+
+		$db->setQuery($query);
+		$manifestCache = json_decode($db->loadResult(), true);
+
+		$displayData                 = new stdClass;
+		$displayData->currentVersion = $manifestCache['version'];
+
+		$query
+			->clear()
+			->select('version')
+			->from('#__updates')
+			->where('element = ' . $db->quote('pkg_neno'));
+
+		$db->setQuery($query);
+		$newVersion = $db->loadResult();
+
+		if (!empty($newVersion))
+		{
+			$displayData->newVersion = $newVersion;
+		}
+
+		return JLayoutHelper::render('versionbox', $displayData, JPATH_NENO_LAYOUTS);
+	}
 }

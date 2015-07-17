@@ -309,3 +309,4 @@ foreach ($this->items as $item)
 </form>
 
 
+<?php echo NenoHelperBackend::renderVersionInfoBox(); ?>
