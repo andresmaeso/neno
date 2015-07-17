@@ -32,7 +32,7 @@ function loadHierarchy(row) {
                         row.removeClass('loading');
                         checkUncheckFamilyCheckboxes(row.find('input[type=checkbox]').first());
                         setFilterTags(document.adminForm);
-                        loadStrings(false);
+                        loadStrings(true);
                     }
                 }
             );
