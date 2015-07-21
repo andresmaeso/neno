@@ -65,12 +65,20 @@ function bindEvents() {
     jQuery('#table-multiselect .cell-expand').click(toggleElementVisibility);
 
     jQuery('#table-multiselect input[type=checkbox]').unbind('click').click(function () {
+        if (!ignoreTranslationModification()) {
+            jQuery(this).prop('checked', !jQuery(this).prop('checked'));
+            return;
+        }
         jQuery("input[name='limitstart']").val(0);
         jQuery('#elements-wrapper').html('');
         checkUncheckFamilyCheckboxes(jQuery(this));
         loadStrings(true);
     });
     jQuery('#status-multiselect input[type=checkbox], #method-multiselect input[type=checkbox]').unbind('click').click(function () {
+        if (!ignoreTranslationModification()) {
+            jQuery(this).prop('checked', !jQuery(this).prop('checked'));
+            return;
+        }
         jQuery("input[name='limitstart']").val(0);
         jQuery('#elements-wrapper').html('');
         loadStrings(true);
@@ -318,6 +326,9 @@ function printFilterTag(type, label) {
     var tag = jQuery('<div class="filter-tag btn btn-small disabled" data-type="' + type + '"><span class="removeTag icon-remove"></span>' + label + '</div>');
     jQuery('#filter-tags-wrapper').append(tag);
     tag.find('.removeTag').click(function () {
+        if (!ignoreTranslationModification()) {
+            return;
+        }
         jQuery('[data-id="' + type + '"]').find('input[type=checkbox]').prop('checked', false);
         // Check if the tag is from a Group/Element/Key
         if (type.indexOf('group') != -1 || type.indexOf('table') != -1 || type.indexOf('field') != -1) {

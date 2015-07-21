@@ -5,6 +5,9 @@
  */
 
 function loadTranslation(string) {
+    if (!ignoreTranslationModification()) {
+        return;
+    }
     var idString;
     if (jQuery.type(string) == 'object') {
         jQuery('.string-activated').removeClass('string-activated');
@@ -63,6 +66,7 @@ function updateEditorString(row, data) {
 function saveTranslationAndNext() {
     var text = jQuery('.translated-content').val();
     var translationId = jQuery('#save-next-button').data('id');
+    jQuery('.translated-content').attr('data-modified', 'false');
     jQuery.ajax({
             beforeSend: onBeforeAjax,
             type: 'POST',
@@ -73,6 +77,7 @@ function saveTranslationAndNext() {
                 text: text
             },
             success: function (data) {
+                jQuery('.translatedContent').attr('data-modified', 'false');
                 if (typeof data.message != 'undefined') {
                     jQuery('#consolidate-modal .modal-body p').html(data.message);
                     jQuery('#consolidate-button').off('click').data('translation', translationId).on('click', function () {
@@ -124,12 +129,17 @@ function saveDraft() {
                 if (row) {
                     updateEditorString(row, data);
                 }
+                bindTranslationModificationCheck();
+                jQuery('.translated-content').attr('data-modified', 'false');
             }
         }
     );
 }
 
 function translate() {
+    if (!ignoreTranslationModification()) {
+        return;
+    }
     var text = jQuery('.original-text').html().trim();
     jQuery.ajax({
             beforeSend: onBeforeAjax,
@@ -147,6 +157,7 @@ function translate() {
                 }
                 jQuery('.translated-by').show();
                 jQuery('.translated-content').focus();
+                jQuery('.translated-content').change();
             }
         }
     );
@@ -360,6 +371,9 @@ function saveTranslationMethod(translationMethod, language, ordering, applyToEle
 }
 
 function copyOriginal() {
+    if (!ignoreTranslationModification()) {
+        return;
+    }
     var original = jQuery('.original-text').html().trim();
     original = original.replace(/<span class="highlighted-tag">|<\/span>/g, '');
     original = original.replace(/&lt;/g, '<');
@@ -368,6 +382,7 @@ function copyOriginal() {
     jQuery('.translated-by').hide();
     jQuery('.translated-error').hide();
     jQuery('.translated-content').focus();
+    jQuery('.translated-content').change();
 }
 
 function setResultsWrapperHeight() {
@@ -380,4 +395,37 @@ function setResultsWrapperHeight() {
     var gap = sidebar.outerHeight() - resultsBottom;
     var elements = jQuery('#elements-wrapper');
     elements.height(elements.outerHeight() + gap - 70);
+}
+
+function bindTranslationModificationCheck() {
+    jQuery(window).off('beforeunload');
+    var translatedContent = jQuery('.translated-content');
+    translatedContent.on('change', function(){
+        jQuery(window).off('beforeunload').on('beforeunload', function(){
+            return translatedContent.attr('data-modified-message');
+        });
+        translatedContent.off('change');
+        translatedContent.off('keyup');
+        translatedContent.attr('data-modified', 'true');
+    });
+    translatedContent.on('keyup', function(){
+        jQuery(window).off('beforeunload').on('beforeunload', function(){
+            return translatedContent.attr('data-modified-message');
+        });
+        translatedContent.off('change');
+        translatedContent.off('keyup');
+        translatedContent.attr('data-modified', 'true');
+    });
+}
+
+function ignoreTranslationModification() {
+    var translatedContent = jQuery('.translated-content');
+    var ignore = true;
+    if (translatedContent.attr('data-modified') == "true") {
+        ignore = confirm (translatedContent.attr('data-modified-message'));
+        if (ignore) {
+            bindTranslationModificationCheck();
+        }
+    }
+    return ignore;
 }
