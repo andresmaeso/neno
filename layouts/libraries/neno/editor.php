@@ -13,6 +13,14 @@ defined('_JEXEC') or die;
 $document    = JFactory::getDocument();
 $translation = $displayData;
 
+$languageParts = null;
+
+if (!empty($translation))
+{
+	$languageParts = explode('-', $translation->language);
+}
+
+
 ?>
 	<script>
 		jQuery(document).ready(function () {
@@ -180,6 +188,7 @@ $translation = $displayData;
 			</div>
 			<div class="span6 pull-right">
 			<textarea
+			spellcheck="true" lang="<?php echo empty($languageParts) ? '' : $languageParts[0]; ?>"
 				class="full-width translated-content"
 				data-modified="false"
 				data-modified-message="<?php echo JText::_('COM_NENO_EDITOR_UNSAVED_CHANGES'); ?>"><?php echo !empty($translation) && ($translation->state != NenoContentElementTranslation::NOT_TRANSLATED_STATE || $translation->string !== $translation->original_text) ? $translation->string : ''; ?></textarea>

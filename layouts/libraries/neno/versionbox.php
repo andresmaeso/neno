@@ -16,7 +16,6 @@ defined('_JEXEC') or die;
 	#versionbox {
 		bottom: 3.1%;
 		position: fixed;
-		z-index: 9999;
 		left: 0;
 		width: 16.5%;
 		border-top: 1px solid #e3e3e3;
