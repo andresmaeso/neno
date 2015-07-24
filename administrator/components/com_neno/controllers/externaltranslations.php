@@ -18,62 +18,63 @@ defined('_JEXEC') or die;
  */
 class NenoControllerExternalTranslations extends JControllerAdmin
 {
-	/**
-	 * Task to set value for automatic translations
-	 *
-	 * @return void
-	 */
-	public function setAutomaticTranslationSetting()
-	{
-		$app   = JFactory::getApplication();
-		$input = $app->input;
+    /**
+     * Task to set value for automatic translations
+     *
+     * @return void
+     */
+    public function setAutomaticTranslationSetting()
+    {
+        $app   = JFactory::getApplication();
+        $input = $app->input;
 
-		$setting = $input->post->getString('setting');
-		$value   = $input->post->getInt('value');
+        $setting = $input->post->getString('setting');
+        $value   = $input->post->getInt('value');
 
-		if (!empty($setting))
-		{
-			echo NenoSettings::set($setting, $value) ? 'ok' : 'err';
-		}
-		else
-		{
-			echo 'err';
-		}
+        if (!empty($setting))
+        {
+            echo NenoSettings::set($setting, $value) ? 'ok' : 'err';
+        }
+        else
+        {
+            echo 'err';
+        }
 
-		$app->close();
-	}
+        $app->close();
+    }
 
-	/**
-	 * This task will create a job
-	 *
-	 * @return void
-	 */
-	public function createJob()
-	{
-		$app   = JFactory::getApplication();
-		$input = $app->input;
+    /**
+     * This task will create a job
+     *
+     * @return void
+     */
+    public function createJob()
+    {
+        $app   = JFactory::getApplication();
+        $input = $app->input;
 
-		$type     = $input->post->getString('type');
-		$language = $input->post->getString('language');
+        $type     = $input->post->getString('type');
+        $language = $input->post->getString('language');
 
-		if (!empty($type) && !empty($language))
-		{
-			$job = NenoJob::createJob($language, $type);
+        if (!empty($type) && !empty($language))
+        {
+            $job = NenoJob::createJob($language, $type);
+            $job->sendJob();
 
-			if ($job !== null)
-			{
-				echo 'ok';
-			}
-			else
-			{
-				echo 'err';
-			}
-		}
-		else
-		{
-			echo 'err';
-		}
+            if ($job !== null)
+            {
+                echo 'ok';
+            }
+            else
+            {
+                echo 'err';
+            }
+        }
+        else
+        {
+            echo 'err';
+        }
 
-		$app->close();
-	}
+        $app->close();
+    }
 }
