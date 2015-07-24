@@ -88,6 +88,7 @@ if (!empty($this->extraSidebar))
             });
 
             jQuery('.order-button').off('click').on('click', function () {
+                var button = jQuery(this);
                 jQuery.ajax({
                     beforeSend: onBeforeAjax,
                     type: "POST",
@@ -99,6 +100,9 @@ if (!empty($this->extraSidebar))
                     success: function (data) {
                         if (data != 'ok') {
                             alert("There was an error saving setting");
+                        }
+                        else {
+                            button.closest('.translation').slideToggle();
                         }
                     }
                 });
