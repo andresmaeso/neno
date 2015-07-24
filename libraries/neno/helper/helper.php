@@ -1363,16 +1363,14 @@ class NenoHelper
                 if ($db->insertObject('#__menu', $newMenuItem, 'id'))
                 {
                     // Assign all the modules to this item
-                    $query = 'INSERT INTO #__modules_menu (moduleid,menuid) SELECT moduleid,' . $db->quote($newMenuItem->id) . ' FROM  #__modules_menu WHERE menuid = ' . $db->quote($menuItem->id);
-                    $db->setQuery($query);
+                    $queryString = 'INSERT INTO #__modules_menu (moduleid,menuid) SELECT moduleid,' . $db->quote($newMenuItem->id) . ' FROM  #__modules_menu WHERE menuid = ' . $db->quote($menuItem->id);
+                    $db->setQuery($queryString);
                     $db->execute();
 
                     // Add this menu to the association
-                    $query = 'INSERT INTO #__associations (`id`,`context`,`key`) SELECT ' . $db->quote($newMenuItem->id) . ', ' . $db->quote('com_menus.item') . ', key FROM #__associations WHERE id =' . $db->quote($menuItem->id);
-                    $db->setQuery($query);
+                    $queryString = 'INSERT INTO #__associations (`id`,`context`,`key`) SELECT ' . $db->quote($newMenuItem->id) . ', ' . $db->quote('com_menus.item') . ', `key` FROM #__associations WHERE id =' . $db->quote($menuItem->id) . ' AND context = ' . $db->quote('com_menus.item');
+                    $db->setQuery($queryString);
                     $db->execute();
-
-                    $query = $db->getQuery(true);
                 }
             }
         }
