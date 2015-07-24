@@ -427,7 +427,7 @@ class NenoJob extends NenoObject
                 ->setSentTime(null)
                 ->setState(self::JOB_STATE_GENERATED);
 
-            if ($response['code'] == 402)
+            if ($response['code'] !== 200)
             {
                 $this->setState(self::JOB_STATE_NO_TC);
             }
