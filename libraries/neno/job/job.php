@@ -330,17 +330,17 @@ class NenoJob extends NenoObject
         /* @var $zipAdapter JArchiveZip */
         $zipAdapter = JArchive::getAdapter('zip');
 
-        file_put_contents(
-            JPATH_ROOT . '/tmp/' . $filename . '.json.zip',
-            fopen(NenoSettings::get('server_url') . 'tmp/' . NenoSettings::get('license_code') . '/' . $filename . '.json.zip', 'r')
-        );
+        $fullPath = JPATH_ROOT . '/tmp/' . $filename . '.json.zip';
+
+        // Check if the file has been downloaded properly
+        if (!NenoHelperApi::getJobFile($this->id, $fullPath))
+        {
+            return false;
+        }
 
         try
         {
-            return $zipAdapter->extract(
-                JPATH_ROOT . '/tmp/' . $filename . '.json.zip',
-                $tmpPath . '/' . $filename . '.json'
-            );
+            return $zipAdapter->extract($fullPath, $tmpPath . '/' . $filename . '.json');
         }
         catch (RuntimeException $e)
         {
