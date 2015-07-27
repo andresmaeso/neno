@@ -30,7 +30,7 @@ if (!empty($this->extra_sidebar))
 
     function loadInstallationStep() {
         jQuery.ajax({
-            url: 'index.php?option=com_neno&task=installation.loadInstallationStep',
+            url: 'index.php?option=com_neno&task=installation.loadInstallationStep&r=' + Math.random(),
             dataType: 'json',
             success: function (html) {
                 jQuery('.installation-form').empty().append(html.installation_step);
@@ -99,7 +99,7 @@ if (!empty($this->extra_sidebar))
             var language = jQuery(this).data('language');
 
             jQuery.post(
-                'index.php?option=com_neno&task=saveExternalTranslatorsComment',
+                'index.php?option=com_neno&task=saveExternalTranslatorsComment&r=' + Math.random(),
                 {
                     placement: 'language',
                     language: language,
@@ -160,7 +160,7 @@ if (!empty($this->extra_sidebar))
         });
         jQuery('#system-message-container').empty();
         jQuery.ajax({
-            url: 'index.php?option=com_neno&task=installation.processInstallationStep',
+            url: 'index.php?option=com_neno&task=installation.processInstallationStep&r=' + Math.random(),
             type: 'POST',
             data: data,
             dataType: "json",
