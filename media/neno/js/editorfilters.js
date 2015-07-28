@@ -70,6 +70,12 @@ jQuery(document).ready(function () {
         loadStrings(true);
     });
 
+    jQuery('#adminForm').off('submit').on('submit', function (e) {
+        var ev = e || window.event;
+        ev.preventDefault();
+        loadStrings(true);
+    });
+
     // Fit filters inside the sidebar
     jQuery(window).resize(function(){
        jQuery('#filter_search').width(jQuery('#j-sidebar-container').innerWidth() - jQuery('.submit-form').width() - 57);
