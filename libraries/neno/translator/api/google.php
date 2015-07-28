@@ -13,7 +13,7 @@ defined('_JEXEC') or die;
  *
  * @since  1.0
  */
-class NenoTranslateApiGoogle extends NenoTranslateApi
+class NenoTranslatorApiGoogle extends NenoTranslatorApi
 {
 	/**
 	 * Translate text using google api

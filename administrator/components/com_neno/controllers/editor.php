@@ -38,8 +38,8 @@ class NenoControllerEditor extends NenoControllerStrings
 
 		try
 		{
-			/* @var $nenoTranslate NenoTranslateApi */
-			$nenoTranslate = NenoTranslateApi::getAdapter($translator);
+			/* @var $nenoTranslate NenoTranslatorApi */
+			$nenoTranslate = NenoTranslatorApi::getAdapter($translator);
 
 			try
 			{

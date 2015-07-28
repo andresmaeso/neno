@@ -14,7 +14,7 @@ defined('_JEXEC') or die;
  *
  * @since  1.0
  */
-abstract class NenoTranslateApi extends JHttp
+abstract class NenoTranslatorApi extends JHttp
 {
 	/**
 	 * @var array
@@ -26,14 +26,14 @@ abstract class NenoTranslateApi extends JHttp
 	 *
 	 * @param   string $apiName API Name
 	 *
-	 * @return NenoTranslateApi
+	 * @return NenoTranslatorApi
 	 */
 	public static function getAdapter($apiName)
 	{
 		if (!isset(self::$adapters[$apiName]))
 		{
 			// Try to load the adapter object
-			$class = 'NenoTranslateApi' . ucfirst($apiName);
+			$class = 'NenoTranslatorApi' . ucfirst($apiName);
 
 			if (!class_exists($class) || empty($apiName))
 			{

@@ -13,7 +13,7 @@ defined('_JEXEC') or die;
  *
  * @since  1.0
  */
-class NenoTranslateApiYandex extends NenoTranslateApi
+class NenoTranslatorApiYandex extends NenoTranslatorApi
 {
 	/**
 	 * {@inheritdoc}
