@@ -268,7 +268,7 @@ if (!empty($this->extraSidebar))
                             &nbsp;€<?php echo number_format(ceil($this->tcNeeded * 0.0005), 2, ',', '.'); ?> </h3>
                     </div>
                     <div class="center">
-                        <a href="https://www.neno-translate.com/en/pricing/checkout" class="btn btn-success">
+                        <a href="https://www.neno-translate.com/en/pricing/checkout" class="btn btn-success" target="_blank">
                             <?php echo JText::_('COM_NENO_EXTERNALTRANSLATION_BUY_TC_BUTTON'); ?>
                         </a>
                     </div>
