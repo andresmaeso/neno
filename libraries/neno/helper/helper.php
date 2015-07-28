@@ -1860,7 +1860,7 @@ class NenoHelper
                             ->where(
                                 array (
                                     'moduleid = ' . $previousId,
-                                    'menuid'
+                                    'menuid = 0'
                                 )
                             );
 
