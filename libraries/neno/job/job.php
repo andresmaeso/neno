@@ -389,7 +389,15 @@ class NenoJob extends NenoObject
                         $translation->setState(NenoContentElementTranslation::TRANSLATED_STATE);
                     }
 
-                    $translation->persist();
+                    // Saving translation
+                    if ($translation->persist())
+                    {
+                        // Move translation to the target even if it's not completed. Machine => Professional || Professional => Manual
+                        if ($translation->getState() == NenoContentElementTranslation::TRANSLATED_STATE)
+                        {
+                            $translation->moveTranslationToTarget();
+                        }
+                    }
                 }
             }
 
