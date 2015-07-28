@@ -1572,7 +1572,8 @@ class NenoHelper
                     'level <> 0',
                     'published <> -2'
                 )
-            );
+            )
+            ->order('level');
 
         $db->setQuery($query);
         $nonAssociatedMenuItems = $db->loadObjectList();
@@ -1918,6 +1919,58 @@ class NenoHelper
                             $db->setQuery($insertQuery);
                             $db->execute();
                         }
+                    }
+                }
+            }
+        }
+
+        // Fixing levels issue
+        foreach ($languages as $language)
+        {
+            if ($language->lang_code !== $defaultLanguage)
+            {
+                $query
+                    ->clear()
+                    ->select('m1.*')
+                    ->from('#__menu AS m1')
+                    ->where(
+                        array (
+                            'client_id = 0',
+                            'level <> 0',
+                            'level <> 1',
+                            'EXISTS (SELECT 1 FROM #__menu AS m2 WHERE m2.id = m1.parent_id AND m2.language <> m1.language)'
+                        )
+                    );
+
+                $db->setQuery($query);
+                $menuItemsThatNeedsToBeFixed = $db->loadObjectList();
+
+                foreach ($menuItemsThatNeedsToBeFixed as $menuItem)
+                {
+                    $query
+                        ->clear()
+                        ->select('m2.id')
+                        ->from('#__menu AS m1')
+                        ->innerJoin('#__associations AS a1 ON a1.id = m1.id')
+                        ->innerJoin('#__associations AS a2 ON a1.key = a2.key')
+                        ->innerJoin('#__menu AS m2 ON a2.id = m2.id')
+                        ->where(
+                            array (
+                                'a1.context = ' . $db->quote('com_menus.item'),
+                                'a2.context = ' . $db->quote('com_menus.item'),
+                                'a1.id <> a2.id',
+                                'm1.id = ' . $menuItem->parent_id,
+                                'm2.language = ' . $db->quote($menuItem->language)
+                            )
+                        );
+
+                    $db->setQuery($query);
+                    $parentId = (int) $db->loadResult();
+
+                    if (!empty($parentId))
+                    {
+                        $menuItem->parent_id = $parentId;
+                        $db->updateObject('#__menu', $menuItem, 'id');
                     }
                 }
             }
