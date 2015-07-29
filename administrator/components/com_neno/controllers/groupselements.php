@@ -415,13 +415,14 @@ class NenoControllerGroupsElements extends JControllerAdmin
      *
      * @throws Exception
      */
-    public function moveTranslationsToShadowTables()
+    public function moveTranslationsToTarget()
     {
         $input = $this->input;
 
         // Refresh content for groups
         $groups          = $input->get('groups', array (), 'ARRAY');
         $tables          = $input->get('tables', array (), 'ARRAY');
+        $files           = $input->get('files', array (), 'ARRAY');
         $workingLanguage = NenoHelper::getWorkingLanguage();
 
         /* @var $db NenoDatabaseDriverMysqlx */
@@ -435,7 +436,6 @@ class NenoControllerGroupsElements extends JControllerAdmin
             ->innerJoin('#__neno_content_element_tables AS t ON t.id = f.table_id')
             ->where(
                 array (
-                    'tr.content_type = ' . $db->quote(NenoContentElementTranslation::DB_STRING),
                     'tr.state = ' . $db->quote(NenoContentElementTranslation::TRANSLATED_STATE),
                     'tr.language = ' . $db->quote($workingLanguage)
                 )
@@ -447,10 +447,21 @@ class NenoControllerGroupsElements extends JControllerAdmin
                 ->innerJoin('#__neno_content_element_groups AS g ON t.group_id = g.id')
                 ->where('g.id IN (' . implode(',', $db->quote($groups)) . ')');
         }
-        elseif (!empty($tables))
+        elseif (!empty($tables) || !empty($files))
         {
-            $query
-                ->where('t.id IN (' . implode(',', $db->quote($tables)) . ')');
+            $where = array ();
+
+            if (!empty($tables))
+            {
+                $where[] = '(t.id IN (' . implode(',', $db->quote($tables)) . ') AND tr.content_type = ' . $db->quote(NenoContentElementTranslation::DB_STRING) . ')';
+            }
+
+            if (!empty($files))
+            {
+                $where[] = '(t.id IN (' . implode(',', $db->quote($tables)) . ') AND tr.content_type = ' . $db->quote(NenoContentElementTranslation::LANG_STRING) . ')';
+            }
+
+            $query->where('(' . implode(' OR ', $where) . ')');
         }
 
         $db->setQuery($query);
