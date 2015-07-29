@@ -466,6 +466,7 @@ class NenoJob extends NenoObject
             'to'                 => $this->getToLanguage(),
             'comment'            => NenoSettings::get('external_translators_notes'),
             'word_count'         => $this->getWordCount(),
+            'callback_url'       => JUri::root() . 'index.php?option=com_neno&task=translationReady&jobId=' . $this->getId(),
             'strings'            => $this->getTranslations()
         );
 
