@@ -19,6 +19,11 @@ defined('_JEXEC') or die;
 class NenoHelper
 {
     /**
+     * @var array
+     */
+    protected static $menuModuleReplicated = array ();
+
+    /**
      * Set the working language on the currently logged in user
      *
      * @param   string $lang 'en-GB' or 'de-DE'
@@ -1450,21 +1455,25 @@ class NenoHelper
             {
                 foreach ($modules as $module)
                 {
-                    $previousId     = $module->id;
-                    $module->params = json_decode($module->params, true);
+                    if (!in_array($module->id, self::$menuModuleReplicated))
+                    {
+                        self::$menuModuleReplicated[] = $module->id;
+                        $previousId                   = $module->id;
+                        $module->params               = json_decode($module->params, true);
 
-                    $module->id                 = 0;
-                    $module->params['menutype'] = $item->menutype;
-                    $module->params             = json_encode($module->params);
-                    $module->language           = $language;
-                    $module->title              = $module->title . ' (' . $language . ')';
+                        $module->id                 = 0;
+                        $module->params['menutype'] = $item->menutype;
+                        $module->params             = json_encode($module->params);
+                        $module->language           = $language;
+                        $module->title              = $module->title . ' (' . $language . ')';
 
-                    $db->insertObject('#__modules', $module, 'id');
+                        $db->insertObject('#__modules', $module, 'id');
 
-                    // Assigning items
-                    $query = 'INSERT INTO #__modules_menu (menuid,moduleid) SELECT menuid,' . $db->quote($module->id) . ' FROM  #__modules_menu WHERE moduleid = ' . $db->quote($previousId);
-                    $db->setQuery($query);
-                    $db->execute();
+                        // Assigning items
+                        $query = 'INSERT INTO #__modules_menu (menuid,moduleid) SELECT menuid,' . $db->quote($module->id) . ' FROM  #__modules_menu WHERE moduleid = ' . $db->quote($previousId);
+                        $db->setQuery($query);
+                        $db->execute();
+                    }
                 }
             }
         }
@@ -1747,7 +1756,7 @@ class NenoHelper
                     {
                         $previousId = $module->id;
 
-                        if (!isset($modulesDuplicated[$previousId . $language]))
+                        if (!isset($modulesDuplicated[$previousId . $language]) && $module->language != $language)
                         {
                             unset($module->id);
                             $module->language = $language;
@@ -1832,98 +1841,102 @@ class NenoHelper
 
         foreach ($modules as $module)
         {
-            $previousId    = $module->id;
-            $previousTitle = $module->title;
-
-            foreach ($languages as $language)
+            if (!in_array($module->id, self::$menuModuleReplicated))
             {
-                if ($language->lang_code != $defaultLanguage)
+                self::$menuModuleReplicated[] = $module->id;
+                $previousId                   = $module->id;
+                $previousTitle                = $module->title;
+
+                foreach ($languages as $language)
                 {
-                    $module->id       = 0;
-                    $module->title    = $previousTitle . ' (' . $language->lang_code . ')';
-                    $module->language = $language->lang_code;
-
-                    // If the module has been inserted correctly, let's assign it
-                    if ($db->insertObject('#__modules', $module, 'id'))
+                    if ($language->lang_code != $defaultLanguage)
                     {
-                        $insert      = false;
-                        $insertQuery = $db->getQuery(true);
-                        $insertQuery
-                            ->clear()
-                            ->insert('#__modules_menu')
-                            ->columns(
-                                array (
-                                    'moduleid',
-                                    'menuid'
-                                )
-                            );
+                        $module->id       = 0;
+                        $module->title    = $previousTitle . ' (' . $language->lang_code . ')';
+                        $module->language = $language->lang_code;
 
-                        // Check if the previous module is assigned to all
-                        $query
-                            ->clear()
-                            ->select('1')
-                            ->from('#__modules_menu')
-                            ->where(
-                                array (
-                                    'moduleid = ' . $previousId,
-                                    'menuid = 0'
-                                )
-                            );
-
-                        $db->setQuery($query);
-                        $result = $db->loadResult();
-
-                        if ($result == 1)
+                        // If the module has been inserted correctly, let's assign it
+                        if ($db->insertObject('#__modules', $module, 'id'))
                         {
-                            $insertQuery->values($module->id . ', 0');
-                            $insert = true;
-                        }
-                        else
-                        {
-                            // Check if the module has assigned selected
+                            $insert      = false;
+                            $insertQuery = $db->getQuery(true);
+                            $insertQuery
+                                ->clear()
+                                ->insert('#__modules_menu')
+                                ->columns(
+                                    array (
+                                        'moduleid',
+                                        'menuid'
+                                    )
+                                );
+
+                            // Check if the previous module is assigned to all
                             $query
                                 ->clear()
-                                ->select('DISTINCT m2.id')
-                                ->from('#__modules_menu AS mm')
-                                ->innerJoin('#__menu AS m1 ON mm.menuid = m1.id')
-                                ->innerJoin('#__associations AS a1 ON a1.id = m1.id')
-                                ->innerJoin('#__associations AS a2 ON a1.key = a2.key')
-                                ->innerJoin('#__menu AS m2 ON a2.id = m2.id')
+                                ->select('1')
+                                ->from('#__modules_menu')
                                 ->where(
                                     array (
-                                        'a1.context = ' . $db->quote('com_menus.item'),
-                                        'a2.context = ' . $db->quote('com_menus.item'),
-                                        'a1.id <> a2.id',
-                                        'm1.client_id = 0',
-                                        'm1.level <> 0',
-                                        'm1.published <> -2',
-                                        'm2.client_id = 0',
-                                        'm2.level <> 0',
-                                        'm2.published <> -2',
-                                        'mm.moduleid = ' . $previousId,
-                                        'm1.language = ' . $db->quote($defaultLanguage),
-                                        'm2.language = ' . $db->quote($language->lang_code)
+                                        'moduleid = ' . $previousId,
+                                        'menuid = 0'
                                     )
                                 );
 
                             $db->setQuery($query);
-                            $menuIds = $db->loadArray();
+                            $result = $db->loadResult();
 
-                            if (!empty($menuIds))
+                            if ($result == 1)
                             {
+                                $insertQuery->values($module->id . ', 0');
                                 $insert = true;
+                            }
+                            else
+                            {
+                                // Check if the module has assigned selected
+                                $query
+                                    ->clear()
+                                    ->select('DISTINCT m2.id')
+                                    ->from('#__modules_menu AS mm')
+                                    ->innerJoin('#__menu AS m1 ON mm.menuid = m1.id')
+                                    ->innerJoin('#__associations AS a1 ON a1.id = m1.id')
+                                    ->innerJoin('#__associations AS a2 ON a1.key = a2.key')
+                                    ->innerJoin('#__menu AS m2 ON a2.id = m2.id')
+                                    ->where(
+                                        array (
+                                            'a1.context = ' . $db->quote('com_menus.item'),
+                                            'a2.context = ' . $db->quote('com_menus.item'),
+                                            'a1.id <> a2.id',
+                                            'm1.client_id = 0',
+                                            'm1.level <> 0',
+                                            'm1.published <> -2',
+                                            'm2.client_id = 0',
+                                            'm2.level <> 0',
+                                            'm2.published <> -2',
+                                            'mm.moduleid = ' . $previousId,
+                                            'm1.language = ' . $db->quote($defaultLanguage),
+                                            'm2.language = ' . $db->quote($language->lang_code)
+                                        )
+                                    );
 
-                                foreach ($menuIds as $menuId)
+                                $db->setQuery($query);
+                                $menuIds = $db->loadArray();
+
+                                if (!empty($menuIds))
                                 {
-                                    $insertQuery->values($module->id . ',' . $menuId);
+                                    $insert = true;
+
+                                    foreach ($menuIds as $menuId)
+                                    {
+                                        $insertQuery->values($module->id . ',' . $menuId);
+                                    }
                                 }
                             }
-                        }
 
-                        if ($insert)
-                        {
-                            $db->setQuery($insertQuery);
-                            $db->execute();
+                            if ($insert)
+                            {
+                                $db->setQuery($insertQuery);
+                                $db->execute();
+                            }
                         }
                     }
                 }
