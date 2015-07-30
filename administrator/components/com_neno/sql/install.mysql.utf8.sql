@@ -411,8 +411,8 @@ CREATE TABLE IF NOT EXISTS `#__neno_language_external_translators_comments` (
 INSERT IGNORE INTO `#__neno_machine_translation_apis` VALUES (1, 'Google', 'machine'), (3, 'Yandex', 'machine');
 
 INSERT IGNORE INTO `#__neno_translation_methods`
-VALUES (1, 'COM_NENO_TRANSLATION_METHOD_MANUAL', '0', 0), (2, 'COM_NENO_TRANSLATION_METHOD_MACHINE', '1,3', 1),
-  (3, 'COM_NENO_TRANSLATION_METHOD_PROFESSIONAL', '0', 200);
+VALUES (1, 'COM_NENO_TRANSLATION_METHOD_MANUAL', '0', 0), (2, 'COM_NENO_TRANSLATION_METHOD_MACHINE', '1,3', 0.5),
+  (3, 'COM_NENO_TRANSLATION_METHOD_PROFESSIONAL', '0', 20);
 
 INSERT IGNORE INTO `#__neno_settings` VALUES (1, 'translate_automatically_professional', '0', 0),
   (2, 'translate_automatically_machine', '1', 0),
