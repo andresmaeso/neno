@@ -60,6 +60,11 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
     private $languages;
 
     /**
+     * @var bool
+     */
+    private $propagateQuery;
+
+    /**
      * Set Autoincrement index in a shadow table
      *
      * @param   string $tableName   Original table name
@@ -446,7 +451,7 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
                 $result = parent::execute();
 
                 // If the query is creating/modifying/deleting a record, let's do the same on the shadow tables
-                if (($queryType === self::INSERT_QUERY || $queryType === self::DELETE_QUERY || $queryType === self::UPDATE_QUERY || $queryType === self::REPLACE_QUERY) && $this->hasToBeParsed((string) $this->sql))
+                if (($queryType === self::INSERT_QUERY || $queryType === self::DELETE_QUERY || $queryType === self::UPDATE_QUERY || $queryType === self::REPLACE_QUERY) && $this->hasToBeParsed((string) $this->sql) && $this->propagateQuery)
                 {
                     $sql = $this->sql;
 
@@ -690,7 +695,10 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
             ->delete($sourceTableName)
             ->where('language = ' . $this->quote($language));
         $this->setQuery($query);
+        $oldValue             = $this->propagateQuery;
+        $this->propagateQuery = false;
         $this->execute();
+        $this->propagateQuery = $oldValue;
     }
 
     /**
@@ -1009,5 +1017,17 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
         $this->setQuery($sql);
 
         return $this->execute() !== false;
+    }
+
+    /**
+     * Set sql propagation
+     *
+     * @param   bool $sqlPropagation SQL propagation
+     *
+     * @return void
+     */
+    public function setSQLPropagation($sqlPropagation)
+    {
+        $this->propagateQuery = $sqlPropagation;
     }
 }
