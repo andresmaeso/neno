@@ -260,15 +260,24 @@ if (!empty($this->extraSidebar))
                 <div class="center">
                     <div>
                         <p class="center">
-                            <?php echo JText::sprintf('COM_NENO_EXTERNALTRANSLATION_BUY_TC_TEXT', $this->tcNeeded); ?>
+                            <?php if ($this->needsTc): ?>
+                                <?php echo JText::sprintf('COM_NENO_EXTERNALTRANSLATION_BUY_TC_TEXT', $this->tcNeeded); ?>
+                            <?php endif; ?>
                         </p>
                     </div>
                     <div class="center">
-                        <h3><?php echo JText::sprintf('COM_NENO_EXTERNALTRANSLATION_PRICE'); ?>
-                            &nbsp;€<?php echo number_format(ceil($this->tcNeeded * 0.0005), 2, ',', '.'); ?> </h3>
+                        <h3>
+                            <?php if ($this->needsTc): ?>
+                                <?php echo JText::sprintf('COM_NENO_EXTERNALTRANSLATION_PRICE'); ?>
+                                &nbsp;€<?php echo number_format(ceil($this->tcNeeded * 0.0005), 2, ',', '.'); ?>
+                            <?php else: ?>
+                                <?php echo JText::_('COM_NENO_EXTERNALTRANSLATION_BUY_ADDITIONAL_TC_TEXT'); ?>
+                            <?php endif; ?>
+                        </h3>
                     </div>
                     <div class="center">
-                        <a href="https://www.neno-translate.com/en/pricing/checkout" class="btn btn-success" target="_blank">
+                        <a href="https://www.neno-translate.com/en/pricing/checkout" class="btn btn-success"
+                           target="_blank">
                             <?php echo JText::_('COM_NENO_EXTERNALTRANSLATION_BUY_TC_BUTTON'); ?>
                         </a>
                     </div>
