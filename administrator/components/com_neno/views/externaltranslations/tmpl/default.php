@@ -154,10 +154,10 @@ if (!empty($this->extraSidebar))
                                         <?php echo JText::sprintf('COM_NENO_EXTERNALTRANSLATION_WORDS', $item->words); ?>
                                     </div>
                                     <div class="span3">
-                                        <?php $pro_price_tc = $item->words; ?>
-                                        <?php $pro_price_eur = number_format(ceil($pro_price_tc * 0.0005), 2, ',', '.'); ?>
-                                        <?php echo JText::sprintf('COM_NENO_EXTERNALTRANSLATION_PRICE'); ?> <?php echo $pro_price_tc; ?>
-                                        TC (€ <?php echo $pro_price_eur; ?>)
+                                        <?php $machinePriceTc = $item->words; ?>
+                                        <?php $machinePriceTc = number_format(ceil($machinePriceTc * 0.0005), 2, ',', '.'); ?>
+                                        <?php echo JText::sprintf('COM_NENO_EXTERNALTRANSLATION_PRICE'); ?> <?php echo $machinePriceTc; ?>
+                                        TC (€ <?php echo $machinePriceTc; ?>)
                                     </div>
                                     <div class="span3">
                                         <button type="button" class="btn order-button"
@@ -171,8 +171,9 @@ if (!empty($this->extraSidebar))
                             <?php endif; ?>
                         <?php endforeach; ?>
                         <?php if ($machineTranslationsAvailable === false): ?>
-                            <div
-                                class="alert alert-info"><?php echo JText::sprintf('COM_NENO_EXTERNALTRANSLATION_NO_TRANSLATIONS_AVAILABLE', JRoute::_('index.php?option=com_neno&view=groupselements')); ?></div>
+                            <div class="alert alert-info">
+                                <?php echo JText::sprintf('COM_NENO_EXTERNALTRANSLATION_NO_TRANSLATIONS_AVAILABLE', JRoute::_('index.php?option=com_neno&view=groupselements')); ?>
+                            </div>
                         <?php endif; ?>
                     </div>
                     <div class="translation-type-footer">
@@ -225,10 +226,10 @@ if (!empty($this->extraSidebar))
                                         <?php echo JText::sprintf('COM_NENO_EXTERNALTRANSLATION_WORDS', $item->words); ?>
                                     </div>
                                     <div class="span3">
-                                        <?php $pro_price_tc = $item->words * 20; ?>
-                                        <?php $pro_price_eur = number_format(ceil($pro_price_tc * 0.0005), 2, ',', '.'); ?>
-                                        <?php echo JText::sprintf('COM_NENO_EXTERNALTRANSLATION_PRICE'); ?> <?php echo $pro_price_tc; ?>
-                                        TC (€ <?php echo $pro_price_eur; ?>)
+                                        <?php $proPriceTc = $item->words * 200; ?>
+                                        <?php $proPriceEur = number_format(ceil($proPriceTc * 0.0005), 2, ',', '.'); ?>
+                                        <?php echo JText::sprintf('COM_NENO_EXTERNALTRANSLATION_PRICE'); ?> <?php echo $proPriceTc; ?>
+                                        TC (€ <?php echo $proPriceEur; ?>)
                                     </div>
                                     <div class="span3">
                                         <button type="button" class="btn order-button"
