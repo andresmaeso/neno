@@ -90,7 +90,6 @@ class NenoHelperApi
                 if ($apiResponse->headers['Content-Type'] === 'application/json')
                 {
                     $data = json_decode($data, true);
-                    $data = $data['response'];
                 }
 
                 $response = $data;
