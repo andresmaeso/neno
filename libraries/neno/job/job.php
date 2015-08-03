@@ -43,6 +43,11 @@ class NenoJob extends NenoObject
     const JOB_STATE_NO_TC = 5;
 
     /**
+     * Status when the job has tried to be sent but the system is not ready yet
+     */
+    const JOB_STATE_NOT_READY = 6;
+
+    /**
      * @var array
      */
     public $translations;
@@ -437,7 +442,18 @@ class NenoJob extends NenoObject
 
             if ($response['code'] !== 200)
             {
-                $this->setState(self::JOB_STATE_NO_TC);
+                switch ($response['code'])
+                {
+                    // System disabled
+                    case 501:
+                        $this->setState(self::JOB_STATE_NOT_READY);
+                        break;
+                    // More TC needed
+                    case 402:
+                        $this->setState(self::JOB_STATE_NO_TC);
+                        break;
+                }
+
             }
         }
 
