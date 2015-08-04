@@ -3252,7 +3252,8 @@ class NenoHelper
                 ->from('#__neno_content_element_tables AS t')
                 ->innerJoin('#__neno_content_element_groups AS g ON t.group_id = g.id')
                 ->innerJoin('#__neno_content_element_groups_x_translation_methods AS gtm ON gtm.group_id = g.id')
-                ->where('t.id = ' . $tableId);
+                ->where('t.id = ' . $tableId)
+                ->order('ordering ASC');
             $db->setQuery($query);
             $translationmethods = $db->loadObjectListMultiIndex('lang');
 
