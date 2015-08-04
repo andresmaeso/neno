@@ -24,9 +24,9 @@ function loadTranslation(string) {
             success: function (data) {
                 jQuery('#editor-wrapper').html(data);
                 jQuery('.original-text').addClass('highlighted-text');
-                setTimeout(function(){
+                setTimeout(function () {
                     jQuery('.original-text').removeClass('highlighted-text');
-                },500);
+                }, 500);
             }
         }
     );
@@ -218,7 +218,7 @@ function fixIssue() {
 }
 
 function loadMissingTranslationMethodSelectors(listSelector, placement) {
-    apply = false;
+    var apply = false;
     if (typeof listSelector != 'string') {
         var parent = jQuery('.translation-method-selector-container').parent();
 
@@ -282,31 +282,40 @@ function loadMissingTranslationMethodSelectors(listSelector, placement) {
         var selected_methods_string = '&selected_methods[]=' + jQuery(this).find(':selected').val();
         var lang = jQuery(this).closest(listSelector).data('language');
         var otherParams = '';
+        var element = jQuery(this);
 
         if (typeof lang != 'undefined') {
             otherParams = '&language=' + lang;
         }
 
         var modal = jQuery('#translationMethodModal');
-        var run = false;
-        var element = jQuery(this);
 
-        modal.find('.yes-btn').off('click').on('click', function () {
-            saveTranslationMethod(element.find(':selected').val(), lang, selector_id + 1, true);
-            run = true;
-            modal.modal('hide');
-            apply = true;
-        });
+        // There isn't a modal, so we are on the installation process setting up the translation method for the source language
+        if (modal.length == 0) {
+            executeAjaxForTranslationMethodSelectors(listSelector, 'general', n, selected_methods_string, element, otherParams);
+        }
+        else {
+            var run = modal.length == 0;
 
-        modal.off('hide').on('hide', function () {
-            if (!run) {
-                saveTranslationMethod(element.find(':selected').val(), lang, selector_id + 1, false);
-            }
 
-            executeAjaxForTranslationMethodSelectors(listSelector, placement, n, selected_methods_string, element, otherParams);
-        });
+            modal.modal('show');
+            modal.find('.yes-btn').off('click').on('click', function () {
+                saveTranslationMethod(element.find(':selected').val(), lang, selector_id + 1, true);
+                run = true;
+                modal.modal('hide');
+                apply = true;
+            });
 
-        modal.modal('show');
+            modal.off('hide').on('hide', function () {
+                if (!run) {
+                    saveTranslationMethod(element.find(':selected').val(), lang, selector_id + 1, false);
+                }
+
+                executeAjaxForTranslationMethodSelectors(listSelector, placement, n, selected_methods_string, element, otherParams);
+            });
+
+        }
+
     }
 }
 
@@ -329,19 +338,19 @@ function executeAjaxForTranslationMethodSelectors(listSelector, placement, n, se
                 }
             }
 
-            jQuery('.translation-method-selector').off('change').on('change', loadMissingTranslationMethodSelectors);
             jQuery('select').chosen();
+            jQuery('.translation-method-selector').off('change').on('change', loadMissingTranslationMethodSelectors);
             var container = element.parents('.language-configuration');
             var select1 = element.parents(listSelector).find("[data-selector-container-id='1']");
             if (select1.length) {
                 if (!container.hasClass('expanded')) {
-                    container.css( 'min-height',
+                    container.css('min-height',
                         parseInt(container.css('min-height')) + 60
                     );
                     container.addClass('expanded');
                 }
             } else if (container.hasClass('expanded')) {
-                container.css( 'min-height',
+                container.css('min-height',
                     parseInt(container.css('min-height')) - 60
                 );
                 container.removeClass('expanded');
@@ -400,16 +409,16 @@ function setResultsWrapperHeight() {
 function bindTranslationModificationCheck() {
     jQuery(window).off('beforeunload');
     var translatedContent = jQuery('.translated-content');
-    translatedContent.on('change', function(){
-        jQuery(window).off('beforeunload').on('beforeunload', function(){
+    translatedContent.on('change', function () {
+        jQuery(window).off('beforeunload').on('beforeunload', function () {
             return translatedContent.attr('data-modified-message');
         });
         translatedContent.off('change');
         translatedContent.off('keyup');
         translatedContent.attr('data-modified', 'true');
     });
-    translatedContent.on('keyup', function(){
-        jQuery(window).off('beforeunload').on('beforeunload', function(){
+    translatedContent.on('keyup', function () {
+        jQuery(window).off('beforeunload').on('beforeunload', function () {
             return translatedContent.attr('data-modified-message');
         });
         translatedContent.off('change');
@@ -422,7 +431,7 @@ function ignoreTranslationModification() {
     var translatedContent = jQuery('.translated-content');
     var ignore = true;
     if (translatedContent.attr('data-modified') == "true") {
-        ignore = confirm (translatedContent.attr('data-modified-message'));
+        ignore = confirm(translatedContent.attr('data-modified-message'));
         if (ignore) {
             bindTranslationModificationCheck();
         }
