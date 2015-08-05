@@ -17,13 +17,13 @@ defined('_JEXEC') or die;
 
 if (file_exists(dirname(__DIR__) . '/defines.php'))
 {
-	include_once dirname(__DIR__) . '/defines.php';
+    include_once dirname(__DIR__) . '/defines.php';
 }
 
 if (!defined('_JDEFINES'))
 {
-	define('JPATH_BASE', dirname(__DIR__));
-	require_once JPATH_BASE . '/includes/defines.php';
+    define('JPATH_BASE', dirname(__DIR__));
+    require_once JPATH_BASE . '/includes/defines.php';
 }
 
 require_once JPATH_BASE . '/includes/framework.php';
@@ -47,31 +47,33 @@ $lang->load('files_joomla.sys', JPATH_SITE, null, false, false)
  */
 class NenoCli extends JApplicationCli
 {
-	/**
-	 * Entry point for CLI script
-	 *
-	 * @return  void
-	 *
-	 * @since   3.0
-	 */
-	public function doExecute()
-	{
-		$nenoLoader = JPATH_LIBRARIES . '/neno/loader.php';
+    /**
+     * Entry point for CLI script
+     *
+     * @return  void
+     *
+     * @since   3.0
+     */
+    public function doExecute()
+    {
+        $nenoLoader = JPATH_LIBRARIES . '/neno/loader.php';
 
-		if (file_exists($nenoLoader))
-		{
-			JLoader::register('NenoLoader', $nenoLoader);
+        if (file_exists($nenoLoader))
+        {
+            JLoader::register('NenoLoader', $nenoLoader);
 
-			// Register the Class prefix in the autoloader
-			NenoLoader::init(false);
+            // Register the Class prefix in the autoloader
+            NenoLoader::init();
 
-			// Load custom driver.
-			JFactory::$database = null;
-			JFactory::$database = NenoFactory::getDbo();
-		}
+            JFactory::$application = $this;
 
-		NenoTaskMonitor::runTask();
-	}
+            // Load custom driver.
+            JFactory::$database = null;
+            JFactory::$database = NenoFactory::getDbo();
+        }
+
+        NenoTaskMonitor::runTask();
+    }
 }
 
 // Instantiate the application object, passing the class name to JCli::getInstance
