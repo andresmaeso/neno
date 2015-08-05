@@ -3492,4 +3492,92 @@ class NenoHelper
     {
         return NenoHelper::unifiedLanguageStrings(parse_ini_file($filename));
     }
+
+    /**
+     * Get db free space
+     *
+     * @return int 0 => Could not be determined, 1 => Enough Space, 2 => less than 80% free, 3 => less than 50% free
+     */
+    public static function getDbFreeSpace()
+    {
+        /* @var $db NenoDatabaseDriverMysqlx */
+        $db    = JFactory::getDbo();
+        $query = $db->getQuery(true);
+
+        $query
+            ->select(
+                array (
+                    'sum( data_length + index_length ) / 1024 / 1024 AS occupied_space',
+                    'sum( data_free )/ 1024 / 1024 AS free_space'
+
+                )
+            )
+            ->from('information_schema.TABLE')
+            ->where('table_schema = DATABASE()');
+
+        $db->setQuery($query);
+        $result = 0;
+
+        try
+        {
+            $data = $db->loadRow();
+
+            if ($data['free_space'] != 0)
+            {
+                $totalSpace = $data['free_space'] + $data['occupied_space'];
+
+                // The user has less than 50% of space available
+                if ($totalSpace / 2 <= $data['free_space'])
+                {
+                    return 3;
+                }
+                else if ($totalSpace / 2 <= $data['free_space'])
+                {
+                    return 2;
+                }
+                else
+                {
+                    return 1;
+                }
+            }
+        }
+        catch (RuntimeException $e)
+        {
+
+        }
+
+        return $result;
+    }
+
+    /**
+     * Get db free space
+     *
+     * @return int 0 => Could not be determined, 1 => Enough Space, 2 => less than 80% free, 3 => less than 50% free
+     */
+    public static function getSpaceNeedPerLanguage()
+    {
+        /* @var $db NenoDatabaseDriverMysqlx */
+        $db    = JFactory::getDbo();
+        $query = $db->getQuery(true);
+
+        $query
+            ->select('sum( data_length + index_length ) / 1024 / 1024 AS occupied_space')
+            ->from('information_schema.TABLE')
+            ->where('table_schema = DATABASE()');
+
+        $db->setQuery($query);
+        $result = 0;
+
+        try
+        {
+            $spaceOccupied = $db->loadResult();
+            $result        = $spaceOccupied * 0.8;
+        }
+        catch (RuntimeException $e)
+        {
+
+        }
+
+        return $result;
+    }
 }
