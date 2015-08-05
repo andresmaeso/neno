@@ -487,7 +487,13 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
      */
     public function persist()
     {
-        $isNew  = $this->isNew();
+        $isNew = $this->isNew();
+
+        if ($isNew && $this->translate)
+        {
+            $this->checkTranslatableStatusFromContentElementFile();
+        }
+
         $result = parent::persist();
 
         if ($result)
