@@ -271,7 +271,7 @@ class NenoContentElementLanguageFile extends NenoContentElement implements NenoC
 
 			if (file_exists($filePath))
 			{
-				$strings = NenoHelper::readLanguageFile($this->getFilePath());
+				$strings = NenoHelper::readLanguageFile($filePath);
 			}
 
 			// Merging these two arrays

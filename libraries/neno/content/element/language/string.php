@@ -64,30 +64,25 @@ class NenoContentElementLanguageString extends NenoContentElement implements Nen
     /**
      * Constructor
      *
-     * @param   mixed $data          Language string data
-     * @param   bool  $loadExtraData If extra data should be loaded
-     * @param   bool  $loadParent    If the parent should be loaded
+     * @param   mixed $data Language string data
+     * @param   bool $loadExtraData If extra data should be loaded
+     * @param   bool $loadParent If the parent should be loaded
      */
     public function __construct($data, $loadExtraData = false, $loadParent = false)
     {
         parent::__construct($data);
         $this->translations = null;
-        $data               = (array) $data;
+        $data = (array)$data;
 
-        if ($this->isNew())
-        {
+        if ($this->isNew()) {
             $this->timeAdded = new DateTime;
-        }
-        else
-        {
-            if (!$this->timeAdded instanceof DateTime)
-            {
+        } else {
+            if (!$this->timeAdded instanceof DateTime) {
                 $this->timeAdded = new DateTime($this->timeAdded);
             }
         }
 
-        if ($loadParent)
-        {
+        if ($loadParent) {
             $this->languageFile = NenoContentElementLanguageFile::load($data['languagefileId'], $loadExtraData, $loadParent);
         }
     }
@@ -167,8 +162,8 @@ class NenoContentElementLanguageString extends NenoContentElement implements Nen
     /**
      * {@inheritdoc}
      *
-     * @param   bool $allFields         Allows to show all the fields
-     * @param   bool $recursive         Convert this method in recursive
+     * @param   bool $allFields Allows to show all the fields
+     * @param   bool $recursive Convert this method in recursive
      * @param   bool $convertToDatabase Convert property names to database
      *
      * @return stdClass
@@ -177,13 +172,11 @@ class NenoContentElementLanguageString extends NenoContentElement implements Nen
     {
         $data = parent::toObject($allFields, $recursive, $convertToDatabase);
 
-        if (!empty($this->languageFile))
-        {
+        if (!empty($this->languageFile)) {
             $data->languagefile_id = $this->languageFile->getId();
         }
 
-        if ($this->timeAdded instanceof DateTime)
-        {
+        if ($this->timeAdded instanceof DateTime) {
             $this->timeAdded = $this->timeAdded->format('Y-m-d H:i:s');
         }
 
@@ -237,8 +230,7 @@ class NenoContentElementLanguageString extends NenoContentElement implements Nen
         $translations = $this->getTranslations();
 
         /* @var $translation NenoContentElementTranslation */
-        foreach ($translations as $translation)
-        {
+        foreach ($translations as $translation) {
             $translation->remove();
         }
 
@@ -252,8 +244,7 @@ class NenoContentElementLanguageString extends NenoContentElement implements Nen
      */
     public function getTranslations()
     {
-        if ($this->translations == null)
-        {
+        if ($this->translations == null) {
             $this->translations = NenoContentElementTranslation::getTranslations($this);
         }
 
@@ -286,8 +277,7 @@ class NenoContentElementLanguageString extends NenoContentElement implements Nen
             3
         );
 
-        if ($this->persistTranslations())
-        {
+        if ($this->persistTranslations()) {
             $this
                 ->setDiscovered(true)
                 ->persist();
@@ -352,88 +342,72 @@ class NenoContentElementLanguageString extends NenoContentElement implements Nen
     public function persistTranslations($language = null)
     {
         // If it doesn't have translations
-        if (empty($this->translations))
-        {
+        if (empty($this->translations)) {
             $this->translations = NenoContentElementTranslation::getTranslations($this);
         }
 
-        if (empty($this->translations))
-        {
-            $commonData = array (
+        if (empty($this->translations)) {
+            $commonData = array(
                 'contentType' => NenoContentElementTranslation::LANG_STRING,
-                'element'     => $this,
-                'contentId'   => $this->getId(),
-                'state'       => NenoContentElementTranslation::NOT_TRANSLATED_STATE,
-                'string'      => $this->getString(),
-                'timeAdded'   => new DateTime,
-                'comment'     => $this->comment
+                'element' => $this,
+                'contentId' => $this->getId(),
+                'state' => NenoContentElementTranslation::NOT_TRANSLATED_STATE,
+                'string' => $this->getString(),
+                'timeAdded' => new DateTime,
+                'comment' => $this->comment
             );
 
-            if ($language !== null)
-            {
-                $languageData            = new stdClass;
+            if ($language !== null) {
+                $languageData = new stdClass;
                 $languageData->lang_code = $language;
-                $languages               = array ($languageData);
-            }
-            else
-            {
+                $languages = array($languageData);
+            } else {
                 $languages = NenoHelper::getLanguages(false);
             }
 
-            $defaultLanguage    = NenoSettings::get('source_language');
-            $this->translations = array ();
-            $languageFilename   = $this->getLanguageFile()->getFilename();
+            $defaultLanguage = NenoSettings::get('source_language');
+            $this->translations = array();
+            $languageFilename = $this->getLanguageFile()->getFilename();
 
-            foreach ($languages as $language)
-            {
-                if ($defaultLanguage !== $language->lang_code)
-                {
+            foreach ($languages as $language) {
+                if ($defaultLanguage !== $language->lang_code) {
                     // If the string is empty or is a number, let's mark as translated.
                     $string = $this->getString();
 
                     // Check if this string already exists in other language file
                     $StringTranslation = NenoHelper::existsStringInsideOfLanguageFile(str_replace($defaultLanguage, $language->lang_code, $languageFilename), $this->getConstant());
 
-                    if ($StringTranslation !== false)
-                    {
-                        $commonData['state']  = NenoContentElementTranslation::TRANSLATED_STATE;
+                    if ($StringTranslation !== false) {
+                        $commonData['state'] = NenoContentElementTranslation::TRANSLATED_STATE;
                         $commonData['string'] = $StringTranslation;
-                    }
-                    elseif (empty($string['string']) || is_numeric($string['string'])) // If the string is empty or is a number, let's mark as translated.
+                    } elseif (empty($string) || is_numeric($string)) // If the string is empty or is a number, let's mark as translated.
                     {
                         $commonData['state'] = NenoContentElementTranslation::TRANSLATED_STATE;
-                    }
-                    else
-                    {
+                    } else {
                         $commonData['state'] = NenoContentElementTranslation::NOT_TRANSLATED_STATE;
                     }
 
 
                     $commonData['language'] = $language->lang_code;
-                    $translation            = new NenoContentElementTranslation($commonData);
+                    $translation = new NenoContentElementTranslation($commonData);
 
                     // If the translation does not exists already, let's add it
-                    if (!$translation->existsAlready())
-                    {
+                    if (!$translation->existsAlready()) {
                         $translation->persist();
                         $this->translations[] = $translation;
                     }
                 }
             }
-        }
-        elseif ($this->hasChanged)
-        {
-            for ($i = 0; $i < count($this->translations); $i++)
-            {
+        } elseif ($this->hasChanged) {
+            for ($i = 0; $i < count($this->translations); $i++) {
                 /* @var $translation NenoContentElementTranslation */
                 $translation = $this->translations[$i];
 
                 // If the state is queued or translate, let's mark it as out of sync
                 if (in_array(
                     $translation->getState(),
-                    array (NenoContentElementTranslation::QUEUED_FOR_BEING_TRANSLATED_STATE, NenoContentElementTranslation::TRANSLATED_STATE)
-                ))
-                {
+                    array(NenoContentElementTranslation::QUEUED_FOR_BEING_TRANSLATED_STATE, NenoContentElementTranslation::TRANSLATED_STATE)
+                )) {
                     $translation->setState(NenoContentElementTranslation::SOURCE_CHANGED_STATE);
                 }
 
