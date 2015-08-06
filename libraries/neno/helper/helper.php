@@ -3380,4 +3380,27 @@ class NenoHelper
 
         return $result;
     }
+
+    /**
+     * Get element name by Group Id
+     *
+     * @param integer $groupId Group Id
+     *
+     * @return string|null
+     */
+    public static function getElementNameByGroupId($groupId)
+    {
+        $db = JFactory::getDbo();
+        $query = $db->getQuery(true);
+
+        $query
+            ->select('element')
+            ->from('`#__neno_content_element_groups_x_extensions` AS ge')
+            ->innerJoin('`#__extensions` AS e ON e.extension_id = ge.extension_id')
+            ->where('ge.group_id = ' . (int)$groupId);
+
+        $db->setQuery($query);
+
+        return $db->loadResult();
+    }
 }

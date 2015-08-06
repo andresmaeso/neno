@@ -613,7 +613,8 @@ class NenoContentElementGroup extends NenoContentElement implements NenoContentE
         $tables = NenoHelper::getComponentTables($this);
 
         if (!$this->isOtherGroup()) {
-            $languageFiles = NenoHelper::getLanguageFiles($this->getGroupName());
+            $elementName = NenoHelper::getElementNameByGroupId($this->id);
+            $languageFiles = NenoHelper::getLanguageFiles($elementName);
         }
 
         // If there are tables, let's assign to the group
