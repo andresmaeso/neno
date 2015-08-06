@@ -15,187 +15,196 @@ defined('_JEXEC') or die;
  */
 class NenoTaskMonitor
 {
-	/**
-	 * @var integer
-	 */
-	protected static $maxExecutionTime = null;
+    /**
+     * @var integer
+     */
+    protected static $maxExecutionTime = null;
 
-	/**
-	 * Execute tasks
-	 *
-	 * @param   int $maximumTask Maximum number of task
-	 *
-	 * @return void
-	 */
-	public static function runTask($maximumTask = 0)
-	{
-		NenoLog::log('Sending translation job to execute', 2);
+    /**
+     * Execute tasks
+     *
+     * @param   int $maximumTask Maximum number of task
+     *
+     * @return void
+     */
+    public static function runTask($maximumTask = 0)
+    {
+        NenoLog::log('Sending translation job to execute', 2);
 
-		// Clean the queue
-		self::cleanUp();
+        // Clean the queue
+        self::cleanUp();
 
-		if ($maximumTask == 0)
-		{
-			// Calculate execution time
-			self::calculateMaxExecutionTime();
-			$timeRemaining = self::$maxExecutionTime;
+        if ($maximumTask == 0) {
+            // Calculate execution time
+            self::calculateMaxExecutionTime();
+            $timeRemaining = self::$maxExecutionTime;
 
-			// It means that there's no way to stop this process, let's execute just one task
-			if ($timeRemaining == 0)
-			{
-				$task = self::fetchTask();
-				self::executeTask($task);
-			}
-			else
-			{
-				// Execute tasks until we spend all the time
-				while ($timeRemaining > 0)
-				{
-					$iniTime = time();
-					$task    = self::fetchTask();
-					self::executeTask($task);
-					$timeRemaining -= time() - $iniTime;
-				}
-			}
-		}
-		else
-		{
-			for ($i = 0; $i < $maximumTask; $i++)
-			{
-				$task = self::fetchTask();
-				self::executeTask($task);
-			}
-		}
-	}
+            // It means that there's no way to stop this process, let's execute just one task
+            if ($timeRemaining == 0) {
+                $task = self::fetchTask();
+                self::executeTask($task);
+            } else {
+                // Execute tasks until we spend all the time
+                while ($timeRemaining > 0) {
+                    $iniTime = time();
+                    $task = self::fetchTask();
+                    self::executeTask($task);
+                    $timeRemaining -= time() - $iniTime;
+                }
+            }
+        } else {
+            for ($i = 0; $i < $maximumTask; $i++) {
+                $task = self::fetchTask();
+                self::executeTask($task);
+            }
+        }
+    }
 
-	/**
-	 * Clean up task queue
-	 *
-	 * @return void
-	 */
-	private static function cleanUp()
-	{
-		$db    = JFactory::getDbo();
-		$query = $db->getQuery(true);
+    /**
+     * Clean up task queue
+     *
+     * @return void
+     */
+    private static function cleanUp()
+    {
+        $db = JFactory::getDbo();
+        $query = $db->getQuery(true);
 
-		$query
-			->update('#__neno_tasks')
-			->set('time_started = ' . $db->quote('0000-00-00 00:00:00'));
+        $query
+            ->update('#__neno_tasks')
+            ->set('time_started = ' . $db->quote('0000-00-00 00:00:00'));
 
-		$db->setQuery($query);
-		$db->execute();
+        $db->setQuery($query);
+        $db->execute();
 
-		$query
-			->clear()
-			->delete('#__neno_tasks')
-			->where('number_of_attempts > 3');
+        $query
+            ->clear()
+            ->delete('#__neno_tasks')
+            ->where(
+                array(
+                    'number_of_attempts > 3',
+                    'task <> ' . $db->quote('language')
+                )
+            );
 
-		$db->setQuery($query);
-		$db->execute();
-	}
+        $db->setQuery($query);
+        $db->execute();
+    }
 
-	/**
-	 * Calculate maximum execution time
-	 *
-	 * @return void
-	 */
-	protected static function calculateMaxExecutionTime()
-	{
-		if (self::$maxExecutionTime === null)
-		{
-			// Setting max_execution_time to 1 hour
-			$result = set_time_limit(3600);
+    /**
+     * Calculate maximum execution time
+     *
+     * @return void
+     */
+    protected static function calculateMaxExecutionTime()
+    {
+        if (self::$maxExecutionTime === null) {
+            // Setting max_execution_time to 1 hour
+            $result = set_time_limit(3600);
 
-			$executionTime = 3600;
+            $executionTime = 3600;
 
-			// If no value could be set, let's get the default one.
-			if ($result === false)
-			{
-				$executionTime = ini_get('max_execution_time');
-			}
+            // If no value could be set, let's get the default one.
+            if ($result === false) {
+                $executionTime = ini_get('max_execution_time');
+            }
 
-			self::$maxExecutionTime = $executionTime * 0.9;
-		}
-	}
+            self::$maxExecutionTime = $executionTime * 0.9;
+        }
+    }
 
-	/**
-	 * Load a task from the queue
-	 *
-	 * @return NenoTask
-	 */
-	protected static function fetchTask()
-	{
-		// Load tasks that hasn't started yet and they have less than 4 attempts
-		$task = NenoTask::load(
-			array (
-				'attemps_filter' => array (
-					'_field'     => 'number_of_attempts',
-					'_condition' => '<=',
-					'_value'     => 3
-				),
-				'time_started'   => '0000-00-00 00:00:00',
-				'_order'         => array (
-					'time_added' => 'ASC'
-				),
-				'_limit'         => 1
-			)
-		);
+    /**
+     * Load a task from the queue
+     *
+     * @return NenoTask
+     */
+    protected static function fetchTask()
+    {
+        // Load tasks that hasn't started yet and they have less than 4 attempts
+        $db = JFactory::getDbo();
+        $query = $db->getQuery(true);
 
-		if (empty($task))
-		{
-			self::addTask('job_scanner');
-			self::addTask('scan', array ('group' => 1));
-			self::addTask('discover');
-			$task = self::fetchTask();
-		}
+        $query
+            ->select(
+                array(
+                    'id',
+                    'IF(task = ' . $db->quote('language') . ', 1,0) AS ordering'
+                )
+            )
+            ->from('#__neno_tasks')
+            ->where('time_started = ' . $db->quote('0000-00-00 00:00:00'))
+            ->order(
+                array(
+                    'ordering DESC',
+                    'time_added ASC'
+                )
+            );
 
-		return $task;
-	}
+        $db->setQuery($query, 0, 1);
+        $data = $db->loadRow();
 
-	/**
-	 * Add a task to the database
-	 *
-	 * @param   string $task     Task name (type)
-	 * @param   array  $taskData Task Data
-	 *
-	 * @return bool
-	 */
-	public static function addTask($task, array $taskData = array ())
-	{
-		$task = new NenoTask(
-			array (
-				'task'     => $task,
-				'taskData' => json_encode($taskData)
-			)
-		);
+        /* @var $task NenoTask */
+        $task = NenoTask::load($data[0]);
 
-		NenoLog::log('Adding translation job to execute', 2);
+        if (empty($task)) {
+            self::addTask('job_scanner');
+            self::addTask('scan', array('group' => 1));
+            self::addTask('discover');
+            $task = self::fetchTask();
+        }
 
-		return $task->persist();
-	}
+        // If the task is different from discovering language, delete it and fetch a new one.
+        if ($task->getNumberOfAttempts() > 3 && $task->getTask() != 'language') {
+            $task->remove();
+            $task = self::fetchTask();
+        }
 
-	/**
-	 * Execute a particular task given by parameter
-	 *
-	 * @param   NenoTask|null $task Task to execute
-	 *
-	 * @return bool True on success, false otherwise
-	 */
-	private static function executeTask($task)
-	{
-		NenoLog::log('Received translation job to execute', 2);
+        return $task;
+    }
 
-		// If there are task to execute, let's run it
-		if (!empty($task))
-		{
-			$task->execute();
+    /**
+     * Add a task to the database
+     *
+     * @param   string $task Task name (type)
+     * @param   array $taskData Task Data
+     *
+     * @return bool
+     */
+    public static function addTask($task, array $taskData = array())
+    {
+        $task = new NenoTask(
+            array(
+                'task' => $task,
+                'taskData' => json_encode($taskData)
+            )
+        );
 
-			NenoLog::add($task->getTask() . ' task has been executed properly');
-			$task->remove();
+        NenoLog::log('Adding translation job to execute', 2);
 
-			return true;
-		}
+        return $task->persist();
+    }
 
-		return false;
-	}
+    /**
+     * Execute a particular task given by parameter
+     *
+     * @param   NenoTask|null $task Task to execute
+     *
+     * @return bool True on success, false otherwise
+     */
+    private static function executeTask($task)
+    {
+        NenoLog::log('Received translation job to execute', 2);
+
+        // If there are task to execute, let's run it
+        if (!empty($task)) {
+            $task->execute();
+
+            NenoLog::add($task->getTask() . ' task has been executed properly');
+            $task->remove();
+
+            return true;
+        }
+
+        return false;
+    }
 }
