@@ -370,8 +370,8 @@ class NenoModelStrings extends JModelList
 		// Hide empty strings if the user wants to do that
 		if (NenoSettings::get('hide_empty_strings', true))
 		{
-			$dbStrings->where('tr1.string <> ' . $db->quote(''));
-			$languageFileStrings->where('tr2.string <> ' . $db->quote(''));
+			$dbStrings->where('tr1.original_text <> ' . $db->quote(''));
+			$languageFileStrings->where('tr2.original_text <> ' . $db->quote(''));
 		}
 
 		$query = parent::getListQuery();
