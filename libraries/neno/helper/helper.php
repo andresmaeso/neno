@@ -3415,6 +3415,28 @@ class NenoHelper
         $db = JFactory::getDbo();
         $query = $db->getQuery(true);
 
+        $subquery1 = $db->getQuery(true);
+        $subquery2 = $db->getQuery(true);
+
+        $subquery2
+            ->select('tr2.*')
+            ->from('#__neno_content_element_translations AS tr2')
+            ->where('content_type = ' . $db->quote('lang_string'));
+
+        $subquery1
+            ->select('tr.*')
+            ->from('#__neno_content_element_translations AS tr')
+            ->innerJoin('#__neno_content_element_fields AS f ON tr.content_id = f.id')
+            ->innerJoin('#__neno_content_element_tables AS t ON t.id = f.table_id')
+            ->where(
+                array(
+                    'content_type = ' . $db->quote('db_string'),
+                    'f.translate = 1',
+                    't.translate = 1'
+                )
+            )
+            ->union($subquery2);
+
         $query
             ->select(
                 array(
@@ -3429,7 +3451,7 @@ class NenoHelper
             )
             ->from('#__languages AS l')
             ->leftJoin('#__neno_language_external_translators_comments AS lc ON l.lang_code = lc.language')
-            ->leftJoin('#__neno_content_element_translations AS tr ON tr.language = l.lang_code')
+            ->leftJoin('(' . (string)$subquery1 . ') AS tr ON tr.language = l.lang_code')
             ->where('l.lang_code <> ' . $db->quote(NenoSettings::get('source_language')))
             ->group(
                 array(
