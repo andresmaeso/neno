@@ -3403,4 +3403,89 @@ class NenoHelper
 
         return $db->loadResult();
     }
+
+    /**
+     * Get language configuration data
+     *
+     * @return array
+     */
+    public static function getLanguageConfigurationData()
+    {
+        /* @var $db NenoDatabaseDriverMysqlx */
+        $db = JFactory::getDbo();
+        $query = $db->getQuery(true);
+
+        $query
+            ->select(
+                array(
+                    'l.lang_code',
+                    'l.published',
+                    'l.title',
+                    'l.image',
+                    'tr.state',
+                    'SUM(tr.word_counter) AS word_count',
+                    'lc.comment'
+                )
+            )
+            ->from('#__languages AS l')
+            ->leftJoin('#__neno_language_external_translators_comments AS lc ON l.lang_code = lc.language')
+            ->leftJoin('#__neno_content_element_translations AS tr ON tr.language = l.lang_code')
+            ->where('l.lang_code <> ' . $db->quote(NenoSettings::get('source_language')))
+            ->group(
+                array(
+                    'l.lang_code',
+                    'tr.state'
+                )
+            )
+            ->order('lang_code');
+
+        $db->setQuery($query);
+
+        $languages = $db->loadObjectListMultiIndex('lang_code');
+        $items = array();
+
+        foreach ($languages as $language) {
+            $translated = 0;
+            $queued = 0;
+            $changed = 0;
+            $untranslated = 0;
+            $item = new stdClass;
+            $item->lang_code = $language[0]->lang_code;
+            $item->comment = $language[0]->comment;
+            $item->published = $language[0]->published;
+            $item->title = $language[0]->title;
+            $item->image = $language[0]->image;
+            $item->errors = NenoHelper::getLanguageErrors((array)$language[0]);
+            $item->isInstalled = NenoHelper::isCompletelyInstall($item->lang_code);
+
+            foreach ($language as $internalItem) {
+                switch ($internalItem->state) {
+                    case NenoContentElementTranslation::TRANSLATED_STATE:
+                        $translated = (int)$internalItem->word_count;
+                        break;
+                    case NenoContentElementTranslation::QUEUED_FOR_BEING_TRANSLATED_STATE:
+                        $queued = (int)$internalItem->word_count;
+                        break;
+                    case NenoContentElementTranslation::SOURCE_CHANGED_STATE:
+                        $changed = (int)$internalItem->word_count;
+                        break;
+                    case NenoContentElementTranslation::NOT_TRANSLATED_STATE:
+                        $untranslated = (int)$internalItem->word_count;
+                        break;
+                }
+            }
+
+            $item->wordCount = new stdClass;
+            $item->wordCount->translated = $translated;
+            $item->wordCount->queued = $queued;
+            $item->wordCount->changed = $changed;
+            $item->wordCount->untranslated = $untranslated;
+            $item->wordCount->total = $translated + $queued + $changed + $untranslated;
+            $item->translationMethods = NenoHelper::getLanguageDefault($item->lang_code);
+
+            $items[] = $item;
+        }
+
+        return $items;
+    }
 }
