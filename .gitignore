@@ -254,6 +254,9 @@
 /administrator/language/si-LK/*
 !/administrator/language/si-LK/si-LK.com_neno.ini
 !/administrator/language/si-LK/si-LK.com_neno.sys.ini
+/administrator/modules/*
+!/administrator/modules
+!/administrator/modules/mod_neno_dashboard/
 !/components
 /components/*
 !/components/com_neno/
