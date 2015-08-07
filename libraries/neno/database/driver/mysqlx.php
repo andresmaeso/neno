@@ -10,12 +10,28 @@
 
 defined('_JEXEC') or die;
 
+
+$config = JFactory::getConfig();
+
+// If the Joomla site is using mysql, let's stick to it
+if ($config->get('dbtype') == 'mysql') {
+    class CommonDriver extends JDatabaseDriverMysql
+    {
+
+    }
+} else {
+    class CommonDriver extends JDatabaseDriverMysqli
+    {
+
+    }
+}
+
 /**
  * Database driver class extends from Joomla Platform Database Driver class
  *
  * @since  1.0
  */
-class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
+class NenoDatabaseDriverMysqlx extends CommonDriver
 {
     /**
      * Select query constant
@@ -67,15 +83,14 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
     /**
      * Set Autoincrement index in a shadow table
      *
-     * @param   string $tableName   Original table name
+     * @param   string $tableName Original table name
      * @param   string $shadowTable Shadow table name
      *
      * @return boolean True on success, false otherwise
      */
     public function setAutoincrementIndex($tableName, $shadowTable)
     {
-        try
-        {
+        try {
             // Create a new query object
             $query = $this->getQuery(true);
 
@@ -83,7 +98,7 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
                 ->select($this->quoteName('AUTO_INCREMENT'))
                 ->from('INFORMATION_SCHEMA.TABLES')
                 ->where(
-                    array (
+                    array(
                         'TABLE_SCHEMA = ' . $this->quote($this->getDatabase()),
                         'TABLE_NAME = ' . $this->quote($this->replacePrefix($tableName))
                     )
@@ -91,13 +106,11 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
 
             $data = $this->executeQuery($query, true, true);
 
-            $sql = 'ALTER TABLE ' . $this->quoteName($shadowTable) . ' AUTO_INCREMENT= ' . $this->quote((int) $data[0]->AUTO_INCREMENT);
+            $sql = 'ALTER TABLE ' . $this->quoteName($shadowTable) . ' AUTO_INCREMENT= ' . $this->quote((int)$data[0]->AUTO_INCREMENT);
             $this->executeQuery($sql);
 
             return true;
-        }
-        catch (RuntimeException $ex)
-        {
+        } catch (RuntimeException $ex) {
             return false;
         }
     }
@@ -111,30 +124,25 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
      */
     public function getQuery($new = false)
     {
-        if ($new)
-        {
+        if ($new) {
             // Derive the class name from the driver.
             $class = 'NenoDatabaseQuery' . ucfirst($this->name);
 
             // Make sure we have a query class for this driver.
-            if (!class_exists($class))
-            {
+            if (!class_exists($class)) {
                 // If it doesn't exist we are at an impasse so throw an exception.
                 // Derive the class name from the driver.
                 $class = 'JDatabaseQuery' . ucfirst($this->name);
 
                 // Make sure we have a query class for this driver.
-                if (!class_exists($class))
-                {
+                if (!class_exists($class)) {
                     // If it doesn't exist we are at an impasse so throw an exception.
                     throw new RuntimeException('Database Query Class not found.');
                 }
             }
 
             return new $class($this);
-        }
-        else
-        {
+        } else {
             return $this->sql;
         }
     }
@@ -142,7 +150,7 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
     /**
      * {@inheritdoc}
      *
-     * @param   string $sql    SQL Query
+     * @param   string $sql SQL Query
      * @param   string $prefix DB Prefix
      *
      * @return string
@@ -150,15 +158,13 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
     public function replacePrefix($sql, $prefix = '#__')
     {
         // Check if the query should be parsed.
-        if ($this->isInstallationCompleted() && $this->languageHasChanged() && $this->hasToBeParsed($sql))
-        {
+        if ($this->isInstallationCompleted() && $this->languageHasChanged() && $this->hasToBeParsed($sql)) {
             // Get query type
             $queryType = $this->getQueryType($sql);
-            $app       = JFactory::getApplication();
+            $app = JFactory::getApplication();
 
             // If the query is a select statement let's get the sql query using its shadow table name
-            if ($queryType === self::SELECT_QUERY && $app->isSite())
-            {
+            if ($queryType === self::SELECT_QUERY && $app->isSite()) {
                 $sql = $this->replaceTableNameStatements($sql);
             }
         }
@@ -183,9 +189,9 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
      */
     public function languageHasChanged()
     {
-        $input           = JFactory::getApplication()->input;
+        $input = JFactory::getApplication()->input;
         $defaultLanguage = NenoSettings::get('source_language');
-        $lang            = $input->getString('lang', $defaultLanguage);
+        $lang = $input->getString('lang', $defaultLanguage);
         $currentLanguage = JLanguage::getInstance($lang);
 
         return $currentLanguage->getTag() !== $defaultLanguage;
@@ -202,14 +208,10 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
     {
         // Check if the query contains Neno tables
 
-        if (!preg_match('/#__neno_/', $sql))
-        {
-            if (!empty($this->manifestTables))
-            {
-                foreach ($this->manifestTables as $table)
-                {
-                    if (preg_match('/' . preg_quote($table) . '/', $sql))
-                    {
+        if (!preg_match('/#__neno_/', $sql)) {
+            if (!empty($this->manifestTables)) {
+                foreach ($this->manifestTables as $table) {
+                    if (preg_match('/' . preg_quote($table) . '/', $sql)) {
                         return true;
                     }
                 }
@@ -231,27 +233,18 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
      */
     protected function getQueryType($sql)
     {
-        $sql       = trim(strtolower($sql));
+        $sql = trim(strtolower($sql));
         $queryType = self::OTHER_QUERY;
 
-        if (NenoHelper::startsWith($sql, 'insert'))
-        {
+        if (NenoHelper::startsWith($sql, 'insert')) {
             $queryType = self::INSERT_QUERY;
-        }
-        elseif (NenoHelper::startsWith($sql, 'delete'))
-        {
+        } elseif (NenoHelper::startsWith($sql, 'delete')) {
             $queryType = self::DELETE_QUERY;
-        }
-        elseif (NenoHelper::startsWith($sql, 'replace'))
-        {
+        } elseif (NenoHelper::startsWith($sql, 'replace')) {
             $queryType = self::REPLACE_QUERY;
-        }
-        elseif (NenoHelper::startsWith($sql, 'update'))
-        {
+        } elseif (NenoHelper::startsWith($sql, 'update')) {
             $queryType = self::UPDATE_QUERY;
-        }
-        elseif (NenoHelper::startsWith($sql, 'select'))
-        {
+        } elseif (NenoHelper::startsWith($sql, 'select')) {
             $queryType = self::SELECT_QUERY;
         }
 
@@ -261,7 +254,7 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
     /**
      * Replace all the table names with shadow tables names
      *
-     * @param   string $sql                 SQL Query
+     * @param   string $sql SQL Query
      * @param   string $languageTagSelected Language tag selected
      *
      * @return string
@@ -269,25 +262,20 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
     protected function replaceTableNameStatements($sql, $languageTagSelected = null)
     {
         /* @var $config Joomla\Registry\Registry */
-        $config         = JFactory::getConfig();
+        $config = JFactory::getConfig();
         $databasePrefix = $config->get('dbprefix');
-        $pattern        = '/(#__|' . preg_quote($databasePrefix) . ')(\w+)/';
-        $matches        = null;
-        $sql            = str_replace("\n", ' ', $sql);
+        $pattern = '/(#__|' . preg_quote($databasePrefix) . ')(\w+)/';
+        $matches = null;
+        $sql = str_replace("\n", ' ', $sql);
 
-        if ($languageTagSelected === null)
-        {
+        if ($languageTagSelected === null) {
             $languageTagSelected = $this->getLanguageTagSelected();
         }
 
-        if ($languageTagSelected != '')
-        {
-            if (preg_match_all($pattern, $sql, $matches))
-            {
-                foreach ($matches[0] as $match)
-                {
-                    if ($this->isTranslatable($match))
-                    {
+        if ($languageTagSelected != '') {
+            if (preg_match_all($pattern, $sql, $matches)) {
+                foreach ($matches[0] as $match) {
+                    if ($this->isTranslatable($match)) {
                         $sql = preg_replace('/`?' . $match . '`? /', $this->generateShadowTableName($match, $languageTagSelected) . ' ', $sql);
                     }
                 }
@@ -304,15 +292,14 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
      */
     protected function getLanguageTagSelected()
     {
-        $currentLanguage    = JFactory::getLanguage();
+        $currentLanguage = JFactory::getLanguage();
         $currentLanguageTag = $currentLanguage->getTag();
         $defaultLanguageTag = NenoSettings::get('source_language', 'en-GB');
 
         $languageTag = '';
 
         // If it is not the default language, let's get the language tag
-        if ($currentLanguageTag !== $defaultLanguageTag)
-        {
+        if ($currentLanguageTag !== $defaultLanguageTag) {
             // Clean language tag
             $languageTag = $currentLanguageTag;
         }
@@ -335,7 +322,7 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
     /**
      * Generate shadow table name
      *
-     * @param   string $tableName   Table name
+     * @param   string $tableName Table name
      * @param   string $languageTag Clean language tag
      *
      * @return string shadow table name.
@@ -354,7 +341,7 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
      */
     public function cleanLanguageTag($languageTag)
     {
-        return strtolower(str_replace(array ('-'), array (''), $languageTag));
+        return strtolower(str_replace(array('-'), array(''), $languageTag));
     }
 
     /**
@@ -366,29 +353,28 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
      */
     protected function cleanTableName($tableName)
     {
-        $config         = JFactory::getConfig();
+        $config = JFactory::getConfig();
         $databasePrefix = $config->get('dbprefix');
 
-        return str_replace(array ('#__', $databasePrefix), '', $tableName);
+        return str_replace(array('#__', $databasePrefix), '', $tableName);
     }
 
     /**
      * Execute a sql preventing to lose the query previously assigned.
      *
-     * @param   mixed   $sql                   JDatabaseQuery object or SQL query
+     * @param   mixed $sql JDatabaseQuery object or SQL query
      * @param   boolean $preservePreviousQuery True if the previous query will be saved before, false otherwise
-     * @param   boolean $returnObjectList      True if the method should return a list of object as query result, false otherwise
+     * @param   boolean $returnObjectList True if the method should return a list of object as query result, false otherwise
      *
      * @return void|array
      */
     public function executeQuery($sql, $preservePreviousQuery = true, $returnObjectList = false)
     {
-        $currentSql   = null;
+        $currentSql = null;
         $returnObject = null;
 
         // If the flag is activated, let's keep it save
-        if ($preservePreviousQuery)
-        {
+        if ($preservePreviousQuery) {
             $currentSql = $this->sql;
         }
 
@@ -396,14 +382,12 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
         $this->execute();
 
         // If the flag was activated, let's get it from the query
-        if ($returnObjectList)
-        {
+        if ($returnObjectList) {
             $returnObject = $this->loadObjectList();
         }
 
         // If the flag is activated, let's assign to the sql property again.
-        if ($preservePreviousQuery)
-        {
+        if ($preservePreviousQuery) {
             $this->sql = $currentSql;
         }
 
@@ -418,61 +402,74 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
     public function execute()
     {
         $language = JFactory::getLanguage();
-        $app      = JFactory::getApplication();
+        $app = JFactory::getApplication();
 
         // Check if the user is trying to insert something in the front-end in different language
-        if ($this->getQueryType((string) $this->sql) === self::INSERT_QUERY
+        if ($this->getQueryType((string)$this->sql) === self::INSERT_QUERY
             && $language->getTag() !== NenoSettings::get('source_language')
-            && $app->isSite() && !$this->isNenoSql((string) $this->sql)
-        )
-        {
+            && $app->isSite() && !$this->isNenoSql((string)$this->sql)
+        ) {
             $tables = null;
             preg_match('/insert into (\w+)/', $this->sql, $tables);
 
-            if (!empty($tables))
-            {
+            if (!empty($tables)) {
                 /* @var $table NenoContentElementTable */
-                $table = NenoContentElementTable::load(array ('table_name' => $tables[1]));
+                $table = NenoContentElementTable::load(array('table_name' => $tables[1]));
 
-                if (!empty($table) && $table->isTranslate())
-                {
+                if (!empty($table) && $table->isTranslate()) {
                     $language->load('com_neno', JPATH_ADMINISTRATOR);
                     throw new Exception(JText::_('COM_NENO_CONTENT_IN_OTHER_LANGUAGES_ARE_NOT_ALLOWED'));
                 }
             }
-        }
-        else
-        {
-            try
-            {
+        } else {
+            try {
                 // Get query type
-                $queryType = $this->getQueryType((string) $this->sql);
+                $queryType = $this->getQueryType((string)$this->sql);
 
                 $result = parent::execute();
 
                 // If the query is creating/modifying/deleting a record, let's do the same on the shadow tables
-                if (($queryType === self::INSERT_QUERY || $queryType === self::DELETE_QUERY || $queryType === self::UPDATE_QUERY || $queryType === self::REPLACE_QUERY) && $this->hasToBeParsed((string) $this->sql) && $this->propagateQuery)
-                {
+                if (($queryType === self::INSERT_QUERY || $queryType === self::DELETE_QUERY || $queryType === self::UPDATE_QUERY || $queryType === self::REPLACE_QUERY) && $this->hasToBeParsed((string)$this->sql) && $this->propagateQuery) {
                     $sql = $this->sql;
 
-                    foreach ($this->languages as $language)
-                    {
-                        $newSql = $this->replaceTableNameStatements((string) $sql, $language->lang_code);
+                    foreach ($this->languages as $language) {
+                        $newSql = $this->replaceTableNameStatements((string)$sql, $language->lang_code);
 
                         // Execute query if they are different.
-                        if ($newSql != $sql)
-                        {
+                        if ($newSql != $sql) {
                             $this->executeQuery($newSql, false);
                         }
                     }
                 }
 
                 return $result;
+            } catch (RuntimeException $ex) {
+                // If the table(s) doesn't exists, let's create them
+                if ($ex->getCode() == 1146) {
+                    $tables = $this->extractTableNamesFromSqlQuery();
+
+                    foreach ($tables as $tableName) {
+                        /* @var $table NenoContentElementTable */
+                        $table = NenoContentElementTable::load(array('table_name' => $tableName));
+
+                        if (!empty($table) && $table->isTranslate()) {
+                            $this->syncTable($tableName);
+                        }
+                    }
+
+                    $this->execute();
+                }
             }
-            catch (RuntimeException $ex)
-            {
-                NenoLog::log($ex->getMessage(), NenoLog::PRIORITY_ERROR);
-            }
+        }
+
+        return false;
+    }
+
+    protected function extractTableNamesFromSqlQuery()
+    {
+        $matches = null;
+        if (preg_match_all('/#__[a-zA-Z_]+/', $this->sql, $matches)) {
+            return array_unique($matches[0]);
         }
 
         return false;
@@ -494,7 +491,7 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
      * Load an array of objects based on the query executed, but if the array contains several items with the same key,
      * it will create a an array
      *
-     * @param   string $key   Array key
+     * @param   string $key Array key
      * @param   string $class Object class
      *
      * @return array|null
@@ -503,28 +500,22 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
     {
         $this->connect();
 
-        $array = array ();
+        $array = array();
 
         // Execute the query and get the result set cursor.
-        if (!($cursor = $this->execute()))
-        {
+        if (!($cursor = $this->execute())) {
             return null;
         }
 
         // Get all of the rows from the result set as objects of type $class.
-        while ($row = $this->fetchObject($cursor, $class))
-        {
-            if ($key)
-            {
-                if (!isset($array[$row->$key]))
-                {
-                    $array[$row->$key] = array ();
+        while ($row = $this->fetchObject($cursor, $class)) {
+            if ($key) {
+                if (!isset($array[$row->$key])) {
+                    $array[$row->$key] = array();
                 }
 
                 $array[$row->$key][] = $row;
-            }
-            else
-            {
+            } else {
                 $array[] = $row;
             }
         }
@@ -550,12 +541,10 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
 
         $manifestTablesObjectList = $this->executeQuery($query, true, true);
 
-        $this->manifestTables = array ();
+        $this->manifestTables = array();
 
-        if (!empty($manifestTablesObjectList))
-        {
-            foreach ($manifestTablesObjectList as $object)
-            {
+        if (!empty($manifestTablesObjectList)) {
+            foreach ($manifestTablesObjectList as $object) {
                 $this->manifestTables[] = $object->table_name;
             }
         }
@@ -573,12 +562,10 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
     public function deleteShadowTables($tableName)
     {
         $defaultLanguage = NenoSettings::get('source_language');
-        $knownLanguages  = NenoHelper::getLanguages();
+        $knownLanguages = NenoHelper::getLanguages();
 
-        foreach ($knownLanguages as $knownLanguage)
-        {
-            if ($knownLanguage->lang_code !== $defaultLanguage)
-            {
+        foreach ($knownLanguages as $knownLanguage) {
+            if ($knownLanguage->lang_code !== $defaultLanguage) {
                 $shadowTableName = $this->generateShadowTableName($tableName, $knownLanguage->lang_code);
                 $this->dropTable($shadowTableName);
             }
@@ -588,56 +575,56 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
     /**
      * Create all the shadow tables needed for
      *
-     * @param   string      $tableName   Table name
-     * @param   bool        $copyContent Copy the content of the source table
-     * @param   string|null $language    Generate shadow table for this particular language
+     * @param   string $tableName Table name
+     * @param   bool $copyContent Copy the content of the source table
+     * @param   string|null $language Generate shadow table for this particular language
      *
      * @return void
      */
     public function createShadowTables($tableName, $copyContent = true, $language = null)
     {
         $defaultLanguage = NenoSettings::get('source_language');
-        $tableColumns    = array_keys($this->getTableColumns($tableName));
-        $hasLanguage     = in_array('language', $tableColumns);
+        $tableColumns = array_keys($this->getTableColumns($tableName));
+        $hasLanguage = in_array('language', $tableColumns);
 
         // If there's no language passed, let's execute this for each language
-        if ($language === null)
-        {
-            $knownLanguages = NenoHelper::getLanguages();
+        if ($language === null) {
+            $knownLanguages = NenoHelper::getLanguages(false);
 
-            foreach ($knownLanguages as $knownLanguage)
-            {
-                if ($knownLanguage->lang_code !== $defaultLanguage)
-                {
-                    $shadowTableName            = $this->generateShadowTableName($tableName, $knownLanguage->lang_code);
+            foreach ($knownLanguages as $knownLanguage) {
+                if ($knownLanguage->lang_code !== $defaultLanguage) {
+                    $shadowTableName = $this->generateShadowTableName($tableName, $knownLanguage->lang_code);
                     $shadowTableCreateStatement = 'CREATE TABLE IF NOT EXISTS ' . $this->quoteName($shadowTableName) . ' LIKE ' . $this->quoteName($tableName);
                     $this->executeQuery($shadowTableCreateStatement);
+                }
 
-                    if ($copyContent)
-                    {
-                        $this->copyContentElementsFromSourceTableToShadowTables($tableName, $shadowTableName);
+                if ($copyContent) {
+                    $this->copyContentElementsFromSourceTableToShadowTables($tableName, $shadowTableName);
 
-                        if ($hasLanguage)
-                        {
-                            $query = $this->getQuery(true);
-                            $query
-                                ->update($shadowTableName)
-                                ->set('language = ' . $this->quote($knownLanguage->lang_code));
-                            $this->executeQuery($query);
-                        }
+                    if ($hasLanguage) {
+                        $query = $this->getQuery(true);
+                        $query
+                            ->update($shadowTableName)
+                            ->set('language = ' . $this->quote($knownLanguage->lang_code));
+                        $this->executeQuery($query);
                     }
                 }
             }
-        }
-        else
-        {
-            $shadowTableName            = $this->generateShadowTableName($tableName, $language);
+        } else {
+            $shadowTableName = $this->generateShadowTableName($tableName, $language);
             $shadowTableCreateStatement = 'CREATE TABLE IF NOT EXISTS ' . $this->quoteName($shadowTableName) . ' LIKE ' . $this->quoteName($tableName);
             $this->executeQuery($shadowTableCreateStatement);
 
-            if ($copyContent)
-            {
+            if ($copyContent) {
                 $this->copyContentElementsFromSourceTableToShadowTables($tableName, $shadowTableName);
+
+                if ($hasLanguage) {
+                    $query = $this->getQuery(true);
+                    $query
+                        ->update($shadowTableName)
+                        ->set('language = ' . $this->quote($language));
+                    $this->executeQuery($query);
+                }
             }
         }
     }
@@ -653,14 +640,14 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
     public function copyContentElementsFromSourceTableToShadowTables($sourceTableName, $shadowTableName)
     {
         $columns = array_keys($this->getTableColumns($sourceTableName));
-        $query   = 'REPLACE INTO ' . $this->quoteName($shadowTableName) . ' (' . implode(',', $this->quoteName($columns)) . ' ) SELECT * FROM ' . $this->quoteName($sourceTableName);
+        $query = 'REPLACE INTO ' . $this->quoteName($shadowTableName) . ' (' . implode(',', $this->quoteName($columns)) . ' ) SELECT * FROM ' . $this->quoteName($sourceTableName);
         $this->executeQuery($query);
     }
 
     /**
      * Retrieves field information about a given table.
      *
-     * @param   string  $table    The name of the database table.
+     * @param   string $table The name of the database table.
      * @param   boolean $typeOnly True to only return field types.
      *
      * @return  array  An array of fields for the database table.
@@ -672,8 +659,7 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
     {
         $cacheId = NenoCache::getCacheId(__FUNCTION__, func_get_args());
 
-        if (NenoCache::getCacheData($cacheId) === null)
-        {
+        if (NenoCache::getCacheData($cacheId) === null) {
             NenoCache::setCacheData($cacheId, parent::getTableColumns($table, $typeOnly));
         }
 
@@ -684,7 +670,7 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
      * Copy all the content to the shadow table
      *
      * @param   string $sourceTableName Name of the source table
-     * @param   string $language        Language
+     * @param   string $language Language
      *
      * @return void
      */
@@ -695,7 +681,7 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
             ->delete($sourceTableName)
             ->where('language = ' . $this->quote($language));
         $this->setQuery($query);
-        $oldValue             = $this->propagateQuery;
+        $oldValue = $this->propagateQuery;
         $this->propagateQuery = false;
         $this->execute();
         $this->propagateQuery = $oldValue;
@@ -730,32 +716,24 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
     public function copyContentElementsUsingJoomlaLanguageField($tableName)
     {
         $defaultLanguage = NenoSettings::get('source_language');
-        $knownLanguages  = NenoHelper::getLanguages();
-        $columns         = array_keys($this->getTableColumns($tableName));
+        $knownLanguages = NenoHelper::getLanguages();
+        $columns = array_keys($this->getTableColumns($tableName));
 
-        foreach ($columns as $key => $column)
-        {
-            if ($column == 'id')
-            {
+        foreach ($columns as $key => $column) {
+            if ($column == 'id') {
                 unset($columns[$key]);
                 break;
             }
         }
 
-        foreach ($knownLanguages as $knownLanguage)
-        {
-            if ($knownLanguage->lang_code !== $defaultLanguage)
-            {
+        foreach ($knownLanguages as $knownLanguage) {
+            if ($knownLanguage->lang_code !== $defaultLanguage) {
                 $selectColumns = $columns;
 
-                foreach ($selectColumns as $key => $selectColumn)
-                {
-                    if ($selectColumn == 'language')
-                    {
+                foreach ($selectColumns as $key => $selectColumn) {
+                    if ($selectColumn == 'language') {
                         $selectColumns[$key] = $this->quote($knownLanguage->lang_code);
-                    }
-                    else
-                    {
+                    } else {
                         $selectColumns[$key] = $this->quoteName($selectColumn);
                     }
                 }
@@ -776,14 +754,12 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
      */
     public function getPrimaryKey($tableName)
     {
-        $query       = 'SHOW INDEX FROM ' . $this->quoteName($tableName) . ' WHERE Key_name = \'PRIMARY\' OR Non_unique = 0';
-        $results     = $this->executeQuery($query, true, true);
-        $foreignKeys = array ();
+        $query = 'SHOW INDEX FROM ' . $this->quoteName($tableName) . ' WHERE Key_name = \'PRIMARY\' OR Non_unique = 0';
+        $results = $this->executeQuery($query, true, true);
+        $foreignKeys = array();
 
-        if (!empty($results))
-        {
-            foreach ($results as $result)
-            {
+        if (!empty($results)) {
+            foreach ($results as $result) {
                 $foreignKeys[] = $result->Column_name;
             }
         }
@@ -802,15 +778,14 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
     {
         $cacheId = NenoCache::getCacheId(__FUNCTION__, func_get_args());
 
-        if (NenoCache::getCacheData($cacheId) === null)
-        {
+        if (NenoCache::getCacheData($cacheId) === null) {
             $tablePattern = NenoHelper::getTableNamePatternBasedOnComponentName($componentName);
-            $query        = $this->getQuery(true);
+            $query = $this->getQuery(true);
             $query
                 ->select('TABLE_NAME')
                 ->from('information_schema.tables')
                 ->where(
-                    array (
+                    array(
                         'table_schema = DATABASE()',
                         'table_name LIKE ' . $this->quote($tablePattern . '%')
                     )
@@ -827,8 +802,8 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
     /**
      * Delete an object from the database
      *
-     * @param   string  $table Table name
-     * @param   integer $id    Identifier
+     * @param   string $table Table name
+     * @param   integer $id Identifier
      *
      * @return bool
      */
@@ -836,8 +811,8 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
     {
         $query = $this->getQuery(true);
         $query
-            ->delete((string) $table)
-            ->where('id = ' . (int) $id);
+            ->delete((string)$table)
+            ->where('id = ' . (int)$id);
 
         $this->setQuery($query);
 
@@ -852,11 +827,10 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
     public function loadArray()
     {
         /** @noinspection PhpUndefinedClassInspection */
-        $list  = parent::loadRowList();
-        $array = array ();
+        $list = parent::loadRowList();
+        $array = array();
 
-        foreach ($list as $listElement)
-        {
+        foreach ($list as $listElement) {
             $array[] = $listElement[0];
         }
 
@@ -873,37 +847,30 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
     public function syncTable($tableName)
     {
         $languages = NenoHelper::getTargetLanguages(false);
-        $tables    = $this->getTableList();
+        $tables = $this->getTableList();
 
-        foreach ($languages as $language)
-        {
+        foreach ($languages as $language) {
             $shadowTableName = $this->generateShadowTableName($tableName, $language->lang_code);
 
             // If the table does not exists, let's create it
-            if (!in_array($shadowTableName, $tables))
-            {
+            if (!in_array($shadowTableName, $tables)) {
                 $this->createShadowTables($tableName, true, $language->lang_code);
             }
 
             $diff = $this->tablesDiff($tableName, $shadowTableName);
 
             // If diff is not empty, let's try to sync both tables
-            if (!empty($diff))
-            {
+            if (!empty($diff)) {
                 // Are there fields that needs to be added?
-                if (!empty($diff['add']))
-                {
-                    foreach ($diff['add'] as $field)
-                    {
+                if (!empty($diff['add'])) {
+                    foreach ($diff['add'] as $field) {
                         $this->addColumn($shadowTableName, $field->Field, $this->generateColumnType($field));
                     }
                 }
 
                 // Are there fields that needs to be dropped?
-                if (!empty($diff['drop']))
-                {
-                    foreach ($diff['drop'] as $field)
-                    {
+                if (!empty($diff['drop'])) {
+                    foreach ($diff['drop'] as $field) {
                         $this->dropColumn($shadowTableName, $field->Field);
                     }
                 }
@@ -923,8 +890,7 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
     {
         $tableList = parent::getTableList();
 
-        foreach ($tableList as $key => $table)
-        {
+        foreach ($tableList as $key => $table) {
             $tableList[$key] = str_replace($this->getPrefix(), '#__', $table);
         }
 
@@ -942,31 +908,27 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
      */
     public function tablesDiff($table1, $table2)
     {
-        $diff              = array ();
-        $table1Columns     = $this->getTableColumns($table1, false);
-        $table2Columns     = $this->getTableColumns($table2, false);
+        $diff = array();
+        $table1Columns = $this->getTableColumns($table1, false);
+        $table2Columns = $this->getTableColumns($table2, false);
         $table1ColumnNames = array_keys($table1Columns);
         $table2ColumnNames = array_keys($table2Columns);
 
         $newFields = array_diff($table1ColumnNames, $table2ColumnNames);
         $oldFields = array_diff($table2ColumnNames, $table1ColumnNames);
 
-        if (!empty($newFields))
-        {
-            $diff['add'] = array ();
+        if (!empty($newFields)) {
+            $diff['add'] = array();
 
-            foreach ($newFields as $newField)
-            {
+            foreach ($newFields as $newField) {
                 $diff['add'][] = $table1Columns[$newField];
             }
         }
 
-        if (!empty($oldFields))
-        {
-            $diff['drop'] = array ();
+        if (!empty($oldFields)) {
+            $diff['drop'] = array();
 
-            foreach ($oldFields as $oldField)
-            {
+            foreach ($oldFields as $oldField) {
                 $diff['drop'][] = $table2Columns[$oldField];
             }
         }
@@ -977,7 +939,7 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
     /**
      * Add column
      *
-     * @param   string $tableName  Table name
+     * @param   string $tableName Table name
      * @param   string $columnName Column name
      * @param   string $columnType Column type
      *
@@ -1006,7 +968,7 @@ class NenoDatabaseDriverMysqlx extends JDatabaseDriverMysqli
     /**
      * Drop column
      *
-     * @param   string $tableName  Table name
+     * @param   string $tableName Table name
      * @param   string $columnName Column name
      *
      * @return bool
