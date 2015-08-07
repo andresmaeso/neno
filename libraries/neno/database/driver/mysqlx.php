@@ -890,9 +890,12 @@ class NenoDatabaseDriverMysqlx extends CommonDriver
     public function getTableList()
     {
         $tableList = parent::getTableList();
+        $onlyPrefix = NenoSettings::get('only_prefix', true);
 
         foreach ($tableList as $key => $table) {
-            $tableList[$key] = str_replace($this->getPrefix(), '#__', $table);
+            if (($onlyPrefix && NenoHelper::startsWith($table, $this->getPrefix())) || !$onlyPrefix) {
+                $tableList[$key] = str_replace($this->getPrefix(), '#__', $table);
+            }
         }
 
         return $tableList;
