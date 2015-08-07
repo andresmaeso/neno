@@ -22,7 +22,6 @@ class NenoModelDashboard extends JModelList
 	/**
 	 * {@inheritdoc}
 	 *
-	 *
 	 * @return array
 	 */
 	public function getItems()
