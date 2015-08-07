@@ -234,7 +234,7 @@ class NenoModelStrings extends JModelList
 			)
 			->group(
 				array (
-					'tr1.string',
+					'HEX(tr1.string)',
 					'tr1.state'
 				)
 			)
@@ -262,7 +262,7 @@ class NenoModelStrings extends JModelList
 			)
 			->group(
 				array (
-					'tr2.string',
+					'HEX(tr2.string)',
 					'tr2.state'
 				)
 			)
