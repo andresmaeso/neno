@@ -452,6 +452,7 @@ class NenoDatabaseDriverMysqlx extends CommonDriver
                         /* @var $table NenoContentElementTable */
                         $table = NenoContentElementTable::load(array('table_name' => $tableName));
 
+                        // If the table exists and it's translatable.
                         if (!empty($table) && $table->isTranslate()) {
                             $this->syncTable($tableName);
                         }
