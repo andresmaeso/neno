@@ -15,6 +15,12 @@ $document = JFactory::getDocument();
 $document->addStyleSheet(JUri::root() . '/media/neno/css/languageconfiguration.css');
 
 $item = (array)$displayData;
+
+// If this object does not exists, let's create one.
+if (empty($item['wordCount'])) {
+    $item['wordCount'] = new stdClass;
+}
+
 $item['wordCount']->total = $item['isInstalled'] ? $item['wordCount']->total : 0;
 $translationMethods = NenoHelper::loadTranslationMethods();
 $n = 0;
