@@ -9,7 +9,7 @@
 
 //No direct access
 defined('_JEXEC') or die;
-$spaceStatus            = NenoHelper::getDbFreeSpace();
+$spaceStatus = NenoHelper::getDbFreeSpace();
 $spaceNeededPerLanguage = NenoHelper::getSpaceNeedPerLanguage();
 ?>
 
@@ -23,7 +23,12 @@ $spaceNeededPerLanguage = NenoHelper::getSpaceNeedPerLanguage();
 
     <?php if ($spaceStatus == 0): ?>
         <div class="alert alert-warning">
-            <?php echo JText::sprintf('COM_NENO_UNABLE_GET_DB_FREE_SPACE_INSTALLATION', $spaceNeededPerLanguage); ?>
+            <?php if ($spaceNeededPerLanguage == 0): ?>
+                <?php echo JText::_('COM_NENO_UNABLE_GET_DB_FREE_SPACE_INSTALLATION_PERCENT'); ?>
+            <?php else: ?>
+                <?php echo JText::sprintf('COM_NENO_UNABLE_GET_DB_FREE_SPACE_INSTALLATION', $spaceNeededPerLanguage); ?>
+            <?php endif; ?>
+
         </div>
     <?php endif; ?>
 
