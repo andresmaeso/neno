@@ -8,6 +8,9 @@
  */
 // No direct access
 defined('_JEXEC') or die;
+$document= JFactory::getDocument();
+$document->addStyleSheet(JUri::root() . '/media/neno/css/admin.css');
+
 ?>
 
 <div class="translation-progress-bar">
