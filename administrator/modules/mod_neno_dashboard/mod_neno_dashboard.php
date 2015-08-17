@@ -9,11 +9,11 @@
 
 defined('_JEXEC') or die;
 
-// Include the syndicate functions only once
-require_once __DIR__ . '/helper.php';
+//Adding Language files
+$lang = JFactory::getLanguage();
+$lang->load('com_neno', JPATH_ADMINISTRATOR, $lang->getTag(), true);
 
-$langs            = ModLoginHelper::getLanguageList();
-$twofactormethods = ModLoginHelper::getTwoFactorMethods();
-$return           = ModLoginHelper::getReturnURI();
+//Get Items 
+$languageData = NenoHelper::getLanguageConfigurationData();
 
-require JModuleHelper::getLayoutPath('mod_login', $params->get('layout', 'default'));
+ require JModuleHelper::getLayoutPath('mod_neno_dashboard', $layout='default');
