@@ -1,25 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension type="module" version="3.0" client="administrator" method="upgrade">
-	<name>mod_neno_dashboard</name>
-	<author>Jensen Technologies S.L.</author>
-	<creationDate>August 2015</creationDate>
-	<copyright>Copyright (C) 2005 - 2015 Open Source Matters. All rights reserved.</copyright>
-	<license>GNU General Public License version 2 or later; see LICENSE.txt</license>
-	<authorEmail>info@jensen.technology</authorEmail>
-	<authorUrl>http://www.jensen.technology</authorUrl>
-	<version>3.0.0</version>
-	<description>MOD_NENO_XML_DESCRIPTION</description>
-	<files>
-                <filename> mod_neno_dashboard.xml </filename>
-		<filename module="mod_neno_dashboard">mod_neno_dashboard.php</filename>
-		<filename>index.html</filename>
-		<filename>tmpl/default.php</filename>
-                <filename>tmpl/index.html</filename>
-	</files>
-         
-	<languages>
-		<language tag="en-GB">en-GB.com_neno.ini</language>
-		<language tag="en-GB">en-GB.com_neno.sys.ini</language>
-	</languages>
-        
+    <name>mod_neno_dashboard</name>
+    <author>Jensen Technologies S.L.</author>
+    <creationDate>XXX_DATE_XXX</creationDate>
+    <copyright>Copyright (C) XXX_COPYRIGHT_YEAR_XXX. All rights reserved.</copyright>
+    <license>GNU General Public License version 2 or later; see LICENSE.txt</license>
+    <authorEmail>info@jensen.technology</authorEmail>
+    <authorUrl>http://www.jensen.technology</authorUrl>
+    <version>XXX_VERSION_XXX</version>
+    <description>MOD_NENO_XML_DESCRIPTION</description>
+    <files>
+        <filename>mod_neno_dashboard.xml</filename>
+        <filename module="mod_neno_dashboard">mod_neno_dashboard.php</filename>
+        <filename>index.html</filename>
+        <filename>tmpl/default.php</filename>
+        <filename>tmpl/index.html</filename>
+    </files>
 </extension>

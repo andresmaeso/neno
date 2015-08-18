@@ -16,4 +16,4 @@ $lang->load('com_neno', JPATH_ADMINISTRATOR, $lang->getTag(), true);
 //Get Items 
 $languageData = NenoHelper::getLanguageConfigurationData();
 
- require JModuleHelper::getLayoutPath('mod_neno_dashboard', $layout='default');
+require JModuleHelper::getLayoutPath('mod_neno_dashboard');

@@ -15,6 +15,12 @@ if (file_exists($componentPath)) {
     }
 }
 
+if (file_exists($packagePath . DIRECTORY_SEPARATOR . 'mod_neno_dashboard')) {
+    if (rmdirRecursive($packagePath . DIRECTORY_SEPARATOR . 'mod_neno_dashboard') !== true) {
+        return false;
+    }
+}
+
 if (file_exists($packagePath . DIRECTORY_SEPARATOR . 'plg_system_neno')) {
     if (rmdirRecursive($packagePath . DIRECTORY_SEPARATOR . 'plg_system_neno') !== true) {
         return false;
@@ -84,6 +90,11 @@ if (rename($extractPath . DIRECTORY_SEPARATOR . 'plugins' . DIRECTORY_SEPARATOR 
     return false;
 }
 
+// Neno module folder
+if (rename($extractPath . DIRECTORY_SEPARATOR . 'administrator' . DIRECTORY_SEPARATOR . 'modules' . DIRECTORY_SEPARATOR . 'mod_neno_dashboard', $packagePath . DIRECTORY_SEPARATOR . 'mod_neno_dashboard') !== true) {
+    return false;
+}
+
 // Neno library folder
 if (rename($extractPath . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'neno', $packagePath . DIRECTORY_SEPARATOR . 'lib_neno') !== true) {
     return false;
@@ -130,7 +141,12 @@ $folders = folders($extractPath);
 foreach ($folders as $extensionFolder) {
     if (!in_array($extensionFolder, $noExtensionFolders)) {
         // Parse installation file.
-        $installationFileContent = file_get_contents($extractPath . DIRECTORY_SEPARATOR . $extensionFolder . DIRECTORY_SEPARATOR . 'neno.xml');
+
+        if ($extensionFolder === 'mod_neno_dashboard') {
+            $installationFileContent = file_get_contents($extractPath . DIRECTORY_SEPARATOR . $extensionFolder . DIRECTORY_SEPARATOR . 'mod_neno_dashboard.xml');
+        } else {
+            $installationFileContent = file_get_contents($extractPath . DIRECTORY_SEPARATOR . $extensionFolder . DIRECTORY_SEPARATOR . 'neno.xml');
+        }
 
         if ($extensionFolder == 'lib_neno') {
             $libraryFolders = folders($extractPath . DIRECTORY_SEPARATOR . $extensionFolder);
@@ -151,7 +167,12 @@ foreach ($folders as $extensionFolder) {
             $installationFileContent = str_replace('XXX_LIBRARY_STRUCTURE', $libraryStructure, $installationFileContent);
         }
 
-        file_put_contents($extractPath . DIRECTORY_SEPARATOR . $extensionFolder . DIRECTORY_SEPARATOR . 'neno.xml', $installationFileContent);
+        if ($extensionFolder === 'mod_neno_dashboard') {
+            file_put_contents($extractPath . DIRECTORY_SEPARATOR . $extensionFolder . DIRECTORY_SEPARATOR . 'mod_neno_dashboard.xml', $installationFileContent);
+        } else {
+            file_put_contents($extractPath . DIRECTORY_SEPARATOR . $extensionFolder . DIRECTORY_SEPARATOR . 'neno.xml', $installationFileContent);
+        }
+
     }
 }
 
@@ -185,6 +206,21 @@ if ($compress) {
     createZip($packagePath . DIRECTORY_SEPARATOR . 'packages' . DIRECTORY_SEPARATOR . 'plg_system_neno.zip', $zipData);
 
     rmdirRecursive($extractPath . DIRECTORY_SEPARATOR . 'plg_system_neno');
+
+    // Compress module
+    $files = files($extractPath . DIRECTORY_SEPARATOR . 'mod_neno_dashboard', true);
+    $zipData = array();
+
+    foreach ($files as $file) {
+        $zipData[] = array(
+            'name' => str_replace($extractPath . DIRECTORY_SEPARATOR . 'mod_neno_dashboard' . DIRECTORY_SEPARATOR, '', $file),
+            'file' => $file
+        );
+    }
+
+    createZip($packagePath . DIRECTORY_SEPARATOR . 'packages' . DIRECTORY_SEPARATOR . 'mod_neno_dashboard.zip', $zipData);
+
+    rmdirRecursive($extractPath . DIRECTORY_SEPARATOR . 'mod_neno_dashboard');
 
     // Compress library
     $files = files($extractPath . DIRECTORY_SEPARATOR . 'lib_neno', true);
