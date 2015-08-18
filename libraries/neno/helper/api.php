@@ -30,9 +30,8 @@ class NenoHelperApi
     {
         list($status, $userData) = self::makeApiCall('user');
 
-        if ($status !== false && is_array($userData))
-        {
-            return empty($userData['tcAvailable']) ? 0 : $userData['tcAvailable'];
+        if ($status !== false && is_array($userData)) {
+            return empty($userData['response']['tcAvailable']) ? 0 : $userData['response']['tcAvailable'];
         }
 
         return 0;
@@ -41,44 +40,38 @@ class NenoHelperApi
     /**
      * Execute API Call
      *
-     * @param   string $apiCall    API Call
-     * @param   string $method     Http Method
-     * @param   array  $parameters API call parameters
+     * @param   string $apiCall API Call
+     * @param   string $method Http Method
+     * @param   array $parameters API call parameters
      *
      * @return array
      */
-    public static function makeApiCall($apiCall, $method = 'GET', $parameters = array ())
+    public static function makeApiCall($apiCall, $method = 'GET', $parameters = array())
     {
         self::getHttp();
 
-        $apiEndpoint    = NenoSettings::get('api_server_url');
-        $licenseCode    = NenoSettings::get('license_code');
-        $response       = null;
+        $apiEndpoint = NenoSettings::get('api_server_url');
+        $licenseCode = NenoSettings::get('license_code');
+        $response = null;
         $responseStatus = false;
 
-        if (!empty($apiEndpoint) && !empty($licenseCode))
-        {
+        if (!empty($apiEndpoint) && !empty($licenseCode)) {
             $method = strtolower($method);
 
-            if (method_exists(self::$httpClient, $method))
-            {
-                if ($method === 'get')
-                {
-                    if (!empty($parameters))
-                    {
-                        $query   = implode('/', $parameters);
+            if (method_exists(self::$httpClient, $method)) {
+                if ($method === 'get') {
+                    if (!empty($parameters)) {
+                        $query = implode('/', $parameters);
                         $apiCall = $apiCall . '/' . $query;
                     }
 
-                    $apiResponse = self::$httpClient->{$method}($apiEndpoint . $apiCall, array ('Authorization' => $licenseCode), $parameters);
-                }
-                else
-                {
+                    $apiResponse = self::$httpClient->{$method}($apiEndpoint . $apiCall, array('Authorization' => $licenseCode), $parameters);
+                } else {
                     $apiResponse = self::$httpClient->{$method}(
                         $apiEndpoint . $apiCall,
                         json_encode($parameters),
-                        array (
-                            'Content-Type'  => 'application/json',
+                        array(
+                            'Content-Type' => 'application/json',
                             'Authorization' => $licenseCode
                         )
                     );
@@ -87,21 +80,19 @@ class NenoHelperApi
                 /* @var $apiResponse JHttpResponse */
                 $data = $apiResponse->body;
 
-                if ($apiResponse->headers['Content-Type'] === 'application/json')
-                {
+                if ($apiResponse->headers['Content-Type'] === 'application/json') {
                     $data = json_decode($data, true);
                 }
 
                 $response = $data;
 
-                if ($apiResponse->code == 200)
-                {
+                if ($apiResponse->code == 200) {
                     $responseStatus = true;
                 }
             }
         }
 
-        return array ($responseStatus, $response);
+        return array($responseStatus, $response);
     }
 
     /**
@@ -111,8 +102,7 @@ class NenoHelperApi
      */
     protected static function getHttp()
     {
-        if (self::$httpClient === null)
-        {
+        if (self::$httpClient === null) {
             self::$httpClient = JHttpFactory::getHttp();
         }
     }
@@ -120,17 +110,16 @@ class NenoHelperApi
     /**
      * Download Job file from the API
      *
-     * @param int    $jobId    Job ID
+     * @param int $jobId Job ID
      * @param string $filePath File path where the file is going to be saved
      *
      * @return bool
      */
     public static function getJobFile($jobId, $filePath)
     {
-        list($status, $fileContents) = self::makeApiCall('job' . 'GET', array ((int) $jobId));
+        list($status, $fileContents) = self::makeApiCall('job' . 'GET', array((int)$jobId));
 
-        if ($status)
-        {
+        if ($status) {
             file_put_contents($filePath, $fileContents);
         }
 
