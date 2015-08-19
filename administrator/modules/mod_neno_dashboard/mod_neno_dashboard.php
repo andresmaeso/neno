@@ -13,9 +13,7 @@ defined('_JEXEC') or die;
 $lang = JFactory::getLanguage();
 $lang->load('com_neno', JPATH_ADMINISTRATOR, $lang->getTag(), true);
 
-require_once (JPATH_ADMINISTRATOR.'/components/com_neno/controllers/dashboard.php');
-
 //Get Items 
 $languageData = NenoHelper::getLanguageConfigurationData();
 
- require JModuleHelper::getLayoutPath('mod_neno_dashboard', $layout='default');
+require JModuleHelper::getLayoutPath('mod_neno_dashboard');
