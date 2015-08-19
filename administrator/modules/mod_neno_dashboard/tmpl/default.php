@@ -21,9 +21,9 @@ $translationMethods = NenoHelper::loadTranslationMethods();
 $n                  = 0;
 
 ?>
-
-<?php echo JLayoutHelper::render('languageswitcheralert', $dashboardModel->getPositionField() , JPATH_NENO_LAYOUTS);?>
-
+<?php if (!$dashboardModel->getIsSwitcherPublished()): ?>	
+    <?php echo JLayoutHelper::render('languageswitcheralert', $dashboardModel->getPositionField() , JPATH_NENO_LAYOUTS);?>
+<?php endif; ?>
 <?php foreach ($languageData as $item): ?>
 				
 <?php $item->placement = 'dashboard';?>
