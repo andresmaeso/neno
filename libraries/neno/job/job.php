@@ -424,7 +424,7 @@ class NenoJob extends NenoObject
 			->setState(self::JOB_STATE_SENT);
 
 		$data = array(
-			'filename'             => JUri::root() . '/tmp/' . $this->getFileName() . '.json.zip',
+			'filename'             => JUri::root() . 'tmp/' . $this->getFileName() . '.json.zip',
 			'words'                => $this->getWordCount(),
 			'translation_method'   => NenoHelper::convertTranslationMethodIdToName($this->getTranslationMethod()->id),
 			'source_language'      => $this->getFromLanguage(),
