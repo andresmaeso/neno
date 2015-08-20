@@ -3219,7 +3219,7 @@ class NenoHelper
         $matches = null;
 
         // Get content between body tags (DOMDocument class add it)
-        if (preg_match('@<body>(.+)<\/body>@', $document->saveHTML(), $matches) != 0) {
+        if (preg_match('@<body>(.+)<\/body>@s', $document->saveHTML(), $matches) != 0) {
             return $matches[1];
         }
 
