@@ -35,16 +35,20 @@ class NenoTranslatorApiGoogle extends NenoTranslatorApi
 		$apiKey = NenoSettings::get('translator_api_key');
 
 		$url = 'https://www.googleapis.com/language/translate/v2';
-
-		if (mb_strlen($text) < 5000)
-		{
+        
+        //Chunk the text if need be
+        $chunks = NenoHelper::chunkHTMLString($text, 4900);
+        $translatedChunks = array();        
+        
+        foreach ($chunks as $chunk)
+        {
 			// Invoke the POST request.
 			$response = $this->post(
 				$url,
-				array ('key' => $apiKey, 'q' => $text, 'source' => $source, 'target' => $target),
+				array ('key' => $apiKey, 'q' => $chunk, 'source' => $source, 'target' => $target),
 				array ('X-HTTP-Method-Override' => 'GET')
 			);
-
+            
 			// Log it if server response is not OK.
 			if ($response->code != 200)
 			{
@@ -55,15 +59,12 @@ class NenoTranslatorApiGoogle extends NenoTranslatorApi
 			else
 			{
 				$responseBody = json_decode($response->body);
-				$text         = $responseBody->data->translations[0]->translatedText;
+				$translatedChunks[] = $responseBody->data->translations[0]->translatedText;
 			}
-
-			return $text;
 		}
-		else
-		{
-			throw new Exception(JText::_('COM_NENO_EDITOR_GOOGLE_ERROR_TEXT_TOO_LONG'), 413);
-		}
+        
+        return implode(' ', $translatedChunks);        
+        
 	}
 
 	/**

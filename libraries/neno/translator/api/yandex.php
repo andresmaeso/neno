@@ -51,13 +51,16 @@ class NenoTranslatorApiYandex extends NenoTranslatorApi
 
 		$apiKey = NenoSettings::get('translator_api_key');
 
-		// For POST requests, the maximum size of the text being passed is 10000 characters.
-		if (mb_strlen($text) <= 10000)
+        //Chunk the text if need be
+        $chunks = NenoHelper::chunkHTMLString($text, 9900);
+        $translatedChunks = array();               
+        
+        foreach ($chunks as $chunk)
 		{
 			$url = 'https://translate.yandex.net/api/v1.5/tr.json/translate?key=' . $apiKey . '&lang=' . $lang;
 
 			// Invoke the POST request.
-			$response = $this->post($url, array ('text' => $text));
+			$response = $this->post($url, array ('text' => $chunk));
 
 			// Log it if server response is not OK.
 			if ($response->code != 200)
@@ -69,15 +72,12 @@ class NenoTranslatorApiYandex extends NenoTranslatorApi
 			else
 			{
 				$responseBody = json_decode($response->body);
-				$text         = $responseBody->text[0];
+				$translatedChunks[] = $responseBody->text[0];
 			}
 
-			return $text;
 		}
-		else
-		{
-			throw new Exception(JText::_('COM_NENO_EDITOR_YANDEX_ERROR_TEXT_TOO_LONG'), 413);
-		}
+		return implode(' ', $translatedChunks);
+
 	}
 
 	/**

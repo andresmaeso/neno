@@ -3465,49 +3465,128 @@ class NenoHelper
 
         $languages = $db->loadObjectListMultiIndex('lang_code');
         $items = array();
+        
+        if (!empty($languages))
+        {
+            foreach ($languages as $language) {
+                $translated = 0;
+                $queued = 0;
+                $changed = 0;
+                $untranslated = 0;
+                $item = new stdClass;
+                $item->lang_code = $language[0]->lang_code;
+                $item->comment = $language[0]->comment;
+                $item->published = $language[0]->published;
+                $item->title = $language[0]->title;
+                $item->image = $language[0]->image;
+                $item->errors = NenoHelper::getLanguageErrors((array)$language[0]);
+                $item->isInstalled = NenoHelper::isCompletelyInstall($item->lang_code);
 
-        foreach ($languages as $language) {
-            $translated = 0;
-            $queued = 0;
-            $changed = 0;
-            $untranslated = 0;
-            $item = new stdClass;
-            $item->lang_code = $language[0]->lang_code;
-            $item->comment = $language[0]->comment;
-            $item->published = $language[0]->published;
-            $item->title = $language[0]->title;
-            $item->image = $language[0]->image;
-            $item->errors = NenoHelper::getLanguageErrors((array)$language[0]);
-            $item->isInstalled = NenoHelper::isCompletelyInstall($item->lang_code);
-
-            foreach ($language as $internalItem) {
-                switch ($internalItem->state) {
-                    case NenoContentElementTranslation::TRANSLATED_STATE:
-                        $translated = (int)$internalItem->word_count;
-                        break;
-                    case NenoContentElementTranslation::QUEUED_FOR_BEING_TRANSLATED_STATE:
-                        $queued = (int)$internalItem->word_count;
-                        break;
-                    case NenoContentElementTranslation::SOURCE_CHANGED_STATE:
-                        $changed = (int)$internalItem->word_count;
-                        break;
-                    case NenoContentElementTranslation::NOT_TRANSLATED_STATE:
-                        $untranslated = (int)$internalItem->word_count;
-                        break;
+                foreach ($language as $internalItem) {
+                    switch ($internalItem->state) {
+                        case NenoContentElementTranslation::TRANSLATED_STATE:
+                            $translated = (int)$internalItem->word_count;
+                            break;
+                        case NenoContentElementTranslation::QUEUED_FOR_BEING_TRANSLATED_STATE:
+                            $queued = (int)$internalItem->word_count;
+                            break;
+                        case NenoContentElementTranslation::SOURCE_CHANGED_STATE:
+                            $changed = (int)$internalItem->word_count;
+                            break;
+                        case NenoContentElementTranslation::NOT_TRANSLATED_STATE:
+                            $untranslated = (int)$internalItem->word_count;
+                            break;
+                    }
                 }
+
+                $item->wordCount = new stdClass;
+                $item->wordCount->translated = $translated;
+                $item->wordCount->queued = $queued;
+                $item->wordCount->changed = $changed;
+                $item->wordCount->untranslated = $untranslated;
+                $item->wordCount->total = $translated + $queued + $changed + $untranslated;
+                $item->translationMethods = NenoHelper::getLanguageDefault($item->lang_code);
+
+                $items[] = $item;
             }
-
-            $item->wordCount = new stdClass;
-            $item->wordCount->translated = $translated;
-            $item->wordCount->queued = $queued;
-            $item->wordCount->changed = $changed;
-            $item->wordCount->untranslated = $untranslated;
-            $item->wordCount->total = $translated + $queued + $changed + $untranslated;
-            $item->translationMethods = NenoHelper::getLanguageDefault($item->lang_code);
-
-            $items[] = $item;
         }
 
         return $items;
     }
+    
+    
+    /**
+     * Takes a long string and breaks it into natural chunks and returns an array with the chunks
+     * - The method will attempt to break on certain html tags first, then sentence structures and finally spaces if possible
+     * - If $string is shorter than $maxChunkLength an array with one entry is returned
+     * 
+     * @param type $string
+     * @param type $maxChunkLength
+     * @return array
+     */
+    public static function chunkHTMLString($string, $maxChunkLength)
+    {
+        $chunks = array();
+        
+        //If the given string can fit in the first chunk then just return that
+        if (utf8_strlen($string) < $maxChunkLength) {
+            $chunks[] = $string;        
+            return $chunks;
+        }
+        
+        $cutStrings = array();
+        $cutStrings[] = '</div>';
+        $cutStrings[] = '</p>';
+        $cutStrings[] = '</ul>';
+        $cutStrings[] = '</table>';
+        $cutStrings[] = '</a>';
+        $cutStrings[] = '. ';
+        
+        while (utf8_strlen($string) > $maxChunkLength)
+        {
+            
+            //Look for the breakpoint that is located last in the substring that is less than max
+            $potentialCutPoints = array();
+            foreach ($cutStrings as $key => $cutString)
+            {
+                $position = strripos(substr($string,0,$maxChunkLength),$cutString);
+                if ($position !== false) {
+                    $potentialCutPoints[$position] = $cutString;
+                }
+            }
+            
+            //Select the right most breakpoint
+            if (count($potentialCutPoints))
+            {
+                $selectedBreakPoint = max(array_keys($potentialCutPoints));
+                $selectedBreakPointString = $potentialCutPoints[$selectedBreakPoint];
+                $breakPoint = $selectedBreakPoint + utf8_strlen($selectedBreakPointString);
+                
+                //Add the chunk
+                $chunks[] = substr($string, 0, $breakPoint);
+                
+            }
+            else
+            {
+                //Unable to find a breakpoint, use wordwrap
+                $wordWrappedString = wordwrap($string, $maxChunkLength, '|||---NENO---|||', true);
+                $wordWrappedArray = explode('|||---NENO---|||', $wordWrappedString);
+                $chunks[] = $wordWrappedArray[0];
+                $breakPoint = utf8_strlen($wordWrappedArray[0])+3;
+            }
+            
+            //Reduce the string
+            $string = substr($string, $breakPoint);
+            
+        }
+        
+        //Add the remainder to the last chunk
+        $chunks[] = $string;
+        
+        return $chunks;
+
+    }
+    
+    
+    
 }
