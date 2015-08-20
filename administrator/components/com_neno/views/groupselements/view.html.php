@@ -84,6 +84,7 @@ class NenoViewGroupsElements extends JViewLegacy
 		JToolbarHelper::custom('moveelementconfirm.show', 'move', 'move', JText::_('COM_NENO_VIEW_GROUPSELEMENTS_BTN_MOVE_ELEMENTS'), true);
 		JToolbarHelper::custom('groupselements.scanForContent', 'loop', 'loop', JText::_('COM_NENO_VIEW_GROUPSELEMENTS_BTN_SCAN_FOR_CONTENT'), true);
 		JToolbarHelper::custom('groupselements.moveTranslationsToTarget', 'download', 'download', JText::_('COM_NENO_VIEW_GROUPSELEMENTS_BTN_MOVE_TRANSLATED_CONTENT'), true);
+		JToolbarHelper::custom('groupselements.checkIntegrity', 'cogs', 'cogs', JText::_('COM_NENO_VIEW_GROUPSELEMENTS_BTN_CHECK_INTEGRITY'), true);
 
 		$toolbar = JToolbar::getInstance();
 		$toolbar->addButtonPath(JPATH_NENO . '/button');
