@@ -386,7 +386,7 @@ class NenoJob extends NenoObject
 				if (!empty($translation))
 				{
 					$translation->setString(
-						NenoHelper::replaceTranslationsInHtmlTag($translation->getOriginalText(), $translationText)
+						NenoHelper::replaceTranslationsInHtmlTag($translation->getOriginalText(), html_entity_decode($translationText, $this->getCorrectEncodingCharset($this->getFromLanguage())))
 					);
 
 					// Mark this translation method as completed
@@ -419,6 +419,16 @@ class NenoJob extends NenoObject
 		}
 
 		return false;
+	}
+
+	protected function getCorrectEncodingCharset($language)
+	{
+		$encoding = array(
+			'fr-FR' => 'ISO8859-15',
+			'es-ES' => 'ISO8859-15'
+		);
+
+		return isset($encoding[$language]) ? $encoding[$language] : 'UTF-8';
 	}
 
 	/**
