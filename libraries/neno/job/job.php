@@ -406,6 +406,15 @@ class NenoJob extends NenoObject
 				}
 			}
 
+			// Ensure the shadow tables of the target language have their language column (if there's any) properly set.
+			$tables = NenoContentElementTable::load(array('translate' => 1));
+
+			/* @var $table NenoContentElementTable */
+			foreach ($tables as $table)
+			{
+				$table->checkIntegrity($this->getToLanguage());
+			}
+
 			return true;
 		}
 
