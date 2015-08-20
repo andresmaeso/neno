@@ -348,6 +348,8 @@ class NenoJob extends NenoObject
 			return $zipAdapter->extract($fullPath, $tmpPath . '/' . $filename . '.json');
 		} catch (RuntimeException $e)
 		{
+			NenoLog::log($e->getMessage(), NenoLog::PRIORITY_ERROR, true);
+
 			return false;
 		}
 	}
@@ -379,7 +381,7 @@ class NenoJob extends NenoObject
 			foreach ($fileContents['strings'] as $translationId => $translationText)
 			{
 				/* @var $translation NenoContentElementTranslation */
-				$translation = NenoContentElementTranslation::load($translationId);
+				$translation = NenoContentElementTranslation::load($translationId, false, true);
 
 				if (!empty($translation))
 				{
@@ -397,10 +399,7 @@ class NenoJob extends NenoObject
 					if ($translation->persist())
 					{
 						// Move translation to the target even if it's not completed. Machine => Professional || Professional => Manual
-						if ($translation->getState() == NenoContentElementTranslation::TRANSLATED_STATE)
-						{
-							$translation->moveTranslationToTarget();
-						}
+						$translation->moveTranslationToTarget();
 					}
 				}
 			}
