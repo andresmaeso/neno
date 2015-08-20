@@ -386,7 +386,7 @@ class NenoJob extends NenoObject
 				if (!empty($translation))
 				{
 					$translation->setString(
-						NenoHelper::replaceTranslationsInHtmlTag($translation->getOriginalText(), html_entity_decode($translationText, $this->getCorrectEncodingCharset($this->getFromLanguage())))
+						NenoHelper::replaceTranslationsInHtmlTag($translation->getOriginalText(), html_entity_decode($translationText, ENT_COMPAT | ENT_HTML401, $this->getCorrectEncodingCharset($this->getToLanguage())))
 					);
 
 					// Mark this translation method as completed
