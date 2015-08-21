@@ -190,6 +190,7 @@ if (!empty($translation))
 			<textarea
 			spellcheck="true" lang="<?php echo empty($languageParts) ? '' : $languageParts[0]; ?>"
 				class="full-width translated-content"
+                id="translated-content"
 				data-modified="false"
 				data-modified-message="<?php echo JText::_('COM_NENO_EDITOR_UNSAVED_CHANGES'); ?>"><?php echo !empty($translation) && ($translation->state != NenoContentElementTranslation::NOT_TRANSLATED_STATE || $translation->string !== $translation->original_text) ? $translation->string : ''; ?></textarea>
 

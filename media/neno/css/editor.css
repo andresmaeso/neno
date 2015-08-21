@@ -213,3 +213,9 @@ td.setting-label {
     margin-left: 21px;
     color: #666;
 }
+
+.editor-loading {
+    background-image: url('../images/ajax-loader.gif');
+    background-repeat: no-repeat;
+    background-position: 40px 40px;
+}

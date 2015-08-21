@@ -4,7 +4,12 @@
  * @license     GNU General Public License version 2 or later; see LICENSE.txt
  */
 
+/**
+ * Load an existing translation into the editor
+ * @param string string
+ */
 function loadTranslation(string) {
+    
     if (!ignoreTranslationModification()) {
         return;
     }
@@ -16,7 +21,10 @@ function loadTranslation(string) {
         idString = string;
     }
     jQuery('div[data-id=' + idString + ']').addClass('string-activated');
-
+    
+    // Show loader
+    jQuery('#translated-content').html('').removeClass('editor-loading').addClass('editor-loading');
+    
     // Get information
     jQuery.ajax({
             beforeSend: onBeforeAjax,
@@ -32,6 +40,8 @@ function loadTranslation(string) {
     );
 }
 
+
+
 function loadNextTranslation() {
     var nextString = jQuery('.string-activated').next('div').next('div');
     if (nextString.length) {
@@ -41,7 +51,13 @@ function loadNextTranslation() {
 
 function updateEditorString(row, data) {
     if (jQuery('#input-status-' + data.state).prop('checked') || jQuery('#status-multiselect input:checked').length == 0) {
+        
         var string = data.string;
+        
+        //Pad the string with html tags as otherwise jQuery has no child elements
+        //They will be stripped below but are needed for jQuery to understand the structure
+        string = '<html>'+string+'</html>';
+        
         var statuses = ['', 'translated', 'queued', 'changed', 'not-translated'];
         try {
             var stringObject = jQuery(string);
@@ -140,6 +156,10 @@ function translate() {
     if (!ignoreTranslationModification()) {
         return;
     }
+    
+    // Show loader
+    jQuery('#translated-content').html('').removeClass('editor-loading').addClass('editor-loading');
+    
     var text = jQuery('.original-text').html().trim();
     jQuery.ajax({
             beforeSend: onBeforeAjax,
@@ -155,6 +175,7 @@ function translate() {
                     jQuery('.translated-error .error-message').html(data.error);
                     jQuery('.translated-error').show();
                 }
+                jQuery('#translated-content').removeClass('editor-loading');
                 jQuery('.translated-by').show();
                 jQuery('.translated-content').focus();
                 jQuery('.translated-content').change();
