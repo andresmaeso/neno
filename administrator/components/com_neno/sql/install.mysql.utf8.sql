@@ -417,13 +417,13 @@ VALUES (1, 'COM_NENO_TRANSLATION_METHOD_MANUAL', '0', 0), (2, 'COM_NENO_TRANSLAT
 INSERT IGNORE INTO `#__neno_settings` (`setting_key`, `setting_value`, `read_only`)
 VALUES ('translate_automatically_professional', '0', 0),
   ('translate_automatically_machine', '1', 0),
-  ('api_server_url', 'http://www.neno-translate.com/api/v1/', 1),
+  ('api_server_url', 'http://api.neno-translate.com/en/api/', 1),
   ('license_code', '', 0), ('translator', '', 0),
   ('translator_api_key', '', 0),
   ('source_language', 'en-GB', 0), ('schedule_task_option', 'ajax', 0),
   ('hide_empty_strings', '1', 0), ('installation_completed', '0', 0), ('default_translate_action', '0', 2),
   ('copy_unpublished', '1', 2), ('copy_trashed', '0', 2),
-  ('server_url', 'http://www.neno-translate.com/', 1), ('external_translators_notes', '', 0), ('only_prefix', 1, 0);
+  ('server_url', 'https://www.neno-translate.com/', 1), ('external_translators_notes', '', 0), ('only_prefix', 1, 0);
 
 INSERT IGNORE INTO `#__neno_machine_translation_api_language_pairs`
 VALUES (1, 1, 'af', 'ar'), (2, 1, 'af', 'az'), (3, 1, 'af', 'be'), (4, 1, 'af', 'bg'), (5, 1, 'af', 'bn'),
