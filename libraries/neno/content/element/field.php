@@ -436,6 +436,10 @@ class NenoContentElementField extends NenoContentElement implements NenoContentE
     public function applyFilter($string)
     {
         $filter = JFilterInput::getInstance();
+        if (empty($this->filter))
+        {
+            $this->filter = 'RAW';
+        }
 
         return $filter->clean($string, $this->filter);
     }
