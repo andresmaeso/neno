@@ -656,19 +656,19 @@ class NenoDatabaseDriverMysqlx extends CommonDriver
 					$shadowTableName            = $this->generateShadowTableName($tableName, $knownLanguage->lang_code);
 					$shadowTableCreateStatement = 'CREATE TABLE IF NOT EXISTS ' . $this->quoteName($shadowTableName) . ' LIKE ' . $this->quoteName($tableName);
 					$this->executeQuery($shadowTableCreateStatement);
-				}
 
-				if ($copyContent)
-				{
-					$this->copyContentElementsFromSourceTableToShadowTables($tableName, $shadowTableName);
-
-					if ($hasLanguage)
+					if ($copyContent)
 					{
-						$query = $this->getQuery(true);
-						$query
-							->update($shadowTableName)
-							->set('language = ' . $this->quote($knownLanguage->lang_code));
-						$this->executeQuery($query);
+						$this->copyContentElementsFromSourceTableToShadowTables($tableName, $shadowTableName);
+
+						if ($hasLanguage)
+						{
+							$query = $this->getQuery(true);
+							$query
+								->update($shadowTableName)
+								->set('language = ' . $this->quote($knownLanguage->lang_code));
+							$this->executeQuery($query);
+						}
 					}
 				}
 			}
