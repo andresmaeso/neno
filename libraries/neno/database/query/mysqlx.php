@@ -10,12 +10,30 @@
 
 defined('_JEXEC') or die;
 
+$config = JFactory::getConfig();
+
+// If the Joomla site is using mysql, let's stick to it
+if ($config->get('dbtype') == 'mysql')
+{
+	class CommonQuery extends JDatabaseQueryMysql
+	{
+
+	}
+}
+else
+{
+	class CommonQuery extends JDatabaseQueryMysqli
+	{
+
+	}
+}
+
 /**
  * Class LingoDatabaseQuery
  *
  * @since  1.0
  */
-class NenoDatabaseQueryMysqli extends JDatabaseQueryMysqli
+class NenoDatabaseQueryMysqli extends CommonQuery
 {
 	/**
 	 * @var JDatabaseQueryElement
