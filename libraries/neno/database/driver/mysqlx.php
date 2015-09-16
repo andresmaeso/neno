@@ -131,7 +131,7 @@ class NenoDatabaseDriverMysqlx extends CommonDriver
 		if ($new)
 		{
 			// Derive the class name from the driver.
-			$class = 'NenoDatabaseQuery' . ucfirst($this->name);
+			$class = 'NenoDatabaseQueryMysqlx';
 
 			// Make sure we have a query class for this driver.
 			if (!class_exists($class))

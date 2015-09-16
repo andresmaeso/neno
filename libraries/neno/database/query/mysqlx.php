@@ -33,7 +33,7 @@ else
  *
  * @since  1.0
  */
-class NenoDatabaseQueryMysqli extends CommonQuery
+class NenoDatabaseQueryMysqlx extends CommonQuery
 {
 	/**
 	 * @var JDatabaseQueryElement
