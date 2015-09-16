@@ -697,7 +697,7 @@ class NenoHelper
 	{
 		$prefix = JFactory::getDbo()->getPrefix();
 
-		return '#__' . str_replace(array($prefix, '#__'), '', $tableName);
+		return '#__' . preg_replace('/^(' . $prefix . '|#__)/', '', $tableName);
 	}
 
 	/**
@@ -3554,7 +3554,8 @@ class NenoHelper
 					}
 				}
 			}
-		} catch (RuntimeException $e)
+		}
+		catch (RuntimeException $e)
 		{
 
 		}
@@ -3585,7 +3586,8 @@ class NenoHelper
 		{
 			$spaceOccupied = $db->loadResult();
 			$result        = $spaceOccupied * 0.8;
-		} catch (RuntimeException $e)
+		}
+		catch (RuntimeException $e)
 		{
 
 		}
