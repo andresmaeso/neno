@@ -3554,8 +3554,7 @@ class NenoHelper
 					}
 				}
 			}
-		}
-		catch (RuntimeException $e)
+		} catch (RuntimeException $e)
 		{
 
 		}
@@ -3586,8 +3585,7 @@ class NenoHelper
 		{
 			$spaceOccupied = $db->loadResult();
 			$result        = $spaceOccupied * 0.8;
-		}
-		catch (RuntimeException $e)
+		} catch (RuntimeException $e)
 		{
 
 		}
@@ -3626,8 +3624,9 @@ class NenoHelper
 	public static function getLanguageConfigurationData()
 	{
 		/* @var $db NenoDatabaseDriverMysqlx */
-		$db    = JFactory::getDbo();
-		$query = $db->getQuery(true);
+		$db      = JFactory::getDbo();
+		$query   = $db->getQuery(true);
+		$default = NenoSettings::get('source_language');
 
 		$subquery1 = $db->getQuery(true);
 		$subquery2 = $db->getQuery(true);
@@ -3666,7 +3665,7 @@ class NenoHelper
 			->from('#__languages AS l')
 			->leftJoin('#__neno_language_external_translators_comments AS lc ON l.lang_code = lc.language')
 			->leftJoin('(' . (string) $subquery1 . ') AS tr ON tr.language = l.lang_code')
-			->where('l.lang_code <> ' . $db->quote(NenoSettings::get('source_language')))
+			->where('l.lang_code <> ' . $db->quote($default))
 			->group(
 				array(
 					'l.lang_code',
@@ -3726,6 +3725,29 @@ class NenoHelper
 
 				$items[] = $item;
 			}
+		}
+
+		$languagesOnLanguageTable   = array_keys($languages);
+		$knownLanguages             = JFactory::getLanguage()->getKnownLanguages();
+		$defaultTranslationsMethods = NenoHelper::getDefaultTranslationMethods();
+
+		foreach ($knownLanguages as $languageTag => $languageInfo)
+		{
+			if ($languageTag != $default && !in_array($languageTag, $languagesOnLanguageTable))
+			{
+				$languagesData                     = new stdClass;
+				$languagesData->lang_code          = $languageInfo['tag'];
+				$languagesData->title              = $languageInfo['name'];
+				$languagesData->translationMethods = $defaultTranslationsMethods;
+				$languagesData->errors             = NenoHelper::getLanguageErrors((array) $languagesData);
+				$languagesData->placement          = 'dashboard';
+				$languagesData->image              = NenoHelper::getLanguageImage($languageInfo['tag']);
+				$languagesData->published          = NenoHelper::isLanguagePublished($languageInfo['tag']);
+				$languagesData->comment            = NenoHelper::getLanguageTranslatorComment($languageInfo['tag']);
+
+				$items[] = $languagesData;
+			}
+
 		}
 
 		return $items;
