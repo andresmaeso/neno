@@ -16,35 +16,6 @@ jQuery(document).ready(function () {
         }
     });
 
-    // Bind keyboard events
-    jQuery('body').on('keydown', function (e) {
-        var ev = e || window.event;
-
-        // Ctrl+S
-        if (ev.keyCode == 83 && e.ctrlKey) {
-            ev.preventDefault();
-            saveDraft();
-        }
-
-        // Ctrl+Enter
-        if (ev.keyCode == 13 && e.ctrlKey) {
-            ev.preventDefault();
-            saveTranslationAndNext();
-        }
-
-        // Ctrl+Space
-        if (ev.keyCode == 32 && e.ctrlKey) {
-            ev.preventDefault();
-            loadNextTranslation();
-        }
-
-        // Ctrl+→
-        if (ev.keyCode == 39 && e.ctrlKey && !e.shiftKey) {
-            ev.preventDefault();
-            copyOriginal();
-        }
-    });
-
     // Load string passed by the URL
     var params = document.location.search.replace('?', '');
     var paramsArray = params.split('&');
@@ -89,10 +60,17 @@ jQuery(document).ready(function () {
     setResultsWrapperHeight();
 
     // Bind click event to close multiselects
-    jQuery('html').click(function(e){
-        var ev = e || window.event;
-        if(jQuery(ev.target).parents('.js-stools-container-filters').length == 0 && !jQuery(ev.target).hasClass('icon-arrow-down-3') && !jQuery(ev.target).hasClass('icon-arrow-right-3')) {
-            jQuery('.js-stools-container-filters .btn-toggle').each(function (e) {
+    // If you click anywhere else it closes
+    jQuery('html').click(function(ev){
+        
+        // To prevent fake jquery .click() from closing the box skip those
+        // http://stackoverflow.com/questions/6674669/in-jquery-how-can-i-tell-between-a-programmatic-and-user-click
+        if(ev.hasOwnProperty('originalEvent') === false) {
+            return;
+        }
+        
+        if(jQuery(ev.target).parents('.js-stools-container-filters').length === 0 && !jQuery(ev.target).hasClass('icon-arrow-down-3') && !jQuery(ev.target).hasClass('icon-arrow-right-3')) {
+            jQuery('.js-stools-container-filters .btn-toggle').each(function() {
                 if (jQuery(this).hasClass('open')){
                     jQuery('#' + jQuery(this).attr('data-toggle')).slideToggle('fast');
                     jQuery(this).toggleClass('open');

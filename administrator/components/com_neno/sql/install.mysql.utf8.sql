@@ -421,7 +421,7 @@ VALUES ('translate_automatically_professional', '0', 0),
   ('license_code', '', 0), ('translator', '', 0),
   ('translator_api_key', '', 0),
   ('source_language', 'en-GB', 0), ('schedule_task_option', 'ajax', 0),
-  ('hide_empty_strings', '1', 0), ('installation_completed', '0', 0), ('default_translate_action', '0', 2),
+  ('hide_empty_strings', '1', 0), ('installation_completed', '0', 0), ('default_translate_action', '', 2),
   ('copy_unpublished', '1', 2), ('copy_trashed', '0', 2),
   ('server_url', 'https://www.neno-translate.com/', 1), ('external_translators_notes', '', 0), ('only_prefix', 1, 0);
 

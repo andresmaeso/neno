@@ -26,9 +26,9 @@
     opacity: 1 !important;
     filter: alpha(opacity=1);
     padding-left: 5px !important;
-    clear: both;
     float: left;
     margin-bottom: 7px !important;
+    margin-right: 7px;
 }
 
 .removeTag {

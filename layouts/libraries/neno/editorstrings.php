@@ -35,7 +35,7 @@ else
 <script>
 	jQuery(document).ready(function () {
 		jQuery('.string').unbind('click').bind('click', function () {
-			loadTranslation(jQuery(this));
+			loadTranslation(jQuery(this).data('id'));
 		});
 	});
 </script>
