@@ -764,7 +764,7 @@ class NenoContentElementGroup extends NenoContentElement implements NenoContentE
 	{
 		/* @var $db NenoDatabaseDriverMysqlx */
 		$db     = JFactory::getDbo();
-		$tables = $db->getTableList();
+		$tables = $db->getNenoTableList();
 
 		foreach ($tables as $key => $table)
 		{

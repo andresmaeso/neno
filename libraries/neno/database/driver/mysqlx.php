@@ -926,7 +926,7 @@ class NenoDatabaseDriverMysqlx extends CommonDriver
 	public function syncTable($tableName)
 	{
 		$languages = NenoHelper::getTargetLanguages(false);
-		$tables    = $this->getTableList();
+		$tables    = $this->getNenoTableList();
 
 		foreach ($languages as $language)
 		{
@@ -969,10 +969,9 @@ class NenoDatabaseDriverMysqlx extends CommonDriver
 	 *
 	 * @return  array  An array of all the tables in the database.
 	 *
-	 * @since   12.2
 	 * @throws  RuntimeException
 	 */
-	public function getTableList()
+	public function getNenoTableList()
 	{
 		$tableList  = parent::getTableList();
 		$onlyPrefix = NenoSettings::get('only_prefix', true);

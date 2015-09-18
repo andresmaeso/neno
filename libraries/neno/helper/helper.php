@@ -2363,7 +2363,7 @@ class NenoHelper
 		$db->execute();
 
 		// Drop all the shadow tables
-		$shadowTables = preg_grep('/' . preg_quote($db->getPrefix() . '_' . $db->cleanLanguageTag($languageTag)) . '/', $db->getTableList());
+		$shadowTables = preg_grep('/' . preg_quote($db->getPrefix() . '_' . $db->cleanLanguageTag($languageTag)) . '/', $db->getNenoTableList());
 
 		foreach ($shadowTables as $shadowTable)
 		{
