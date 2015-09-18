@@ -85,10 +85,10 @@ class NenoControllerEditor extends NenoControllerStrings
             if (!empty($translation->related))
             {
                 // Get the setting for load_related_content
-                $load_related_content = NenoSettings::get('load_related_content');
-                echo JLayoutHelper::render('editorrelatedcontentheader', $load_related_content, JPATH_NENO_LAYOUTS);
+                $loadRelatedContent = NenoSettings::get('load_related_content');
+                echo JLayoutHelper::render('editorrelatedcontentheader', $loadRelatedContent, JPATH_NENO_LAYOUTS);
                 
-                if ($load_related_content) {
+                if ($loadRelatedContent) {
                     foreach($translation->related as $related)
                     {
                         echo JLayoutHelper::render('editor', $related->prepareDataForView(true), JPATH_NENO_LAYOUTS);
