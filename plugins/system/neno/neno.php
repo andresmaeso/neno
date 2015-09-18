@@ -54,22 +54,34 @@ class PlgSystemNeno extends JPlugin
 		$db    = JFactory::getDbo();
 		$query = $db->getQuery(true);
 
+		// Check if the extension is Neno
 		$query
-			->select('group_id')
-			->from('#__neno_content_element_groups_x_extensions')
-			->where('extension_id = ' . (int) $extensionId);
+			->select('*')
+			->from('#__extensions')
+			->where('extension_id = ' . $db->quote($extensionId));
 
 		$db->setQuery($query);
-		$groupId = $db->loadResult();
+		$extensionData = $db->loadObject();
 
-		if (!empty($groupId))
+		if (empty($extensionData) || strpos($extensionData->element, 'neno') === false)
 		{
-			/* @var $group NenoContentElementGroup */
-			$group = NenoContentElementGroup::load($groupId);
+			$query
+				->select('group_id')
+				->from('#__neno_content_element_groups_x_extensions')
+				->where('extension_id = ' . (int) $extensionId);
 
-			if (!empty($group))
+			$db->setQuery($query);
+			$groupId = $db->loadResult();
+
+			if (!empty($groupId))
 			{
-				$group->remove();
+				/* @var $group NenoContentElementGroup */
+				$group = NenoContentElementGroup::load($groupId);
+
+				if (!empty($group))
+				{
+					$group->remove();
+				}
 			}
 		}
 	}
@@ -97,7 +109,7 @@ class PlgSystemNeno extends JPlugin
 			->select('*')
 			->from('#__extensions')
 			->where(
-				array (
+				array(
 					'extension_id = ' . (int) $extensionId,
 					'type IN (' . implode(',', $extensions) . ')',
 				)
@@ -161,7 +173,7 @@ class PlgSystemNeno extends JPlugin
 			$tableName = $content->getTableName();
 
 			/* @var $table NenoContentElementTable */
-			$table = NenoContentElementTable::load(array ('table_name' => $tableName), false);
+			$table = NenoContentElementTable::load(array('table_name' => $tableName), false);
 
 			if (!empty($table))
 			{
@@ -169,7 +181,7 @@ class PlgSystemNeno extends JPlugin
 				if (isset($content->state) && $content->state == -2)
 				{
 					$primaryKeys = $content->getPrimaryKey();
-					$this->trashTranslations($table, array ($content->{$primaryKeys[0]}));
+					$this->trashTranslations($table, array($content->{$primaryKeys[0]}));
 				}
 				else
 				{
@@ -180,7 +192,7 @@ class PlgSystemNeno extends JPlugin
 					{
 						if ($field->isTranslatable())
 						{
-							$primaryKeyData = array ();
+							$primaryKeyData = array();
 
 							foreach ($content->getPrimaryKey() as $primaryKeyName => $primaryKeyValue)
 							{
@@ -245,7 +257,7 @@ class PlgSystemNeno extends JPlugin
 		if ($value == -2)
 		{
 			/* @var $table NenoContentElementTable */
-			$table = NenoContentElementTable::load(array ('table_name' => '#__categories'), false);
+			$table = NenoContentElementTable::load(array('table_name' => '#__categories'), false);
 
 			foreach ($pks as $pk)
 			{
@@ -269,11 +281,11 @@ class PlgSystemNeno extends JPlugin
 		$tableName = str_replace($db->getPrefix(), '#__', $tableName);
 
 		/* @var $table NenoContentElementTable */
-		$table = NenoContentElementTable::load(array ('table_name' => $tableName));
+		$table = NenoContentElementTable::load(array('table_name' => $tableName));
 
 		if (empty($table))
 		{
-			$otherGroup = NenoContentElementGroup::load(array ('other_group' => 1));
+			$otherGroup = NenoContentElementGroup::load(array('other_group' => 1));
 			$table      = NenoHelper::createTableInstance($tableName, $otherGroup);
 			$table->persist();
 		}

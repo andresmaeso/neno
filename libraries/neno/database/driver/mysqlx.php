@@ -131,7 +131,7 @@ class NenoDatabaseDriverMysqlx extends CommonDriver
 		if ($new)
 		{
 			// Derive the class name from the driver.
-			$class = 'NenoDatabaseQuery' . ucfirst($this->name);
+			$class = 'NenoDatabaseQueryMysqlx';
 
 			// Make sure we have a query class for this driver.
 			if (!class_exists($class))
@@ -656,19 +656,19 @@ class NenoDatabaseDriverMysqlx extends CommonDriver
 					$shadowTableName            = $this->generateShadowTableName($tableName, $knownLanguage->lang_code);
 					$shadowTableCreateStatement = 'CREATE TABLE IF NOT EXISTS ' . $this->quoteName($shadowTableName) . ' LIKE ' . $this->quoteName($tableName);
 					$this->executeQuery($shadowTableCreateStatement);
-				}
 
-				if ($copyContent)
-				{
-					$this->copyContentElementsFromSourceTableToShadowTables($tableName, $shadowTableName);
-
-					if ($hasLanguage)
+					if ($copyContent)
 					{
-						$query = $this->getQuery(true);
-						$query
-							->update($shadowTableName)
-							->set('language = ' . $this->quote($knownLanguage->lang_code));
-						$this->executeQuery($query);
+						$this->copyContentElementsFromSourceTableToShadowTables($tableName, $shadowTableName);
+
+						if ($hasLanguage)
+						{
+							$query = $this->getQuery(true);
+							$query
+								->update($shadowTableName)
+								->set('language = ' . $this->quote($knownLanguage->lang_code));
+							$this->executeQuery($query);
+						}
 					}
 				}
 			}
@@ -926,7 +926,7 @@ class NenoDatabaseDriverMysqlx extends CommonDriver
 	public function syncTable($tableName)
 	{
 		$languages = NenoHelper::getTargetLanguages(false);
-		$tables    = $this->getTableList();
+		$tables    = $this->getNenoTableList();
 
 		foreach ($languages as $language)
 		{
@@ -969,10 +969,9 @@ class NenoDatabaseDriverMysqlx extends CommonDriver
 	 *
 	 * @return  array  An array of all the tables in the database.
 	 *
-	 * @since   12.2
 	 * @throws  RuntimeException
 	 */
-	public function getTableList()
+	public function getNenoTableList()
 	{
 		$tableList  = parent::getTableList();
 		$onlyPrefix = NenoSettings::get('only_prefix', true);

@@ -697,7 +697,7 @@ class NenoHelper
 	{
 		$prefix = JFactory::getDbo()->getPrefix();
 
-		return '#__' . str_replace(array($prefix, '#__'), '', $tableName);
+		return '#__' . preg_replace('/^(' . $prefix . '|#__)/', '', $tableName);
 	}
 
 	/**
@@ -2363,7 +2363,7 @@ class NenoHelper
 		$db->execute();
 
 		// Drop all the shadow tables
-		$shadowTables = preg_grep('/' . preg_quote($db->getPrefix() . '_' . $db->cleanLanguageTag($languageTag)) . '/', $db->getTableList());
+		$shadowTables = preg_grep('/' . preg_quote($db->getPrefix() . '_' . $db->cleanLanguageTag($languageTag)) . '/', $db->getNenoTableList());
 
 		foreach ($shadowTables as $shadowTable)
 		{
@@ -3610,8 +3610,9 @@ class NenoHelper
 	public static function getLanguageConfigurationData()
 	{
 		/* @var $db NenoDatabaseDriverMysqlx */
-		$db    = JFactory::getDbo();
-		$query = $db->getQuery(true);
+		$db      = JFactory::getDbo();
+		$query   = $db->getQuery(true);
+		$default = NenoSettings::get('source_language');
 
 		$subquery1 = $db->getQuery(true);
 		$subquery2 = $db->getQuery(true);
@@ -3650,7 +3651,7 @@ class NenoHelper
 			->from('#__languages AS l')
 			->leftJoin('#__neno_language_external_translators_comments AS lc ON l.lang_code = lc.language')
 			->leftJoin('(' . (string) $subquery1 . ') AS tr ON tr.language = l.lang_code')
-			->where('l.lang_code <> ' . $db->quote(NenoSettings::get('source_language')))
+			->where('l.lang_code <> ' . $db->quote($default))
 			->group(
 				array(
 					'l.lang_code',
@@ -3710,6 +3711,29 @@ class NenoHelper
 
 				$items[] = $item;
 			}
+		}
+
+		$languagesOnLanguageTable   = array_keys($languages);
+		$knownLanguages             = JFactory::getLanguage()->getKnownLanguages();
+		$defaultTranslationsMethods = NenoHelper::getDefaultTranslationMethods();
+
+		foreach ($knownLanguages as $languageTag => $languageInfo)
+		{
+			if ($languageTag != $default && !in_array($languageTag, $languagesOnLanguageTable))
+			{
+				$languagesData                     = new stdClass;
+				$languagesData->lang_code          = $languageInfo['tag'];
+				$languagesData->title              = $languageInfo['name'];
+				$languagesData->translationMethods = $defaultTranslationsMethods;
+				$languagesData->errors             = NenoHelper::getLanguageErrors((array) $languagesData);
+				$languagesData->placement          = 'dashboard';
+				$languagesData->image              = NenoHelper::getLanguageImage($languageInfo['tag']);
+				$languagesData->published          = NenoHelper::isLanguagePublished($languageInfo['tag']);
+				$languagesData->comment            = NenoHelper::getLanguageTranslatorComment($languageInfo['tag']);
+
+				$items[] = $languagesData;
+			}
+
 		}
 
 		return $items;
@@ -3789,6 +3813,65 @@ class NenoHelper
 
 		return $chunks;
 
+	}
+
+	/**
+	 * Get related database translations Id
+	 *
+	 * @param int $translationId
+	 *
+	 * @return array
+	 */
+	public static function getRelatedDBTranslationIds($translationId)
+	{
+		$db    = JFactory::getDbo();
+		$query = $db->getQuery(true);
+		$query
+			->select(
+				array(
+					'ft.field_id',
+					'ft.value',
+				)
+			)
+			->from('`#__neno_content_element_fields_x_translations` AS ft')
+			->where('ft.translation_id = ' . $translationId);
+
+		$db->setQuery($query);
+		$whereValues = $db->loadAssocList();
+
+		$query->clear();
+
+		$query
+			->select('a2.translation_id')
+			->from('#__neno_content_element_fields_x_translations AS a2')
+			->where(
+				array(
+					'a2.field_id = ' . $db->quote($whereValues[0]['field_id']),
+					'a2.value = ' . $db->quote($whereValues[0]['value']),
+					'a2.translation_id <> ' . (int) $translationId
+				)
+			);
+
+		for ($key = 1; $key < count($whereValues); $key++)
+		{
+			$subquery = clone $query;
+			$query
+				->clear()
+				->select('a' . ($key + 2) . '.translation_id')
+				->from('#__neno_content_element_fields_x_translations AS a' . ($key + 2))
+				->where(
+					array(
+						'a' . ($key + 2) . '.field_id = ' . $db->quote($whereValues[$key]['field_id']),
+						'a' . ($key + 2) . '.value = ' . $db->quote($whereValues[$key]['value']),
+						'a' . ($key + 2) . '.translation_id IN (' . (string) $subquery . ')'
+					)
+				);
+		}
+
+		$db->setQuery($query);
+		$translations = array_keys($db->loadAssocList('translation_id'));
+
+		return $translations;
 	}
 
 }
