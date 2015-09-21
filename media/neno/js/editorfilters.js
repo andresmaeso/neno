@@ -11,7 +11,6 @@ jQuery(document).ready(function () {
     jQuery('#elements-wrapper').scroll(function(){
         var wrapper = jQuery(this);
         if(wrapper.scrollTop() + wrapper.innerHeight()>=wrapper[0].scrollHeight && wrapper.innerHeight() > 10) {
-            document.adminForm.limitstart.value = parseInt(document.adminForm.limitstart.value) + 30;
             loadStrings();
         }
     });
@@ -87,4 +86,7 @@ jQuery(document).ready(function () {
             toggleSidebar(false);
         }
     }, 100);
+
+    // Bind click event in order to load translations
+    bindStringsTranslationsLoading();
 });

@@ -202,9 +202,13 @@ function pushFiltersToUrl() {
 function loadStrings(reset) {
 
     if (reset === true) {
-        jQuery("input[name='limitstart']").val(0)
+        jQuery("input[name='limitstart']").val(0);
+    } else {
+        jQuery("input[name='limitstart']").val(
+            parseInt(jQuery("input[name='limitstart']").val()) + parseInt(jQuery("input[name='list_limit']").val())
+        );
     }
-    
+
     pushFiltersToUrl();
 
     jQuery.ajax({
@@ -238,6 +242,8 @@ function loadStrings(reset) {
             if (targetContainer.find('div.string').length === 0) {
                 targetContainer.find(".no-results").show();
             }
+            // Bind click event in order to load translations
+            bindStringsTranslationsLoading();
             // Set results wrapper height
             setResultsWrapperHeight();
         }

@@ -183,35 +183,45 @@ function initCodemirror() {
 	jQuery('.main-translation-div').each(function () {
 		addExtensions();
 		var translation_id = getTranslationId(jQuery(this));
-		var mode = 'htmlmixed';
+		var modeLeft = 'htmlmixed';
+		var modeRight = 'htmlmixed';
 
 		// If the string is JSON, let's specify the specific mode for JSON
 		if (isJSON(jQuery('#original-content-' + translation_id).val())) {
-			mode = 'application/ld+json';
+			modeLeft = 'application/ld+json';
 
 			jQuery('#original-content-' + translation_id).val(prettyJSON(jQuery('#original-content-' + translation_id).val()));
-			jQuery('#translated-content-' + translation_id).val(prettyJSON(jQuery('#translated-content-' + translation_id).val()));
 		}
+
+        // If the string is JSON, let's specify the specific mode for JSON
+        if (isJSON(jQuery('#translated-content-' + translation_id).val())) {
+            modeRight = 'application/ld+json';
+
+            jQuery('#translated-content-' + translation_id).val(prettyJSON(jQuery('#translated-content-' + translation_id).val()));
+        }
 
 		var editor = {};
 		editor.translation_id = translation_id;
 		editor.left = CodeMirror.fromTextArea(document.getElementById("original-content-" + translation_id), {
-			mode        : mode,
+			mode        : modeLeft,
 			readOnly    : true,
 			lineWrapping: true,
 			matchTags   : {bothTags: true}
 		});
 		editor.right = CodeMirror.fromTextArea(document.getElementById("translated-content-" + translation_id), {
-			mode          : mode,
+			mode          : modeRight,
 			lineWrapping  : true,
 			viewportMargin: 200,
 			matchTags     : {bothTags: true}
 		});
 
-		if (mode != 'application/ld+json') {
+		if (modeLeft != 'application/ld+json') {
 			formatEditor(editor.left);
-			formatEditor(editor.right);
 		}
+
+        if (modeRight != 'application/ld+json') {
+            formatEditor(editor.right);
+        }
 
 		editors[translation_id] = editor;
 
@@ -360,7 +370,6 @@ function saveAllTranslationsAndNext() {
 
 			// Load the next translation
 			loadNextTranslation();
-
 		}
 	});
 
@@ -372,9 +381,13 @@ function saveAllTranslationsAndNext() {
  */
 function loadNextTranslation() {
 	var nextString = jQuery('.string-activated').next('div').next('div');
-	if (nextString.length) {
+	var afterNextString = nextString.next('div').next('div');
+	if (nextString.length && !nextString.hasClass('no-results')) {
 		loadTranslation(nextString.data('id'));
-	}
+        if (!afterNextString.length) {
+            loadStrings();
+        }
+    }
 }
 
 /**
@@ -820,4 +833,11 @@ function hasEditorContentChanged() {
 	});
 
 	return contentHasChanged;
+}
+
+// Bind click event in order to load translations
+function bindStringsTranslationsLoading() {
+    jQuery('.string').unbind('click').bind('click', function () {
+        loadTranslation(jQuery(this).data('id'));
+    });
 }
