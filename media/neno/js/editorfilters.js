@@ -80,4 +80,11 @@ jQuery(document).ready(function () {
             setTimeout(setResultsWrapperHeight,500);
         }
     });
+
+    // Show sidebar if it's hidden
+    setTimeout(function(){
+        if (jQuery('#j-sidebar-container').hasClass('j-sidebar-hidden')) {
+            toggleSidebar(false);
+        }
+    }, 100);
 });
