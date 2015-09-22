@@ -98,6 +98,10 @@ class NenoModelSettings extends JModelList
 					$item->dropdown = JHtml::_('select.genericlist', $values, $item->setting_key, null, 'value', 'text', $item->setting_value, false, true);
 					break;
 				case 'default_translate_action':
+                    if ($item->setting_key == '')
+                    {
+                        $item->setting_key = 0;
+                    }
 					$values         = array (
 						array ('value' => '0', 'text' => 'COM_NENO_SETTINGS_SETTING_OPTION_DEFAULT_TRANSLATE_ACTION_NO'),
 						array ('value' => '1', 'text' => 'COM_NENO_SETTINGS_SETTING_OPTION_DEFAULT_TRANSLATE_ACTION_COPY'),
@@ -107,7 +111,10 @@ class NenoModelSettings extends JModelList
 					break;
 			}
 		}
-
+        
+        // Ensure defaults are set
+        $items = $this->ensureDefaultsExists($items);
+        
 		return $items;
 	}
 
@@ -168,4 +175,27 @@ class NenoModelSettings extends JModelList
 		// List state information.
 		parent::populateState('a.setting_key', 'asc');
 	}
+    
+    
+    protected function ensureDefaultsExists($items) 
+    {
+        // Create a simple array with key value of settings
+        $settings = array();
+        foreach ($items as $item)
+        {
+            $settings[$item->setting_key] = $item->setting_value;
+        }
+        
+        // Related content
+        if (!isset($settings['load_related_content']))
+        {
+            NenoSettings::set('load_related_content', '0');
+            $items = $this->getItems(); // Refresh the items 
+        }
+
+        return $items;
+        
+    }
+    
+    
 }

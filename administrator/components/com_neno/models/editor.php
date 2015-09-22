@@ -48,7 +48,7 @@ class NenoModelEditor extends NenoModelStrings
 	public function consolidateTranslations($translationId)
 	{
 		/* @var $translation NenoContentElementTranslation */
-		$translation = NenoContentElementTranslation::load($translationId);
+		$translation = NenoContentElementTranslation::load($translationId, false, true);
 
 		if (!empty($translation))
 		{
@@ -61,7 +61,7 @@ class NenoModelEditor extends NenoModelStrings
 						'_condition' => '<>',
 						'_value'     => $translation->getId()
 					)
-				)
+				),false,true
 			);
 
 			// Making sure that is an array

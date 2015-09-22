@@ -2935,20 +2935,6 @@ class NenoHelper
 	}
 
 	/**
-	 * Highlight html tags on a text
-	 *
-	 * @param   string $text String with HTML code already encoded with HTML entities
-	 *
-	 * @return string
-	 */
-	public static function highlightHTMLTags($text)
-	{
-		$text = preg_replace("/(&lt;[\s\S]+?&gt;)/i", '<span class="highlighted-tag">${1}</span>', $text);
-
-		return $text;
-	}
-
-	/**
 	 * Get language default translation methods
 	 *
 	 * @param   string $languageTag Language tag
@@ -3768,7 +3754,7 @@ class NenoHelper
 		$chunks = array();
 
 		//If the given string can fit in the first chunk then just return that
-		if (utf8_strlen($string) < $maxChunkLength)
+		if (JString::strlen($string) < $maxChunkLength)
 		{
 			$chunks[] = $string;
 
@@ -3783,7 +3769,7 @@ class NenoHelper
 		$cutStrings[] = '</a>';
 		$cutStrings[] = '. ';
 
-		while (utf8_strlen($string) > $maxChunkLength)
+		while (JString::strlen($string) > $maxChunkLength)
 		{
 
 			//Look for the breakpoint that is located last in the substring that is less than max
@@ -3805,7 +3791,7 @@ class NenoHelper
 				$breakPoint               = $selectedBreakPoint + utf8_strlen($selectedBreakPointString);
 
 				//Add the chunk
-				$chunks[] = substr($string, 0, $breakPoint);
+				$chunks[] = JString::substr($string, 0, $breakPoint);
 
 			}
 			else
@@ -3814,11 +3800,11 @@ class NenoHelper
 				$wordWrappedString = wordwrap($string, $maxChunkLength, '|||---NENO---|||', true);
 				$wordWrappedArray  = explode('|||---NENO---|||', $wordWrappedString);
 				$chunks[]          = $wordWrappedArray[0];
-				$breakPoint        = utf8_strlen($wordWrappedArray[0]) + 3;
+				$breakPoint        = JString::strlen($wordWrappedArray[0]) + 3;
 			}
 
 			//Reduce the string
-			$string = substr($string, $breakPoint);
+			$string = JString::substr($string, $breakPoint);
 
 		}
 

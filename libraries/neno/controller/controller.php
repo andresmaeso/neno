@@ -567,11 +567,11 @@ class NenoController extends JControllerLegacy
 				$translationId = $input->post->getInt('stringId');
 
 				/* @var $translation NenoContentElementTranslation */
-				$translation = NenoContentElementTranslation::load($translationId);
+				$translation = NenoContentElementTranslation::load($translationId, false, true);
 
 				$result = $translation
 					->setComment($comment)
-					->persist();
+                    ->persist();
 
 				$allTranslations = $input->post->getBool('alltranslations', false);
 

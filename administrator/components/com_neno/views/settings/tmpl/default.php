@@ -247,6 +247,28 @@ foreach ($this->items as $item) {
                     </td>
                 </tr>
                 <tr>
+                    <?php $item = $options['load_related_content']; ?>
+                    <td class='left setting-label'>
+                        <?php echo JText::_('COM_NENO_SETTINGS_SETTING_NAME_' . strtoupper($item->setting_key)); ?>
+                    </td>
+                    <td class=''>
+                        <fieldset id="<?php echo $item->setting_key; ?>" class="radio btn-group btn-group-yesno">
+                            <input type="radio" id="<?php echo $item->setting_key; ?>0"
+                                   name="<?php echo $item->setting_key; ?>" value="1"
+                                    <?php echo ($item->setting_value) ? 'checked="checked"' : ''; ?>>
+                            <label for="<?php echo $item->setting_key; ?>0" class="btn">
+                                <?php echo JText::_('JYES'); ?>
+                            </label>
+                            <input type="radio" id="<?php echo $item->setting_key; ?>1"
+                                   name="<?php echo $item->setting_key; ?>" value="0"
+                                    <?php echo ($item->setting_value) ? '' : 'checked="checked"'; ?>>
+                            <label for="<?php echo $item->setting_key; ?>1" class="btn">
+                                <?php echo JText::_('JNO'); ?>
+                            </label>
+                        </fieldset>                        
+                    </td>
+                </tr>
+                <tr>
                     <?php $item = $options['default_translate_action']; ?>
                     <td class='left setting-label'>
                         <?php echo JText::_('COM_NENO_SETTINGS_SETTING_NAME_' . strtoupper($item->setting_key)); ?>
