@@ -12,8 +12,9 @@
 defined('_JEXEC') or die;
 
 $document = JFactory::getDocument();
-$document->addScript(JUri::root() . '/media/neno/js/multiselect.js');
-$document->addStyleSheet(JUri::root() . '/media/neno/css/multiselect.css');
+$version  = NenoHelperBackend::getNenoVersion();
+$document->addScript(JUri::root() . '/media/neno/js/multiselect.?v=' . $version);
+$document->addStyleSheet(JUri::root() . '/media/neno/css/multiselect.css?v=' . $version);
 
 $isOverlay = isset($displayData->isOverlay);
 ?>
@@ -26,14 +27,14 @@ $isOverlay = isset($displayData->isOverlay);
 		</a>
 
 		<div id="multiselect"
-		     class="dropdown-select menu-multiselect <?php echo ($isOverlay) ? (' overlay') : (''); ?>">
+			class="dropdown-select menu-multiselect <?php echo ($isOverlay) ? (' overlay') : (''); ?>">
 			<table class="table-condensend table-multiselect" id="table-multiselect">
 				<?php foreach ($displayData->groups as $group): ?>
 					<?php $elementCount = $group->element_count; ?>
 					<?php $class = $elementCount ? 'cell-expand' : ''; ?>
 					<tr class="row-group element-row <?php echo in_array($group->id, $displayData->modelState->get('filter.group_id', array())) || in_array($group->id, $displayData->modelState->get('filter.parent_group_id', array())) ? 'expanded' : 'collapsed'; ?>"
-					    data-level="1" data-id="group-<?php echo $group->id; ?>"
-					    data-parent="header" data-label="<?php echo $group->group_name; ?>">
+						data-level="1" data-id="group-<?php echo $group->id; ?>"
+						data-parent="header" data-label="<?php echo $group->group_name; ?>">
 						<td class="first-cell <?php echo $class; ?>">
 							<?php if ($elementCount): ?>
 								<span
@@ -47,7 +48,7 @@ $isOverlay = isset($displayData->isOverlay);
 								<?php echo in_array($group->id, $displayData->modelState->get('filter.group_id', array())) ? 'checked="checked"' : ''; ?>/>
 						</td>
 						<td colspan="4"
-						    title="<?php echo $group->group_name; ?>">
+							title="<?php echo $group->group_name; ?>">
 							<label for="input-group-<?php echo $group->id; ?>">
 								<?php echo $group->group_name; ?>
 							</label>

@@ -16,7 +16,8 @@ JHtml::_('behavior.multiselect');
 JHtml::_('formbehavior.chosen', 'select');
 
 // Include the CSS file
-JHtml::stylesheet('media/neno/css/admin.css');
+$version = NenoHelperBackend::getNenoVersion();
+JHtml::stylesheet('media/neno/css/admin.css?v=' . $version);
 ?>
 <script type="text/javascript">
 

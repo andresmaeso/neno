@@ -15,7 +15,8 @@ JHtml::_('bootstrap.tooltip');
 JHtml::_('behavior.multiselect');
 
 // Include the CSS file
-JHtml::stylesheet('media/neno/css/admin.css');
+$version = NenoHelperBackend::getNenoVersion();
+JHtml::stylesheet('media/neno/css/admin.css?v=' . $version);
 
 // Joomla Component Creator code to allow adding non select list filters
 if (!empty($this->extraSidebar))

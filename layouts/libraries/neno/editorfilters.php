@@ -34,8 +34,9 @@ JHtml::_('searchtools.form', $formSelector, $data['options']);
 $filters = $data['view']->filterForm->getGroup('filter');
 
 $document = JFactory::getDocument();
-$document->addStyleSheet(JUri::root() . '/media/neno/css/editorfilters.css');
-$document->addScript(JUri::root() . '/media/neno/js/editorfilters.js');
+$version  = NenoHelperBackend::getNenoVersion();
+$document->addStyleSheet(JUri::root() . '/media/neno/css/editorfilters.css?v=' . $version);
+$document->addScript(JUri::root() . '/media/neno/js/editorfilters.js?v=' . $version);
 
 $search = JFactory::getApplication()->input->get('search', '', 'RAW');
 ?>
@@ -43,9 +44,9 @@ $search = JFactory::getApplication()->input->get('search', '', 'RAW');
 <div class="js-stools clearfix">
 	<div class="btn-wrapper input-append">
 		<input type="text" name="filter[search]" id="filter_search" value="<?php echo $search; ?>" class="js-stools-search-string"
-		       placeholder="Search"/>
+			placeholder="Search" />
 					<span class="btn hasTooltip submit-form"
-					      title="<?php echo JHtml::tooltipText('JSEARCH_FILTER_SUBMIT'); ?>">
+						title="<?php echo JHtml::tooltipText('JSEARCH_FILTER_SUBMIT'); ?>">
 						<i class="icon-search"></i>
 					</span>
 	</div>
