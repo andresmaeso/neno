@@ -174,7 +174,7 @@ class NenoControllerGroupsElements extends JControllerAdmin
 		$input = JFactory::getApplication()->input;
 
 		$tableId         = $input->getInt('tableId');
-		$translateStatus = $input->getBool('translateStatus');
+		$translateStatus = $input->getInt('translateStatus');
 
 		/* @var $table NenoContentElementTable */
 		$table = NenoContentElementTable::getTableById($tableId);

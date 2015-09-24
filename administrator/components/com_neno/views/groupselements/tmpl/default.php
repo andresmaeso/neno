@@ -267,31 +267,47 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 	function changeTableTranslateState() {
 
 		var id = jQuery(this).parent('fieldset').attr('data-field');
-		var status = jQuery(this).val();
+		var status = parseInt(jQuery(this).val());
 		var row = jQuery('.row-table[data-id="table-' + id + '"]');
 		var toggler = row.find('.toggle-fields');
 
-		if (status == 1) {
-			row.find('.bar').removeClass('bar-disabled');
-			jQuery('[for="check-toggle-translate-table-' + id + '-1"]').addClass('active btn-success');
-			jQuery('[for="check-toggle-translate-table-' + id + '-0"]').removeClass('active btn-danger');
+		switch(status){
+			case 1:
+				row.find('.bar').removeClass('bar-disabled');
+				jQuery('[for="check-toggle-translate-table-' + id + '-1"]').addClass('active btn-success');
+				jQuery('[for="check-toggle-translate-table-' + id + '-0"]').removeClass('active btn-danger');
+				jQuery('[for="check-toggle-translate-table-' + id + '-2"]').removeClass('active btn-warning');
 
-			//Add field toggler
-			toggler.off('click').on('click', toggleFieldVisibility);
-			toggler.addClass('toggler toggler-collapsed');
-			toggler.find('span').addClass('icon-arrow-right-3');
-		} else {
-			row.find('.bar').addClass('bar-disabled');
-			jQuery('[for="check-toggle-translate-table-' + id + '-0"]').addClass('active btn-danger');
-			jQuery('[for="check-toggle-translate-table-' + id + '-1"]').removeClass('active btn-success');
+				//Add field toggler
+				toggler.off('click').on('click', toggleFieldVisibility);
+				toggler.addClass('toggler toggler-collapsed');
+				toggler.find('span').addClass('icon-arrow-right-3');
+				break;
+			case 2:
+				row.find('.bar').removeClass('bar-disabled');
+				jQuery('[for="check-toggle-translate-table-' + id + '-1"]').removeClass('active btn-success');
+				jQuery('[for="check-toggle-translate-table-' + id + '-0"]').removeClass('active btn-danger');
+				jQuery('[for="check-toggle-translate-table-' + id + '-2"]').addClass('active btn-warning');
 
-			//Remove fields
-			if (toggler.hasClass('toggler-expanded')) {
-				toggler.click();
-			}
-			toggler.off('click');
-			toggler.removeClass('toggler toggler-collapsed');
-			toggler.find('span').removeClass();
+				//Add field toggler
+				toggler.off('click').on('click', toggleFieldVisibility);
+				toggler.addClass('toggler toggler-collapsed');
+				toggler.find('span').addClass('icon-arrow-right-3');
+				break;
+			case 0:
+				row.find('.bar').addClass('bar-disabled');
+				jQuery('[for="check-toggle-translate-table-' + id + '-0"]').addClass('active btn-danger');
+				jQuery('[for="check-toggle-translate-table-' + id + '-1"]').removeClass('active btn-success');
+				jQuery('[for="check-toggle-translate-table-' + id + '-2"]').removeClass('active btn-warning');
+
+				//Remove fields
+				if (toggler.hasClass('toggler-expanded')) {
+					toggler.click();
+				}
+				toggler.off('click');
+				toggler.removeClass('toggler toggler-collapsed');
+				toggler.find('span').removeClass();
+				break;
 		}
 
 		//Show an alert that count no longer is accurate
