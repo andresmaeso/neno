@@ -31,83 +31,83 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 <style>
 
 	.toggler {
-		cursor: pointer;
-		width: 18px;
-		border: 0;
-		padding: 10px 0 0 0 !important;
+		cursor  : pointer;
+		width   : 18px;
+		border  : 0;
+		padding : 10px 0 0 0 !important;
 
 	}
 
 	.toggler .icon-arrow-right-3,
 	.toggler .icon-arrow-down-3 {
-		color: #08c;
-		font-size: 21px;
+		color     : #08c;
+		font-size : 21px;
 	}
 
 	.loading-row {
-		background-color: #fff !important;
-		background-image: url('../media/neno/images/ajax-loader.gif');
-		background-position: 40px 8px;
-		background-repeat: no-repeat;
+		background-color    : #fff !important;
+		background-image    : url('../media/neno/images/ajax-loader.gif');
+		background-position : 40px 8px;
+		background-repeat   : no-repeat;
 	}
 
 	.group-container {
-		padding-bottom: 15px;
-		margin-bottom: 10px;
-		border-bottom: 2px solid #ccc;
+		padding-bottom : 15px;
+		margin-bottom  : 10px;
+		border-bottom  : 2px solid #ccc;
 	}
 
 	.table-container {
-		padding-top: 5px;
-		border-top: 2px solid #dddddd;
-		margin-left: 25px;
-		display: none;
+		padding-top : 5px;
+		border-top  : 2px solid #dddddd;
+		margin-left : 25px;
+		display     : none;
 	}
 
 	.fields-container {
-		display: none;
+		display : none;
 	}
 
 	.table-groups-elements .cell-expand,
 	.table-groups-elements .cell-collapse {
-		width: 15px;
+		width : 15px;
 	}
 
 	.table-groups-elements .cell-check {
-		width: 18px !important;
+		width : 18px !important;
 	}
 
 	.table-groups-elements .cell-check input {
-		margin-top: 0;
+		margin-top : 0;
 	}
 
 	.table-groups-elements .cell-expand,
 	.table-groups-elements .cell-collapse {
-		padding-top: 10px;
-		padding-bottom: 6px;
-		cursor: pointer;
+		padding-top    : 10px;
+		padding-bottom : 6px;
+		cursor         : pointer;
 	}
 
 	.table-groups-elements th,
 	.table-groups-elements .row-group > td,
 	.table-groups-elements .row-table > td {
-		background-color: #ffffff !important;
+		background-color : #ffffff !important;
 	}
 
 	.table-groups-elements .row-file > td {
-		background-color: #ffffff !important;
+		background-color : #ffffff !important;
 	}
 
 	.table-groups-elements th {
-		border-top: none;
+		border-top : none;
 	}
 
 	.type-icon {
-		color: #7a7a7a !important;
+		color : #7a7a7a !important;
 	}
 
 	.table-groups-elements .row-field {
-		background-color: white;
+		background-color : white;
 	}
 
 </style>
@@ -145,6 +145,20 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 		jQuery("[data-toggle='tooltip']").tooltip();
 
 		jQuery('.filter').off('click').on('click', saveFilter);
+
+		jQuery('#filters-close-button').off('click').on('click', setOldTableStatus);
+		jQuery('#nenomodal-table-filters').off('hide').on('hide', setOldTableStatus);
+	}
+
+	function setOldTableStatus(event) {
+		var modal = jQuery('#nenomodal-table-filters');
+		var oldStatus = parseInt(modal.data('current-status'));
+		var tableId = modal.data('table-id');
+
+		markLabelAsActiveByStatus(tableId, oldStatus, false);
+		if (event.type != 'hide') {
+			modal.modal('hide');
+		}
 	}
 
 	function saveFilter(e) {
@@ -158,11 +172,11 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 		parent.find('.dropdown-toggle').text(filter);
 
 		jQuery.ajax({
-			url: 'index.php?option=com_neno&task=groupselements.changeFieldFilter',
+			url : 'index.php?option=com_neno&task=groupselements.changeFieldFilter',
 			type: 'POST',
 			data: {
 				fieldId: fieldId,
-				filter: filter
+				filter : filter
 			}
 		});
 	}
@@ -187,8 +201,8 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 
 			jQuery.ajax({
 					beforeSend: onBeforeAjax,
-					url: 'index.php?option=com_neno&task=groupselements.getElements&group_id=' + id,
-					success: function (html) {
+					url       : 'index.php?option=com_neno&task=groupselements.getElements&group_id=' + id,
+					success   : function (html) {
 						jQuery('#loader-' + id).replaceWith(html);
 
 						//Bind events to new fields
@@ -258,7 +272,7 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 
 		jQuery.ajax({
 				beforeSend: onBeforeAjax,
-				url: 'index.php?option=com_neno&task=groupselements.toggleContentElementField&fieldId=' + id + '&translateStatus=' + status
+				url       : 'index.php?option=com_neno&task=groupselements.toggleContentElementField&fieldId=' + id + '&translateStatus=' + status
 			}
 		);
 	}
@@ -268,10 +282,29 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 
 		var id = jQuery(this).parent('fieldset').attr('data-field');
 		var status = parseInt(jQuery(this).val());
+
+		if (!jQuery('[for="check-toggle-translate-table-' + id + '-' + status + '"]').hasClass('active')) {
+			markLabelAsActiveByStatus(id, status, true);
+
+			if (status != 2) {
+				//Show an alert that count no longer is accurate
+				jQuery('#reload-notice').remove();
+				jQuery('.navbar-fixed-top .navbar-inner').append('<div style="padding:10px 30px;" id="reload-notice"><div class="alert alert-warning"><?php echo JText::_('COM_NENO_VIEW_GROUPSELEMENTS_RELOAD_WARNING'); ?><a href="index.php?option=com_neno&view=groupselements" class="btn btn-info pull-right" style="height: 16px; font-size: 12px;margin-top:-4px"><?php echo JText::_('COM_NENO_VIEW_GROUPSELEMENTS_RELOAD_BTN'); ?></a></div></div>').height('92');
+				jQuery('body').css('padding-top', '93px');
+
+				jQuery.ajax({
+						beforeSend: onBeforeAjax,
+						url       : 'index.php?option=com_neno&task=groupselements.toggleContentElementTable&tableId=' + id + '&translateStatus=' + status
+					}
+				);
+			}
+		}
+	}
+
+	function markLabelAsActiveByStatus(id, status, showFiltersModal) {
 		var row = jQuery('.row-table[data-id="table-' + id + '"]');
 		var toggler = row.find('.toggle-fields');
-
-		switch(status){
+		switch (status) {
 			case 1:
 				row.find('.bar').removeClass('bar-disabled');
 				jQuery('[for="check-toggle-translate-table-' + id + '-1"]').addClass('active btn-success');
@@ -285,6 +318,7 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 				break;
 			case 2:
 				row.find('.bar').removeClass('bar-disabled');
+				var currentStatus = jQuery(".active[for|='check-toggle-translate-table-" + id + "']").attr('for').replace('check-toggle-translate-table-' + id + '-', '');
 				jQuery('[for="check-toggle-translate-table-' + id + '-1"]').removeClass('active btn-success');
 				jQuery('[for="check-toggle-translate-table-' + id + '-0"]').removeClass('active btn-danger');
 				jQuery('[for="check-toggle-translate-table-' + id + '-2"]').addClass('active btn-warning');
@@ -293,6 +327,30 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 				toggler.off('click').on('click', toggleFieldVisibility);
 				toggler.addClass('toggler toggler-collapsed');
 				toggler.find('span').addClass('icon-arrow-right-3');
+
+				if (showFiltersModal) {
+					//Load group form html
+					jQuery.ajax({
+							beforeSend: onBeforeAjax,
+							url       : 'index.php?option=com_neno&task=groupselements.getTableFilterModalLayout&tableId=' + id,
+							success   : function (html) {
+
+								//Inject HTML into the modal
+								var modal = jQuery('#nenomodal-table-filters');
+								modal.data('current-status', currentStatus);
+								modal.data('table-id', id);
+								modal.find('.modal-body').html(html);
+								modal.modal('show');
+
+								//Handle saving and submitting the form
+								jQuery('#save-modal-btn').off('click').on('click', function () {
+									jQuery('#groupelement-form').submit();
+								});
+							}
+						}
+					);
+				}
+
 				break;
 			case 0:
 				row.find('.bar').addClass('bar-disabled');
@@ -310,16 +368,7 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 				break;
 		}
 
-		//Show an alert that count no longer is accurate
-		jQuery('#reload-notice').remove();
-		jQuery('.navbar-fixed-top .navbar-inner').append('<div style="padding:10px 30px;" id="reload-notice"><div class="alert alert-warning"><?php echo JText::_('COM_NENO_VIEW_GROUPSELEMENTS_RELOAD_WARNING'); ?><a href="index.php?option=com_neno&view=groupselements" class="btn btn-info pull-right" style="height: 16px; font-size: 12px;margin-top:-4px"><?php echo JText::_('COM_NENO_VIEW_GROUPSELEMENTS_RELOAD_BTN'); ?></a></div></div>').height('92');
-		jQuery('body').css('padding-top', '93px');
-
-		jQuery.ajax({
-				beforeSend: onBeforeAjax,
-				url: 'index.php?option=com_neno&task=groupselements.toggleContentElementTable&tableId=' + id + '&translateStatus=' + status
-			}
-		);
+		jQuery('#check-toggle-translate-table-' + id + '-' + status).click();
 	}
 
 
@@ -361,8 +410,8 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 		//Load group form html
 		jQuery.ajax({
 				beforeSend: onBeforeAjax,
-				url: 'index.php?option=com_neno&view=groupelement&id=' + id + '&format=raw',
-				success: function (html) {
+				url       : 'index.php?option=com_neno&view=groupelement&id=' + id + '&format=raw',
+				success   : function (html) {
 
 					//Inject HTML into the modal
 					var modal = jQuery('#nenomodal');
@@ -409,7 +458,6 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 
 	}
 
-
 </script>
 
 <!-- Empty hidden modal -->
@@ -418,24 +466,45 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 		<div class="modal-content">
 			<div class="modal-header">
 				<h2 class="modal-title"
-				    id="nenomodaltitle"><?php echo JText::_('COM_NENO_VIEW_GROUPSELEMENTS_MODAL_GROUPFORM_TITLE'); ?></h2>
+					id="nenomodaltitle"><?php echo JText::_('COM_NENO_VIEW_GROUPSELEMENTS_MODAL_GROUPFORM_TITLE'); ?></h2>
 			</div>
 			<div class="modal-body">
 				...
 			</div>
 			<div class="modal-footer">
 				<button type="button" class="btn btn-default"
-				        data-dismiss="modal"><?php echo JText::_('COM_NENO_VIEW_GROUPSELEMENTS_MODAL_GROUPFORM_BTN_CLOSE'); ?></button>
+					data-dismiss="modal"><?php echo JText::_('COM_NENO_VIEW_GROUPSELEMENTS_MODAL_GROUPFORM_BTN_CLOSE'); ?></button>
 				<button type="button" class="btn btn-primary"
-				        id="save-modal-btn"><?php echo JText::_('COM_NENO_VIEW_GROUPSELEMENTS_MODAL_GROUPFORM_BTN_SAVE'); ?></button>
+					id="save-modal-btn"><?php echo JText::_('COM_NENO_VIEW_GROUPSELEMENTS_MODAL_GROUPFORM_BTN_SAVE'); ?></button>
 			</div>
 		</div>
 	</div>
 </div>
 
+<!-- Empty hidden modal -->
+<div class="modal fade" id="nenomodal-table-filters" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h2 class="modal-title"
+					id="nenomodaltitle"><?php echo JText::_('COM_NENO_VIEW_GROUPSELEMENTS_MODAL_GROUPFORM_TITLE'); ?></h2>
+			</div>
+			<div class="modal-body">
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" id="filters-close-button">
+					<?php echo JText::_('COM_NENO_VIEW_GROUPSELEMENTS_MODAL_GROUPFORM_BTN_CLOSE'); ?>
+				</button>
+				<button type="button" class="btn btn-primary" id="save-filters-btn">
+					<?php echo JText::_('COM_NENO_VIEW_GROUPSELEMENTS_MODAL_GROUPFORM_BTN_SAVE'); ?>
+				</button>
+			</div>
+		</div>
+	</div>
+</div>
 
 <form action="<?php echo JRoute::_('index.php?option=com_neno&view=groupselements'); ?>" method="post" name="adminForm"
-      id="adminForm">
+	id="adminForm">
 
 	<?php if (!empty($this->sidebar)): ?>
 	<div id="j-sidebar-container" class="span2">
@@ -450,7 +519,7 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 					<th></th>
 					<th class="cell-check"></th>
 					<th colspan="3"
-					    class="group-label"><?php echo JText::_('COM_NENO_VIEW_GROUPSELEMENTS_GROUPS'); ?></th>
+						class="group-label"><?php echo JText::_('COM_NENO_VIEW_GROUPSELEMENTS_GROUPS'); ?></th>
 					<th class="table-groups-elements-label"><?php echo JText::_('COM_NENO_VIEW_GROUPSELEMENTS_ELEMENTS'); ?></th>
 					<th class="table-groups-elements-label"><?php echo JText::_('COM_NENO_VIEW_GROUPSELEMENTS_COUNT'); ?></th>
 					<th class="table-groups-elements-label translation-methods"><?php echo JText::_('COM_NENO_VIEW_GROUPSELEMENTS_METHODS'); ?></th>
@@ -461,7 +530,7 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 						<td class="toggler toggler-collapsed toggle-elements"><span class="icon-arrow-right-3"></span>
 						</td>
 						<td class="cell-check"><input type="checkbox" name="groups[]"
-						                              value="<?php echo $group->id; ?>"/></td>
+								value="<?php echo $group->id; ?>" /></td>
 						<td colspan="3"><a href="#" class="modalgroupform"><?php echo $group->group_name; ?></a></td>
 						<td<?php echo ($group->element_count) ? ' class="load-elements"' : ''; ?>><?php echo $group->element_count; ?></td>
 						<td><?php echo NenoHelper::renderWordCountProgressBar($group->word_count); ?></td>
@@ -479,8 +548,8 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 				<?php endforeach; ?>
 			</table>
 
-			<input type="hidden" name="task" value=""/>
-			<input type="hidden" name="boxchecked" value="0"/>
+			<input type="hidden" name="task" value="" />
+			<input type="hidden" name="boxchecked" value="0" />
 			<?php echo JHtml::_('form.token'); ?>
 
 		</div>

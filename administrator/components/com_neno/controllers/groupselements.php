@@ -73,7 +73,7 @@ class NenoControllerGroupsElements extends JControllerAdmin
 			}
 			else
 			{
-				$contentElementFiles = array($destFile);
+				$contentElementFiles = array( $destFile );
 			}
 
 			// Add to each content file the path of the extraction location.
@@ -213,6 +213,75 @@ class NenoControllerGroupsElements extends JControllerAdmin
 		JFactory::getApplication()->close();
 	}
 
+	public function getTableFilterModalLayout()
+	{
+		$app     = JFactory::getApplication();
+		$input   = $app->input;
+		$tableId = $input->getInt('tableId');
+
+		if (!empty($tableId))
+		{
+			$db    = JFactory::getDbo();
+			$query = $db->getQuery(true);
+			$query
+				->select(
+					array(
+						'id AS value',
+						'field_name AS text'
+					)
+				)
+				->from('#__neno_content_element_fields')
+				->where('table_id = ' . (int) $tableId)
+				->order('id ASC');
+
+			$db->setQuery($query);
+			$fields = $db->loadObjectList();
+
+			$displayData                  = new stdClass;
+			$displayData->fieldsSelect    = JHtml::_('select.genericlist', $fields, 'fields[]');
+			$displayData->operatorsSelect = JHtml::_('select.genericlist', $this->getComparaisonOperatorsList(), 'fields[]');
+
+			echo JLayoutHelper::render('tablefilters', $displayData, JPATH_NENO_LAYOUTS);
+		}
+
+		$app->close();
+	}
+
+	/**
+	 * Get list of comparaison operators
+	 *
+	 * @return array
+	 */
+	protected function getComparaisonOperatorsList()
+	{
+		return array(
+			array(
+				'value' => '=',
+				'text'  => '='
+			),
+			array(
+				'value' => '<>',
+				'text'  => '!='
+			),
+			array(
+				'value' => '<',
+				'text'  => '<'
+			),
+			array(
+				'value' => '<=',
+				'text'  => '<='
+			),
+			array(
+				'value' => '>',
+				'text'  => '>'
+			),
+			array(
+				'value' => '>=',
+				'text'  => '>='
+			)
+		);
+	}
+
 	/**
 	 * Get elements
 	 *
@@ -259,7 +328,7 @@ class NenoControllerGroupsElements extends JControllerAdmin
 		}
 
 		// Ensure that we know what was selected for the previous selector
-		if (($n > 0 && !isset($selectedMethods[$n - 1])) || ($n > 0 && $selectedMethods[$n - 1] == 0))
+		if (($n > 0 && !isset($selectedMethods[ $n - 1 ])) || ($n > 0 && $selectedMethods[ $n - 1 ] == 0))
 		{
 			JFactory::getApplication()->close();
 		}
@@ -273,15 +342,15 @@ class NenoControllerGroupsElements extends JControllerAdmin
 		// Reduce the translation methods offered depending on the parents
 		if ($n > 0 && !empty($selectedMethods))
 		{
-			$parentMethod                = $selectedMethods[$n - 1];
-			$acceptableFollowUpMethodIds = $translationMethods[$parentMethod]->acceptable_follow_up_method_ids;
+			$parentMethod                = $selectedMethods[ $n - 1 ];
+			$acceptableFollowUpMethodIds = $translationMethods[ $parentMethod ]->acceptable_follow_up_method_ids;
 			$acceptableFollowUpMethods   = explode(',', $acceptableFollowUpMethodIds);
 
 			foreach ($translationMethods as $k => $translationMethod)
 			{
 				if (!in_array($k, $acceptableFollowUpMethods))
 				{
-					unset($translationMethods[$k]);
+					unset($translationMethods[ $k ]);
 				}
 			}
 		}
@@ -500,7 +569,7 @@ class NenoControllerGroupsElements extends JControllerAdmin
 				// Making sure the result is an array
 				if (!is_array($tables))
 				{
-					$tables = array($tables);
+					$tables = array( $tables );
 				}
 
 				/* @var $table NenoContentElementTable */
