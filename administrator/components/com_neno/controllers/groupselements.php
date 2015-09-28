@@ -235,11 +235,34 @@ class NenoControllerGroupsElements extends JControllerAdmin
 				->order('id ASC');
 
 			$db->setQuery($query);
-			$fields = $db->loadObjectList();
+			$fields          = $db->loadObjectList();
+			$workingLanguage = NenoHelper::getWorkingLanguage();
 
 			$displayData                  = new stdClass;
-			$displayData->fieldsSelect    = JHtml::_('select.genericlist', $fields, 'fields[]');
-			$displayData->operatorsSelect = JHtml::_('select.genericlist', $this->getComparaisonOperatorsList(), 'fields[]');
+			$displayData->fields          = $fields;
+			$displayData->fieldsSelect    = JHtml::_('select.genericlist', $displayData->fields, 'fields[]', 'class="filter-field"');
+			$displayData->operators       = $this->getComparaisonOperatorsList();
+			$displayData->operatorsSelect = JHtml::_('select.genericlist', $displayData->operators, 'operators[]', 'class="filter-operator"');
+
+			$query
+				->clear()
+				->select(
+					array(
+						'field_id AS field',
+						'comparaison_operator AS operator',
+						'filter_value AS value'
+					)
+				)
+				->from('#__neno_content_element_table_filters')
+				->where(
+					array(
+						'table_id = ' . (int) $tableId,
+						'language = ' . $db->quote($workingLanguage)
+					)
+				);
+
+			$db->setQuery($query);
+			$displayData->filters = $db->loadAssocList();
 
 			echo JLayoutHelper::render('tablefilters', $displayData, JPATH_NENO_LAYOUTS);
 		}
@@ -596,5 +619,50 @@ class NenoControllerGroupsElements extends JControllerAdmin
 		}
 
 		JFactory::getApplication()->redirect('index.php?option=com_neno&view=groupselements');
+	}
+
+	public function saveTableFilters()
+	{
+		$app   = JFactory::getApplication();
+		$input = $app->input;
+
+		$filters         = $input->post->get('filters', array(), 'ARRAY');
+		$tableId         = $input->post->getInt('tableId');
+		$workingLanguage = NenoHelper::getWorkingLanguage();
+
+		if (!empty($filters) && !empty($tableId))
+		{
+			$db    = JFactory::getDbo();
+			$query = $db->getQuery(true);
+
+			$query
+				->insert('#__neno_content_element_table_filters')
+				->columns(
+					array(
+						'table_id',
+						'language',
+						'field_id',
+						'comparaison_operator',
+						'filter_value'
+					)
+				);
+
+			foreach ($filters as $filter)
+			{
+				$query
+					->values(
+						$db->quote($tableId) . ','
+						. $db->quote($workingLanguage) . ','
+						. $db->quote($filter['field']) . ','
+						. $db->quote($filter['operator']) . ','
+						. $db->quote($filter['value'])
+					);
+			}
+
+			$db->setQuery($query);
+			$db->execute();
+		}
+
+		$app->close();
 	}
 }

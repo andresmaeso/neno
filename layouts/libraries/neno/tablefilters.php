@@ -14,19 +14,50 @@ $step = $displayData;
 
 ?>
 
-<table class="table">
+<table class="table" id="filters-table">
 	<tr>
 		<th>Field</th>
 		<th>Comparaison Operator</th>
 		<th>Value</th>
 		<th></th>
 	</tr>
-	<tr>
-		<td><?php echo $displayData->fieldsSelect; ?></td>
-		<td><?php echo $displayData->operatorsSelect; ?></td>
-		<td><input type="text" name="" value="" /></td>
-		<td>
-			<button type="button" class="btn btn-primary btn-small"><i class="icon-plus"></i></button>
-		</td>
-	</tr>
+
+	<?php if (empty($displayData->filters)): ?>
+		<tr class="filter-row">
+			<td><?php echo $displayData->fieldsSelect; ?></td>
+			<td><?php echo $displayData->operatorsSelect; ?></td>
+			<td><input type="text" name="value[]" value="" class="filter-value" /></td>
+			<td>
+				<div class="btn-group">
+					<button type="button" class="btn btn-primary btn-small add-row-button">
+						<i class="icon-plus"></i>
+					</button>
+					<button type="button" class="btn btn-danger btn-small remove-row-button">
+						<i class="icon-minus"></i>
+					</button>
+				</div>
+			</td>
+		</tr>
+	<?php else: ?>
+		<?php foreach ($displayData->filters as $filter) : ?>
+			<tr class="filter-row">
+				<td><?php echo JHtml::_('select.genericlist', $displayData->fields, 'fields[]', 'class="filter-field"', 'value', 'text', $filter['field']); ?></td>
+				<td><?php echo JHtml::_('select.genericlist', $displayData->operators, 'operators[]', 'class="filter-operator"', 'value', 'text', $filter['operator']); ?></td>
+				<td>
+					<input type="text" name="value[]" value="<?php echo $filter['value']; ?>" class="filter-value" />
+				</td>
+				<td>
+					<div class="btn-group">
+						<button type="button" class="btn btn-primary btn-small add-row-button">
+							<i class="icon-plus"></i>
+						</button>
+						<button type="button" class="btn btn-danger btn-small remove-row-button">
+							<i class="icon-minus"></i>
+						</button>
+					</div>
+				</td>
+			</tr>
+		<?php endforeach; ?>
+	<?php endif; ?>
+
 </table>

@@ -148,6 +148,8 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 
 		jQuery('#filters-close-button').off('click').on('click', setOldTableStatus);
 		jQuery('#nenomodal-table-filters').off('hide').on('hide', setOldTableStatus);
+		jQuery('.add-row-button').off('click').on('click', duplicateFilterRow);
+		jQuery('.remove-row-button').off('click').on('click', removeFilterRow);
 	}
 
 	function setOldTableStatus(event) {
@@ -342,10 +344,11 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 								modal.find('.modal-body').html(html);
 								modal.modal('show');
 
+								// Bind events
+								bindEvents();
+
 								//Handle saving and submitting the form
-								jQuery('#save-modal-btn').off('click').on('click', function () {
-									jQuery('#groupelement-form').submit();
-								});
+								jQuery('#save-filters-btn').off('click').on('click', saveTableFilters);
 							}
 						}
 					);
@@ -369,6 +372,47 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 		}
 
 		jQuery('#check-toggle-translate-table-' + id + '-' + status).click();
+	}
+
+	function duplicateFilterRow() {
+		jQuery(this).closest('tr').clone().appendTo('#filters-table');
+		bindEvents();
+	}
+
+	function removeFilterRow() {
+		if (jQuery('tr.filter-row').length > 1) {
+			jQuery(this).closest('tr').remove();
+		}
+	}
+
+	function saveTableFilters() {
+		var filters = [];
+
+		jQuery('tr.filter-row').each(function () {
+			// Only include if the filter contains any value
+			if (jQuery(this).find('.filter-value').val()) {
+				var filter = {
+					field   : jQuery(this).find('.filter-field option:selected').val(),
+					operator: jQuery(this).find('.filter-operator option:selected').val(),
+					value   : jQuery(this).find('.filter-value').val()
+				};
+
+				filters.push(filter);
+			}
+		});
+
+		if (filters.length != 0) {
+			jQuery.post(
+				'index.php?option=com_neno&task=groupselements.saveTableFilters',
+				{
+					filters: filters,
+					tableId: jQuery('#nenomodal-table-filters').data('table-id')
+				},
+				function (data) {
+
+				}
+			)
+		}
 	}
 
 
