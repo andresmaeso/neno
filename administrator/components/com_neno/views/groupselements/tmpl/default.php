@@ -115,7 +115,7 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 <script type="text/javascript">
 
 	jQuery(document).ready(function () {
-
+		statusChanged = false;
 		//Bind
 		bindEvents();
 
@@ -150,16 +150,24 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 		jQuery('#nenomodal-table-filters').off('hide').on('hide', setOldTableStatus);
 		jQuery('.add-row-button').off('click').on('click', duplicateFilterRow);
 		jQuery('.remove-row-button').off('click').on('click', removeFilterRow);
+		jQuery('.active.btn-warning').off('click').on('click', function () {
+			var forAttribute = jQuery(this).attr('for');
+			var regex = new RegExp('check-toggle-translate-table-([0-9]+)\-[0-2]', 'g');
+			var result = regex.exec(forAttribute);
+			showTableFiltersModal(result[1], 2);
+		});
 	}
 
 	function setOldTableStatus(event) {
-		var modal = jQuery('#nenomodal-table-filters');
-		var oldStatus = parseInt(modal.data('current-status'));
-		var tableId = modal.data('table-id');
+		if (!statusChanged) {
+			var modal = jQuery('#nenomodal-table-filters');
+			var oldStatus = parseInt(modal.data('current-status'));
+			var tableId = modal.data('table-id');
 
-		markLabelAsActiveByStatus(tableId, oldStatus, false);
-		if (event.type != 'hide') {
-			modal.modal('hide');
+			markLabelAsActiveByStatus(tableId, oldStatus, false);
+			if (event.type != 'hide') {
+				modal.modal('hide');
+			}
 		}
 	}
 
@@ -289,18 +297,22 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 			markLabelAsActiveByStatus(id, status, true);
 
 			if (status != 2) {
-				//Show an alert that count no longer is accurate
-				jQuery('#reload-notice').remove();
-				jQuery('.navbar-fixed-top .navbar-inner').append('<div style="padding:10px 30px;" id="reload-notice"><div class="alert alert-warning"><?php echo JText::_('COM_NENO_VIEW_GROUPSELEMENTS_RELOAD_WARNING'); ?><a href="index.php?option=com_neno&view=groupselements" class="btn btn-info pull-right" style="height: 16px; font-size: 12px;margin-top:-4px"><?php echo JText::_('COM_NENO_VIEW_GROUPSELEMENTS_RELOAD_BTN'); ?></a></div></div>').height('92');
-				jQuery('body').css('padding-top', '93px');
-
-				jQuery.ajax({
-						beforeSend: onBeforeAjax,
-						url       : 'index.php?option=com_neno&task=groupselements.toggleContentElementTable&tableId=' + id + '&translateStatus=' + status
-					}
-				);
+				setTranslateStatus(id, status);
 			}
 		}
+	}
+
+	function setTranslateStatus(tableId, status) {
+		//Show an alert that count no longer is accurate
+		jQuery('#reload-notice').remove();
+		jQuery('.navbar-fixed-top .navbar-inner').append('<div style="padding:10px 30px;" id="reload-notice"><div class="alert alert-warning"><?php echo JText::_('COM_NENO_VIEW_GROUPSELEMENTS_RELOAD_WARNING'); ?><a href="index.php?option=com_neno&view=groupselements" class="btn btn-info pull-right" style="height: 16px; font-size: 12px;margin-top:-4px"><?php echo JText::_('COM_NENO_VIEW_GROUPSELEMENTS_RELOAD_BTN'); ?></a></div></div>').height('92');
+		jQuery('body').css('padding-top', '93px');
+
+		jQuery.ajax({
+				beforeSend: onBeforeAjax,
+				url       : 'index.php?option=com_neno&task=groupselements.toggleContentElementTable&tableId=' + tableId + '&translateStatus=' + status
+			}
+		);
 	}
 
 	function markLabelAsActiveByStatus(id, status, showFiltersModal) {
@@ -331,27 +343,7 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 				toggler.find('span').addClass('icon-arrow-right-3');
 
 				if (showFiltersModal) {
-					//Load group form html
-					jQuery.ajax({
-							beforeSend: onBeforeAjax,
-							url       : 'index.php?option=com_neno&task=groupselements.getTableFilterModalLayout&tableId=' + id,
-							success   : function (html) {
-
-								//Inject HTML into the modal
-								var modal = jQuery('#nenomodal-table-filters');
-								modal.data('current-status', currentStatus);
-								modal.data('table-id', id);
-								modal.find('.modal-body').html(html);
-								modal.modal('show');
-
-								// Bind events
-								bindEvents();
-
-								//Handle saving and submitting the form
-								jQuery('#save-filters-btn').off('click').on('click', saveTableFilters);
-							}
-						}
-					);
+					showTableFiltersModal(id, currentStatus);
 				}
 
 				break;
@@ -372,6 +364,32 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 		}
 
 		jQuery('#check-toggle-translate-table-' + id + '-' + status).click();
+	}
+
+	function showTableFiltersModal(id, currentStatus) {
+		//Load group form html
+		jQuery.ajax({
+				beforeSend: onBeforeAjax,
+				url       : 'index.php?option=com_neno&task=groupselements.getTableFilterModalLayout&tableId=' + id,
+				success   : function (html) {
+
+					statusChanged = false;
+
+					//Inject HTML into the modal
+					var modal = jQuery('#nenomodal-table-filters');
+					modal.data('current-status', currentStatus);
+					modal.data('table-id', id);
+					modal.find('.modal-body').html(html);
+					modal.modal('show');
+
+					// Bind events
+					bindEvents();
+
+					//Handle saving and submitting the form
+					jQuery('#save-filters-btn').off('click').on('click', saveTableFilters);
+				}
+			}
+		);
 	}
 
 	function duplicateFilterRow() {
@@ -409,9 +427,17 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 					tableId: jQuery('#nenomodal-table-filters').data('table-id')
 				},
 				function (data) {
+					if (data = 'ok') {
+						setTranslateStatus(jQuery('#nenomodal-table-filters').data('table-id'), 2);
 
+						statusChanged = true;
+						var modal = jQuery('#nenomodal-table-filters');
+						modal.modal('hide');
+					}
 				}
-			)
+			);
+
+
 		}
 	}
 

@@ -235,7 +235,7 @@ class NenoControllerGroupsElements extends JControllerAdmin
 				->order('id ASC');
 
 			$db->setQuery($query);
-			$fields          = $db->loadObjectList();
+			$fields = $db->loadObjectList();
 
 			$displayData                  = new stdClass;
 			$displayData->fields          = $fields;
@@ -620,8 +620,8 @@ class NenoControllerGroupsElements extends JControllerAdmin
 		$app   = JFactory::getApplication();
 		$input = $app->input;
 
-		$filters         = $input->post->get('filters', array(), 'ARRAY');
-		$tableId         = $input->post->getInt('tableId');
+		$filters = $input->post->get('filters', array(), 'ARRAY');
+		$tableId = $input->post->getInt('tableId');
 
 		if (!empty($filters) && !empty($tableId))
 		{
@@ -652,6 +652,8 @@ class NenoControllerGroupsElements extends JControllerAdmin
 
 			$db->setQuery($query);
 			$db->execute();
+
+			echo 'ok';
 		}
 
 		$app->close();
