@@ -236,7 +236,6 @@ class NenoControllerGroupsElements extends JControllerAdmin
 
 			$db->setQuery($query);
 			$fields          = $db->loadObjectList();
-			$workingLanguage = NenoHelper::getWorkingLanguage();
 
 			$displayData                  = new stdClass;
 			$displayData->fields          = $fields;
@@ -254,12 +253,7 @@ class NenoControllerGroupsElements extends JControllerAdmin
 					)
 				)
 				->from('#__neno_content_element_table_filters')
-				->where(
-					array(
-						'table_id = ' . (int) $tableId,
-						'language = ' . $db->quote($workingLanguage)
-					)
-				);
+				->where('table_id = ' . (int) $tableId);
 
 			$db->setQuery($query);
 			$displayData->filters = $db->loadAssocList();
@@ -628,7 +622,6 @@ class NenoControllerGroupsElements extends JControllerAdmin
 
 		$filters         = $input->post->get('filters', array(), 'ARRAY');
 		$tableId         = $input->post->getInt('tableId');
-		$workingLanguage = NenoHelper::getWorkingLanguage();
 
 		if (!empty($filters) && !empty($tableId))
 		{
@@ -640,7 +633,6 @@ class NenoControllerGroupsElements extends JControllerAdmin
 				->columns(
 					array(
 						'table_id',
-						'language',
 						'field_id',
 						'comparaison_operator',
 						'filter_value'
@@ -652,7 +644,6 @@ class NenoControllerGroupsElements extends JControllerAdmin
 				$query
 					->values(
 						$db->quote($tableId) . ','
-						. $db->quote($workingLanguage) . ','
 						. $db->quote($filter['field']) . ','
 						. $db->quote($filter['operator']) . ','
 						. $db->quote($filter['value'])
