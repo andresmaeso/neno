@@ -277,7 +277,7 @@ class NenoContentElementTranslation extends NenoContentElement
 				$originalText = $relatedTranslation->getOriginalText();
 				if (empty($originalText))
 				{
-					unset($relatedTranslations[$key]);
+					unset($relatedTranslations[ $key ]);
 				}
 			}
 		}
@@ -332,8 +332,8 @@ class NenoContentElementTranslation extends NenoContentElement
 				->from('#__neno_content_element_fields_x_translations AS a' . ($key + 2))
 				->where(
 					array(
-						'a' . ($key + 2) . '.field_id = ' . $db->quote($whereValues[$key]['field_id']),
-						'a' . ($key + 2) . '.value = ' . $db->quote($whereValues[$key]['value']),
+						'a' . ($key + 2) . '.field_id = ' . $db->quote($whereValues[ $key ]['field_id']),
+						'a' . ($key + 2) . '.value = ' . $db->quote($whereValues[ $key ]['value']),
 						'a' . ($key + 2) . '.translation_id IN (' . (string) $subquery . ')'
 					)
 				);
@@ -402,21 +402,21 @@ class NenoContentElementTranslation extends NenoContentElement
 
 			if ($addToSecondPart === true)
 			{
-				$langStringsSecondPart[$key] = $languageString;
+				$langStringsSecondPart[ $key ] = $languageString;
 			}
 			else
 			{
-				$langStringsFirstPart[$key] = $languageString;
+				$langStringsFirstPart[ $key ] = $languageString;
 			}
 		}
 		$langStringsSorted = $langStringsFirstPart + $langStringsSecondPart;
 
 		// Remove the main constant so we do not find it as related to itself
-		unset($langStringsSorted[$translationId]);
+		unset($langStringsSorted[ $translationId ]);
 
 		// Explode the given constant by _ as most constants are COM_COMPONENT_SOMETHING and
 		// we try to find relatives with the same 3rd part
-		$mainConstant      = $languageStrings[$translationId];
+		$mainConstant      = $languageStrings[ $translationId ];
 		$mainConstantParts = explode('_', $mainConstant);
 		if (empty($mainConstantParts[1]))
 		{
@@ -435,7 +435,7 @@ class NenoContentElementTranslation extends NenoContentElement
 		{
 			if (strtoupper(substr($constant, 0, $searchStringLength)) == $searchString)
 			{
-				$relatedStrings[$key] = $constant;
+				$relatedStrings[ $key ] = $constant;
 			}
 			if (count($relatedStrings) >= $limit)
 			{
@@ -467,7 +467,7 @@ class NenoContentElementTranslation extends NenoContentElement
 
 		$translationsData = self::getElementsByParentId(
 			self::getDbTable(), 'content_id', $element->getId(), true,
-			array('content_type = \'' . $type . '\'')
+			array( 'content_type = \'' . $type . '\'' )
 		);
 		$translations     = array();
 
@@ -761,7 +761,7 @@ class NenoContentElementTranslation extends NenoContentElement
 
 		if (!is_array($this->translationMethods) || empty($this->translationMethods))
 		{
-			$this->translationMethods = array($translationMethod);
+			$this->translationMethods = array( $translationMethod );
 		}
 		else
 		{
@@ -1219,51 +1219,9 @@ class NenoContentElementTranslation extends NenoContentElement
 		// If the translation comes from database content, let's load it
 		if ($this->contentType == self::DB_STRING)
 		{
-			$query->clear()
-				->select(
-					array(
-						'f.field_name',
-						't.table_name'
-					)
-				)
-				->from('`#__neno_content_element_fields` AS f')
-				->innerJoin('`#__neno_content_element_tables` AS t ON f.table_id = t.id')
-				->where('f.id = ' . $this->element->id);
-
-			$db->setQuery($query);
-			$row = $db->loadRow();
-
-			list($fieldName, $tableName) = $row;
-
 			// Ensure data integrity
 			$this->string = NenoHelperData::ensureDataIntegrity($this->element->id, $this->string, $this->language);
-
-			$query
-				->clear()
-				->select(
-					array(
-						'f.field_name',
-						'ft.value',
-					)
-				)
-				->from('`#__neno_content_element_fields_x_translations` AS ft')
-				->innerJoin('`#__neno_content_element_fields` AS f ON f.id = ft.field_id')
-				->where('ft.translation_id = ' . $this->id);
-
-			$db->setQuery($query);
-			$whereValues = $db->loadAssocList('field_name');
-
-			$shadowTableName = $db->generateShadowTableName($tableName, $this->language);
-
-			$query
-				->clear()
-				->update($shadowTableName)
-				->set($db->quoteName($fieldName) . ' = ' . $db->quote($this->string));
-
-			foreach ($whereValues as $whereField => $where)
-			{
-				$query->where($db->quoteName($whereField) . ' = ' . $db->quote($where['value']));
-			}
+			$query        = $this->generateSQLStatement('update', $this->string, true, $this->language);
 
 			$db->setQuery($query);
 			$db->execute();
@@ -1308,7 +1266,7 @@ class NenoContentElementTranslation extends NenoContentElement
 					}
 				}
 
-				$existingStrings[$translationData['constant']] = $this->string;
+				$existingStrings[ $translationData['constant'] ] = $this->string;
 
 				NenoHelper::saveIniFile($filePath, $existingStrings);
 			}
@@ -1328,7 +1286,6 @@ class NenoContentElementTranslation extends NenoContentElement
 	}
 
 	/**
-	 * <<<<<<< HEAD
 	 * Get external translators comment
 	 *
 	 * @return string
@@ -1404,5 +1361,74 @@ class NenoContentElementTranslation extends NenoContentElement
 		$result = $db->loadResult();
 
 		return empty($result);
+	}
+
+	public function generateSQLStatement($sqlType = 'select', $updateAssignment = null, $updateShadowTable = false, $language = null)
+	{
+		/* @var $db NenoDatabaseDriverMysqlx */
+		$db    = JFactory::getDbo();
+		$query = $db->getQuery(true);
+		$query
+			->select(
+				array(
+					'f.field_name',
+					'ft.value',
+				)
+			)
+			->from('`#__neno_content_element_fields_x_translations` AS ft')
+			->innerJoin('`#__neno_content_element_fields` AS f ON f.id = ft.field_id')
+			->where('ft.translation_id = ' . $this->id);
+
+		$db->setQuery($query);
+		$whereValues = $db->loadAssocList('field_name');
+
+		$query
+			->clear()
+			->select(
+				array(
+					'f.field_name',
+					't.table_name'
+				)
+			)
+			->from('`#__neno_content_element_fields` AS f')
+			->innerJoin('`#__neno_content_element_tables` AS t ON f.table_id = t.id')
+			->where('f.id = ' . $this->element->id);
+
+		$db->setQuery($query);
+		$row = $db->loadRow();
+
+		list($fieldName, $tableName) = $row;
+
+		$query->clear();
+
+		switch ($sqlType)
+		{
+			case 'select':
+				$query
+					->select($db->quoteName($fieldName))
+					->from($tableName);
+				break;
+			case 'update':
+
+				if ($updateShadowTable)
+				{
+					$shadowTableName = $db->generateShadowTableName($tableName, $language);
+					$query->update($shadowTableName);
+				}
+				else
+				{
+					$query->update($tableName);
+				}
+
+				$query->set($db->quoteName($fieldName) . ' = ' . $updateAssignment);
+				break;
+		}
+
+		foreach ($whereValues as $whereField => $where)
+		{
+			$query->where($db->quoteName($whereField) . ' = ' . $db->quote($where['value']));
+		}
+
+		return $query;
 	}
 }

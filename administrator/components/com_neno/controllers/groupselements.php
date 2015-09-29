@@ -629,6 +629,14 @@ class NenoControllerGroupsElements extends JControllerAdmin
 			$query = $db->getQuery(true);
 
 			$query
+				->delete('#__neno_content_element_table_filters')
+				->where('table_id = ' . (int) $tableId);
+
+			$db->setQuery($query);
+			$db->execute();
+
+			$query
+				->clear()
 				->insert('#__neno_content_element_table_filters')
 				->columns(
 					array(
@@ -652,6 +660,9 @@ class NenoControllerGroupsElements extends JControllerAdmin
 
 			$db->setQuery($query);
 			$db->execute();
+
+			// Adding task for table maintenance
+			NenoTaskMonitor::addTask('maintenance', array( 'tableId' => $tableId ));
 
 			echo 'ok';
 		}
