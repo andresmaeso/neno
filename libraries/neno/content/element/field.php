@@ -562,17 +562,28 @@ class NenoContentElementField extends NenoContentElement implements NenoContentE
 
 			if (!empty($strings))
 			{
-				foreach ($languages as $language)
+				foreach ($strings as $string)
 				{
-					if ($defaultLanguage !== $language->lang_code)
+					$progressCounters = $this->getProgressCounters();
+					NenoHelper::setSetupState(
+						JText::sprintf(
+							'COM_NENO_INSTALLATION_MESSAGE_PARSING_GROUP_TABLE_FIELD_PROGRESS',
+							$this->getTable()->getGroup()->getGroupName(),
+							$this->getTable()->getTableName(),
+							$this->getFieldName(),
+							$progressCounters['processed'],
+							$progressCounters['total']
+						),
+						3
+					);
+					if ($string['state'] == 1 || ($string['state'] == 0 && NenoSettings::get('copy_unpublished', 1)) || ($string['state'] == -2 && NenoSettings::get('copy_trashed', 0)))
 					{
-						$commonData['language'] = $language->lang_code;
-
-						foreach ($strings as $string)
+						foreach ($languages as $language)
 						{
-							if ($string['state'] == 1 || ($string['state'] == 0 && NenoSettings::get('copy_unpublished', 1)) || ($string['state'] == -2 && NenoSettings::get('copy_trashed', 0)))
+							if ($defaultLanguage !== $language->lang_code)
 							{
-								$commonData['string'] = $string['string'];
+								$commonData['language'] = $language->lang_code;
+								$commonData['string']   = $string['string'];
 
 								// If the string is empty or is a number, let's mark as translated.
 								if (empty($string['string']) || is_numeric($string['string']))
@@ -653,6 +664,42 @@ class NenoContentElementField extends NenoContentElement implements NenoContentE
 		}
 
 		return true;
+	}
+
+	public function getProgressCounters()
+	{
+		$db                = JFactory::getDbo();
+		$query             = $db->getQuery(true);
+		$subqueryTotal     = $db->getQuery(true);
+		$subqueryProcessed = $db->getQuery(true);
+
+		$subqueryTotal
+			->select('COUNT(*)')
+			->from($this->table->getTableName());
+
+		$subqueryProcessed
+			->select('COUNT(*)')
+			->from('#__neno_content_element_translations')
+			->where(
+				array(
+					'content_id = ' . (int) $this->id,
+					'content_type = ' . $db->quote('db_string')
+				)
+			)
+			->group('content_id');
+
+		$query
+			->select(
+				array(
+					'(' . (string) $subqueryTotal . ') AS total',
+					'(' . (string) $subqueryProcessed . ') AS processed'
+				)
+			);
+
+		$db->setQuery($query);
+		$progressCounters = $db->loadAssoc();
+
+		return $progressCounters;
 	}
 
 	/**
