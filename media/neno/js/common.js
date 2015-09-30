@@ -45,7 +45,7 @@ function fixIssue() {
 }
 
 function loadMissingTranslationMethodSelectors(listSelector, placement) {
-    var apply = false;
+    apply = false;
     if (typeof listSelector != 'string') {
         var parent = jQuery('.translation-method-selector-container').parent();
 
