@@ -13,7 +13,7 @@ defined('_JEXEC') or die;
 
 $document = JFactory::getDocument();
 $version  = NenoHelperBackend::getNenoVersion();
-$document->addScript(JUri::root() . '/media/neno/js/multiselect.?v=' . $version);
+$document->addScript(JUri::root() . '/media/neno/js/multiselect.js?v=' . $version);
 $document->addStyleSheet(JUri::root() . '/media/neno/css/multiselect.css?v=' . $version);
 
 $isOverlay = isset($displayData->isOverlay);
