@@ -649,6 +649,8 @@ class NenoContentElementField extends NenoContentElement implements NenoContentE
 						}
 					}
 				}
+
+				NenoSettings::set('field_breakpoint', null);
 			}
 		}
 		else
@@ -679,14 +681,26 @@ class NenoContentElementField extends NenoContentElement implements NenoContentE
 
 		$subqueryProcessed
 			->select('COUNT(*)')
-			->from('#__neno_content_element_translations')
-			->where(
-				array(
-					'content_id = ' . (int) $this->id,
-					'content_type = ' . $db->quote('db_string')
-				)
-			)
-			->group('content_id');
+			->from($this->table->getTableName());
+
+		$primaryKeyData = $this->getTable()->getPrimaryKey();
+		$breakpoint     = NenoSettings::get('field_breakpoint', null);
+
+		if (!empty($breakpoint))
+		{
+			$breakpoint = json_decode($breakpoint, true);
+			foreach ($primaryKeyData as $primaryKey)
+			{
+				if (!empty($breakpoint[ $primaryKey ]))
+				{
+					$subqueryProcessed->where($db->quoteName($primaryKey) . ' < ' . $breakpoint[ $primaryKey ]);
+				}
+			}
+		}
+		else
+		{
+			$subqueryProcessed = 0;
+		}
 
 		$query
 			->select(
