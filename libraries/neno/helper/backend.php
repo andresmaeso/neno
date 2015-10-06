@@ -108,7 +108,13 @@ class NenoHelperBackend
 		$assetName = 'com_neno';
 
 		$actions = array(
-			'core.admin', 'core.manage', 'core.create', 'core.edit', 'core.edit.own', 'core.edit.state', 'core.delete'
+			'core.admin',
+			'core.manage',
+			'core.create',
+			'core.edit',
+			'core.edit.own',
+			'core.edit.state',
+			'core.delete'
 		);
 
 		foreach ($actions as $action)
@@ -148,7 +154,7 @@ class NenoHelperBackend
 
 		$adminTitleLayout     = JLayoutHelper::render('toolbar', $displayData, JPATH_NENO_LAYOUTS);
 		$layout               = new JLayoutFile('joomla.toolbar.title');
-		$html                 = $layout->render(array('title' => $adminTitleLayout, 'icon' => 'nope'));
+		$html                 = $layout->render(array( 'title' => $adminTitleLayout, 'icon' => 'nope' ));
 		$app->JComponentTitle = $html;
 	}
 
@@ -234,7 +240,7 @@ class NenoHelperBackend
 
 		if (!empty($tablesNotDiscovered))
 		{
-			$doNotTranslateGroup = new NenoContentElementGroup(array('group_name' => 'Do not translate'));
+			$doNotTranslateGroup = new NenoContentElementGroup(array( 'group_name' => 'Do not translate' ));
 			$tablesIgnored       = NenoHelper::getDoNotTranslateTables();
 
 			foreach ($tablesIgnored as $tableIgnored)
@@ -385,7 +391,7 @@ class NenoHelperBackend
 			}
 			else
 			{
-				$otherGroup = new NenoContentElementGroup(array('group_name' => 'Other'));
+				$otherGroup = new NenoContentElementGroup(array( 'group_name' => 'Other' ));
 			}
 
 			$tablesIgnored = NenoHelper::getDoNotTranslateTables();
@@ -496,7 +502,7 @@ class NenoHelperBackend
 		{
 			foreach ($methods as $key => $method)
 			{
-				$methods[$key] = JText::_(strtoupper($method->name_constant));
+				$methods[ $key ] = JText::_(strtoupper($method->name_constant));
 			}
 		}
 
@@ -514,9 +520,9 @@ class NenoHelperBackend
 
 		$db    = JFactory::getDbo();
 		$query = $db->getQuery(true)
-			->select('id AS value, group_name AS text')
-			->from('#__neno_content_element_groups AS n')
-			->order('n.group_name');
+		            ->select('id AS value, group_name AS text')
+		            ->from('#__neno_content_element_groups AS n')
+		            ->order('n.group_name');
 
 		// Get the options.
 		$db->setQuery($query);
@@ -541,11 +547,11 @@ class NenoHelperBackend
 	 */
 	public static function getStatuses()
 	{
-		$translationStatesText                                                                   = array();
-		$translationStatesText[NenoContentElementTranslation::TRANSLATED_STATE]                  = JText::_('COM_NENO_STATUS_TRANSLATED');
-		$translationStatesText[NenoContentElementTranslation::QUEUED_FOR_BEING_TRANSLATED_STATE] = JText::_('COM_NENO_STATUS_QUEUED');
-		$translationStatesText[NenoContentElementTranslation::SOURCE_CHANGED_STATE]              = JText::_('COM_NENO_STATUS_CHANGED');
-		$translationStatesText[NenoContentElementTranslation::NOT_TRANSLATED_STATE]              = JText::_('COM_NENO_STATUS_NOT_TRANSLATED');
+		$translationStatesText                                                                     = array();
+		$translationStatesText[ NenoContentElementTranslation::TRANSLATED_STATE ]                  = JText::_('COM_NENO_STATUS_TRANSLATED');
+		$translationStatesText[ NenoContentElementTranslation::QUEUED_FOR_BEING_TRANSLATED_STATE ] = JText::_('COM_NENO_STATUS_QUEUED');
+		$translationStatesText[ NenoContentElementTranslation::SOURCE_CHANGED_STATE ]              = JText::_('COM_NENO_STATUS_CHANGED');
+		$translationStatesText[ NenoContentElementTranslation::NOT_TRANSLATED_STATE ]              = JText::_('COM_NENO_STATUS_NOT_TRANSLATED');
 
 		// Create a new query object.
 		/* @var $db NenoDatabaseDriverMysqlx */
@@ -563,7 +569,7 @@ class NenoHelperBackend
 
 		foreach ($statuses as $status)
 		{
-			$translationStatuses[$status] = $translationStatesText[$status];
+			$translationStatuses[ $status ] = $translationStatesText[ $status ];
 		}
 
 		return $translationStatuses;
@@ -656,7 +662,7 @@ class NenoHelperBackend
 
 				if (mb_strlen($match[1]))
 				{
-					$phpInfo[$match[1]] = array();
+					$phpInfo[ $match[1] ] = array();
 				}
 				elseif (isset($match[3]))
 				{
@@ -664,17 +670,23 @@ class NenoHelperBackend
 
 					if ($directive)
 					{
-						$phpInfo[end($keys1)][$match[2]] = isset($match[4]) ? array('Local Value' => $match[3], 'Master Value' => $match[4]) : $match[3];
+						$phpInfo[ end($keys1) ][ $match[2] ] = isset($match[4]) ? array(
+							'Local Value'  => $match[3],
+							'Master Value' => $match[4]
+						) : $match[3];
 					}
 					else
 					{
-						$phpInfo[end($keys1)][$match[2]] = isset($match[4]) ? array($match[3], $match[4]) : $match[3];
+						$phpInfo[ end($keys1) ][ $match[2] ] = isset($match[4]) ? array(
+							$match[3],
+							$match[4]
+						) : $match[3];
 					}
 				}
 				else
 				{
-					$keys1                  = array_keys($phpInfo);
-					$phpInfo[end($keys1)][] = $match[2];
+					$keys1                    = array_keys($phpInfo);
+					$phpInfo[ end($keys1) ][] = $match[2];
 				}
 			}
 		}
@@ -691,7 +703,7 @@ class NenoHelperBackend
 						{
 							if (is_numeric($key))
 							{
-								unset($phpInfo[$name][$key]);
+								unset($phpInfo[ $name ][ $key ]);
 							}
 						}
 					}
@@ -1050,5 +1062,21 @@ class NenoHelperBackend
 		}
 
 		return JLayoutHelper::render('versionbox', $displayData, JPATH_NENO_LAYOUTS);
+	}
+
+	/**
+	 * Convert component context into a table name
+	 *
+	 * @param $context
+	 *
+	 * @return bool
+	 */
+	public static function getTableNameBasedOnComponentContext($context)
+	{
+		$contextSupported = array(
+			'com_content.article' => '#__content'
+		);
+
+		return isset($contextSupported[ $context ]) ? $contextSupported[ $context ] : false;
 	}
 }

@@ -19,14 +19,10 @@ class NenoContentElementField extends NenoContentElement implements NenoContentE
 	 * @var array
 	 */
 	public static $translatableFields = array(
-		'varchar'
-	,
-		'tinytext'
-	,
-		'text'
-	,
-		'mediumtext'
-	,
+		'varchar',
+		'tinytext',
+		'text',
+		'mediumtext',
 		'longtext'
 	);
 	/**

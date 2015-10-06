@@ -99,6 +99,13 @@ class PlgSystemNeno extends JPlugin
 		$this->discoverExtension($extensionId);
 	}
 
+	/**
+	 * Discover extension
+	 *
+	 * @param integer $extensionId Extension Id
+	 *
+	 * @return void
+	 */
 	protected function discoverExtension($extensionId)
 	{
 		$db         = JFactory::getDbo();
@@ -120,7 +127,6 @@ class PlgSystemNeno extends JPlugin
 
 		if (!empty($extensionData) && strpos($extensionData['element'], 'neno') === false)
 		{
-
 			NenoHelper::discoverExtension($extensionData);
 		}
 	}
@@ -234,11 +240,9 @@ class PlgSystemNeno extends JPlugin
 	{
 		$db          = JFactory::getDbo();
 		$primaryKeys = $table->getPrimaryKeys();
+		$query       = $db->getQuery(true);
 
-		$query    = $db->getQuery(true);
-		$subQuery = $db->getQuery(true);
-
-		$subQuery
+		$query
 			->select('tr.id')
 			->from('#__neno_content_element_translations AS tr');
 
@@ -246,24 +250,32 @@ class PlgSystemNeno extends JPlugin
 		foreach ($primaryKeys as $key => $primaryKey)
 		{
 			$alias = 'ft' . $key;
-			$subQuery
+			$query
 				->where(
 					"exists(SELECT 1 FROM #__neno_content_element_fields_x_translations AS $alias WHERE $alias.translation_id = tr.id AND $alias.field_id = " . $primaryKey->getId() . " AND $alias.value = " . $db->quote($pk) . ")"
 				);
 		}
 
-		$query
-			->delete('#__neno_content_element_translation_x_translation_methods')
-			->where('translation_id IN (' . ((string) $subQuery) . ')');
-
 		$db->setQuery($query);
-		$db->execute();
+		$translationIds = $db->loadColumn();
+
+		foreach ($translationIds as $translationId)
+		{
+			/* @var $translation NenoContentElementTranslation */
+			$translation = NenoContentElementTranslation::load($translationId);
+
+			$translation->remove();
+		}
 	}
 
 	/**
-	 * @param $context
-	 * @param $pks
-	 * @param $value
+	 * Event thrown when one or several categories change their state
+	 *
+	 * @param string  $context Component context
+	 * @param array   $pks     Primary key values of the element changed
+	 * @param integer $value   New state value
+	 *
+	 * @return void
 	 */
 	public function onCategoryChangeState($context, $pks, $value)
 	{
@@ -275,6 +287,34 @@ class PlgSystemNeno extends JPlugin
 			foreach ($pks as $pk)
 			{
 				$this->trashTranslations($table, $pk);
+			}
+		}
+	}
+
+	/**
+	 * Event thrown when some content change its state
+	 *
+	 * @param string  $context Component context
+	 * @param array   $pks     Primary key values of the element changed
+	 * @param integer $value   New state value
+	 *
+	 * @return void
+	 */
+	public function onContentChangeState($context, $pks, $value)
+	{
+		if ($value == -2)
+		{
+			$tableName = NenoHelperBackend::getTableNameBasedOnComponentContext($context);
+
+			if ($tableName !== false)
+			{
+				/* @var $table NenoContentElementTable */
+				$table = NenoContentElementTable::load(array( 'table_name' => $tableName ), false);
+
+				foreach ($pks as $pk)
+				{
+					$this->trashTranslations($table, $pk);
+				}
 			}
 		}
 	}
