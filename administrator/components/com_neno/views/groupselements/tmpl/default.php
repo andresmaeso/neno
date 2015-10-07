@@ -156,6 +156,8 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 			var result = regex.exec(forAttribute);
 			showTableFiltersModal(result[1], 2);
 		});
+
+		jQuery('[data-toogle="tooltip"]').tooltip('destroy').tooltip();
 	}
 
 	function setOldTableStatus(event) {
