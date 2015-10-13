@@ -190,7 +190,7 @@ class NenoJob extends NenoObject
 		if (parent::persist())
 		{
 			$db = JFactory::getDbo();
-			/* @var $query NenoDatabaseQueryMysqli */
+			/* @var $query NenoDatabaseQueryMysqlx */
 			$query = $db->getQuery(true);
 
 			if (!empty($this->translations))

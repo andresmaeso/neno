@@ -1049,7 +1049,7 @@ class NenoContentElementTranslation extends NenoContentElement
 	public function persist()
 	{
 		// Update word counter
-		$this->wordCounter = str_word_count($this->getString());
+		$this->wordCounter = NenoHelper::getWordCount($this->getString());
 
 		if ($this->contentType == self::DB_STRING)
 		{
