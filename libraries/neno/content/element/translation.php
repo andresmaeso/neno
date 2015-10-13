@@ -1239,33 +1239,7 @@ class NenoContentElementTranslation extends NenoContentElement
 
 			// Ensure data integrity
 			$this->string = NenoHelperData::ensureDataIntegrity($this->element->id, $this->string, $this->language);
-
-			$query
-				->clear()
-				->select(
-					array(
-						'f.field_name',
-						'ft.value',
-					)
-				)
-				->from('`#__neno_content_element_fields_x_translations` AS ft')
-				->innerJoin('`#__neno_content_element_fields` AS f ON f.id = ft.field_id')
-				->where('ft.translation_id = ' . $this->id);
-
-			$db->setQuery($query);
-			$whereValues = $db->loadAssocList('field_name');
-
-			$shadowTableName = $db->generateShadowTableName($tableName, $this->language);
-
-			$query
-				->clear()
-				->update($shadowTableName)
-				->set($db->quoteName($fieldName) . ' = ' . $db->quote($this->string));
-
-			foreach ($whereValues as $whereField => $where)
-			{
-				$query->where($db->quoteName($whereField) . ' = ' . $db->quote($where['value']));
-			}
+			$query        = $this->generateSQLStatement('update', $this->string, true, $this->language);
 
 			$db->setQuery($query);
 			$db->execute();
@@ -1330,7 +1304,6 @@ class NenoContentElementTranslation extends NenoContentElement
 	}
 
 	/**
-	 * <<<<<<< HEAD
 	 * Get external translators comment
 	 *
 	 * @return string
@@ -1406,5 +1379,74 @@ class NenoContentElementTranslation extends NenoContentElement
 		$result = $db->loadResult();
 
 		return empty($result);
+	}
+
+	public function generateSQLStatement($sqlType = 'select', $updateAssignment = null, $updateShadowTable = false, $language = null)
+	{
+		/* @var $db NenoDatabaseDriverMysqlx */
+		$db    = JFactory::getDbo();
+		$query = $db->getQuery(true);
+		$query
+			->select(
+				array(
+					'f.field_name',
+					'ft.value',
+				)
+			)
+			->from('`#__neno_content_element_fields_x_translations` AS ft')
+			->innerJoin('`#__neno_content_element_fields` AS f ON f.id = ft.field_id')
+			->where('ft.translation_id = ' . $this->id);
+
+		$db->setQuery($query);
+		$whereValues = $db->loadAssocList('field_name');
+
+		$query
+			->clear()
+			->select(
+				array(
+					'f.field_name',
+					't.table_name'
+				)
+			)
+			->from('`#__neno_content_element_fields` AS f')
+			->innerJoin('`#__neno_content_element_tables` AS t ON f.table_id = t.id')
+			->where('f.id = ' . $this->element->id);
+
+		$db->setQuery($query);
+		$row = $db->loadRow();
+
+		list($fieldName, $tableName) = $row;
+
+		$query->clear();
+
+		switch ($sqlType)
+		{
+			case 'select':
+				$query
+					->select($db->quoteName($fieldName))
+					->from($tableName);
+				break;
+			case 'update':
+
+				if ($updateShadowTable)
+				{
+					$shadowTableName = $db->generateShadowTableName($tableName, $language);
+					$query->update($shadowTableName);
+				}
+				else
+				{
+					$query->update($tableName);
+				}
+
+				$query->set($db->quoteName($fieldName) . ' = ' . $updateAssignment);
+				break;
+		}
+
+		foreach ($whereValues as $whereField => $where)
+		{
+			$query->where($db->quoteName($whereField) . ' = ' . $db->quote($where['value']));
+		}
+
+		return $query;
 	}
 }

@@ -174,7 +174,7 @@ class NenoControllerGroupsElements extends JControllerAdmin
 		$input = JFactory::getApplication()->input;
 
 		$tableId         = $input->getInt('tableId');
-		$translateStatus = $input->getBool('translateStatus');
+		$translateStatus = $input->getInt('translateStatus');
 
 		/* @var $table NenoContentElementTable */
 		$table = NenoContentElementTable::getTableById($tableId);
@@ -211,6 +211,92 @@ class NenoControllerGroupsElements extends JControllerAdmin
 		}
 
 		JFactory::getApplication()->close();
+	}
+
+	public function getTableFilterModalLayout()
+	{
+		$app     = JFactory::getApplication();
+		$input   = $app->input;
+		$tableId = $input->getInt('tableId');
+
+		if (!empty($tableId))
+		{
+			$db    = JFactory::getDbo();
+			$query = $db->getQuery(true);
+			$query
+				->select(
+					array(
+						'id AS value',
+						'field_name AS text'
+					)
+				)
+				->from('#__neno_content_element_fields')
+				->where('table_id = ' . (int) $tableId)
+				->order('id ASC');
+
+			$db->setQuery($query);
+			$fields = $db->loadObjectList();
+
+			$displayData                  = new stdClass;
+			$displayData->fields          = $fields;
+			$displayData->fieldsSelect    = JHtml::_('select.genericlist', $displayData->fields, 'fields[]', 'class="filter-field"');
+			$displayData->operators       = $this->getComparaisonOperatorsList();
+			$displayData->operatorsSelect = JHtml::_('select.genericlist', $displayData->operators, 'operators[]', 'class="filter-operator"');
+
+			$query
+				->clear()
+				->select(
+					array(
+						'field_id AS field',
+						'comparaison_operator AS operator',
+						'filter_value AS value'
+					)
+				)
+				->from('#__neno_content_element_table_filters')
+				->where('table_id = ' . (int) $tableId);
+
+			$db->setQuery($query);
+			$displayData->filters = $db->loadAssocList();
+
+			echo JLayoutHelper::render('tablefilters', $displayData, JPATH_NENO_LAYOUTS);
+		}
+
+		$app->close();
+	}
+
+	/**
+	 * Get list of comparaison operators
+	 *
+	 * @return array
+	 */
+	protected function getComparaisonOperatorsList()
+	{
+		return array(
+			array(
+				'value' => '=',
+				'text'  => '='
+			),
+			array(
+				'value' => '<>',
+				'text'  => '!='
+			),
+			array(
+				'value' => '<',
+				'text'  => '<'
+			),
+			array(
+				'value' => '<=',
+				'text'  => '<='
+			),
+			array(
+				'value' => '>',
+				'text'  => '>'
+			),
+			array(
+				'value' => '>=',
+				'text'  => '>='
+			)
+		);
 	}
 
 	/**
@@ -527,6 +613,61 @@ class NenoControllerGroupsElements extends JControllerAdmin
 		}
 
 		JFactory::getApplication()->redirect('index.php?option=com_neno&view=groupselements');
+	}
+
+	public function saveTableFilters()
+	{
+		$app   = JFactory::getApplication();
+		$input = $app->input;
+
+		$filters = $input->post->get('filters', array(), 'ARRAY');
+		$tableId = $input->post->getInt('tableId');
+
+		if (!empty($filters) && !empty($tableId))
+		{
+			$db    = JFactory::getDbo();
+			$query = $db->getQuery(true);
+
+			$query
+				->delete('#__neno_content_element_table_filters')
+				->where('table_id = ' . (int) $tableId);
+
+			$db->setQuery($query);
+			$db->execute();
+
+			$query
+				->clear()
+				->insert('#__neno_content_element_table_filters')
+				->columns(
+					array(
+						'table_id',
+						'field_id',
+						'comparaison_operator',
+						'filter_value'
+					)
+				);
+
+			foreach ($filters as $filter)
+			{
+				$query
+					->values(
+						$db->quote($tableId) . ','
+						. $db->quote($filter['field']) . ','
+						. $db->quote($filter['operator']) . ','
+						. $db->quote($filter['value'])
+					);
+			}
+
+			$db->setQuery($query);
+			$db->execute();
+
+			// Adding task for table maintenance
+			NenoTaskMonitor::addTask('maintenance', array( 'tableId' => $tableId ));
+
+			echo 'ok';
+		}
+
+		$app->close();
 	}
 
 	public function refreshWordCount()

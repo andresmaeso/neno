@@ -141,7 +141,7 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 
 				for ($i = 0; $i < count($fieldsInfo); $i++)
 				{
-					$fieldInfo        = $fieldsInfo[$i];
+					$fieldInfo        = $fieldsInfo[ $i ];
 					$fieldInfo->table = $this;
 					$field            = new NenoContentElementField($fieldInfo, $loadExtraData);
 
@@ -457,7 +457,12 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 		if ($this->translate)
 		{
 			// Check if there are children not discovered
-			$field = NenoContentElementField::load(array('discovered' => 0, 'table_id' => $this->id, '_limit' => 1, 'translate' => 1));
+			$field = NenoContentElementField::load(array(
+				'discovered' => 0,
+				'table_id'   => $this->id,
+				'_limit'     => 1,
+				'translate'  => 1
+			));
 
 			if (!empty($field))
 			{
@@ -717,7 +722,7 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 							if ($field->getId() == $fieldId)
 							{
 								$reArrangeFields = true;
-								unset($this->fields[$key]);
+								unset($this->fields[ $key ]);
 								break;
 							}
 						}
@@ -770,6 +775,71 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 
 				$db->setQuery($query);
 				$db->execute();
+			}
+		}
+	}
+
+	/**
+	 * Apply filter to existing translations
+	 *
+	 * @return void
+	 */
+	public function applyFiltersToExistingContent()
+	{
+		$db    = JFactory::getDbo();
+		$query = $db->getQuery(true);
+
+		$query
+			->select('t.id')
+			->from('#__neno_content_element_translations AS t')
+			->where(
+				array(
+					't.content_type = ' . $db->quote('db_string'),
+					'EXISTS (SELECT 1 FROM #__neno_content_element_fields AS f ON t.content_id = f.id WHERE f.table_id = ' . (int) $this->id . ')'
+				)
+			);
+
+		$db->setQuery($query);
+		$translationIds = $db->loadColumn();
+
+		$query
+			->clear()
+			->select(
+				array(
+					'f.field_name AS field',
+					'comparaison_operator AS operator',
+					'filter_value AS value'
+				)
+			)
+			->from('#__neno_content_element_table_filters AS tf')
+			->innerJoin('#__neno_content_element_fields AS f ON tf.field_id = f.id')
+			->where('table_id = ' . (int) $this->id);
+
+		$db->setQuery($query);
+		$filters = $db->loadAssocList();
+
+		foreach ($translationIds as $translationId)
+		{
+			/* @var $translation NenoContentElementTranslation */
+			$translation = NenoContentElementTranslation::load($translationId, false, true);
+			$sqlQuery    = $translation->generateSQLStatement();
+
+			$sqlQuery
+				->clear('select')
+				->select('1');
+
+			foreach ($filters as $filter)
+			{
+				$query->where($db->quoteName($filter['field']) . ' ' . $filter['operator'] . ' ' . $filter['value']);
+			}
+
+			$db->setQuery($query);
+			$result = $db->loadResult();
+
+			// If the translation does not meet this requirements, let's delete it
+			if (empty($result))
+			{
+				$translation->remove();
 			}
 		}
 	}
