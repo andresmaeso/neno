@@ -73,7 +73,7 @@ class NenoControllerGroupsElements extends JControllerAdmin
 			}
 			else
 			{
-				$contentElementFiles = array($destFile);
+				$contentElementFiles = array( $destFile );
 			}
 
 			// Add to each content file the path of the extraction location.
@@ -259,7 +259,7 @@ class NenoControllerGroupsElements extends JControllerAdmin
 		}
 
 		// Ensure that we know what was selected for the previous selector
-		if (($n > 0 && !isset($selectedMethods[$n - 1])) || ($n > 0 && $selectedMethods[$n - 1] == 0))
+		if (($n > 0 && !isset($selectedMethods[ $n - 1 ])) || ($n > 0 && $selectedMethods[ $n - 1 ] == 0))
 		{
 			JFactory::getApplication()->close();
 		}
@@ -273,15 +273,15 @@ class NenoControllerGroupsElements extends JControllerAdmin
 		// Reduce the translation methods offered depending on the parents
 		if ($n > 0 && !empty($selectedMethods))
 		{
-			$parentMethod                = $selectedMethods[$n - 1];
-			$acceptableFollowUpMethodIds = $translationMethods[$parentMethod]->acceptable_follow_up_method_ids;
+			$parentMethod                = $selectedMethods[ $n - 1 ];
+			$acceptableFollowUpMethodIds = $translationMethods[ $parentMethod ]->acceptable_follow_up_method_ids;
 			$acceptableFollowUpMethods   = explode(',', $acceptableFollowUpMethodIds);
 
 			foreach ($translationMethods as $k => $translationMethod)
 			{
 				if (!in_array($k, $acceptableFollowUpMethods))
 				{
-					unset($translationMethods[$k]);
+					unset($translationMethods[ $k ]);
 				}
 			}
 		}
@@ -500,7 +500,7 @@ class NenoControllerGroupsElements extends JControllerAdmin
 				// Making sure the result is an array
 				if (!is_array($tables))
 				{
-					$tables = array($tables);
+					$tables = array( $tables );
 				}
 
 				/* @var $table NenoContentElementTable */
@@ -524,6 +524,69 @@ class NenoControllerGroupsElements extends JControllerAdmin
 					$table->checkIntegrity($workingLanguage);
 				}
 			}
+		}
+
+		JFactory::getApplication()->redirect('index.php?option=com_neno&view=groupselements');
+	}
+
+	public function refreshWordCount()
+	{
+		$input = $this->input;
+
+		// Refresh content for groups
+		$groups          = $input->get('groups', array(), 'ARRAY');
+		$tables          = $input->get('tables', array(), 'ARRAY');
+		$files           = $input->get('files', array(), 'ARRAY');
+		$workingLanguage = NenoHelper::getWorkingLanguage();
+
+		/* @var $db NenoDatabaseDriverMysqlx */
+		$db    = JFactory::getDbo();
+		$query = $db->getQuery(true);
+
+		$query
+			->select('tr.id')
+			->from('#__neno_content_element_translations AS tr')
+			->innerJoin('#__neno_content_element_fields AS f ON tr.content_id = f.id')
+			->innerJoin('#__neno_content_element_tables AS t ON t.id = f.table_id')
+			->where(
+				array(
+					'tr.state = ' . $db->quote(NenoContentElementTranslation::TRANSLATED_STATE),
+					'tr.language = ' . $db->quote($workingLanguage)
+				)
+			);
+
+		if (!empty($groups))
+		{
+			$query
+				->innerJoin('#__neno_content_element_groups AS g ON t.group_id = g.id')
+				->where('g.id IN (' . implode(',', $db->quote($groups)) . ')');
+		}
+		elseif (!empty($tables) || !empty($files))
+		{
+			$where = array();
+
+			if (!empty($tables))
+			{
+				$where[] = '(t.id IN (' . implode(',', $db->quote($tables)) . ') AND tr.content_type = ' . $db->quote(NenoContentElementTranslation::DB_STRING) . ')';
+			}
+
+			if (!empty($files))
+			{
+				$where[] = '(t.id IN (' . implode(',', $db->quote($tables)) . ') AND tr.content_type = ' . $db->quote(NenoContentElementTranslation::LANG_STRING) . ')';
+			}
+
+			$query->where('(' . implode(' OR ', $where) . ')');
+		}
+
+		$db->setQuery($query);
+		$translationIds = $db->loadArray();
+
+		foreach ($translationIds as $translationId)
+		{
+			/* @var $translation NenoContentElementTranslation */
+			$translation = NenoContentElementTranslation::load($translationId, false, true);
+
+			$translation->persist();
 		}
 
 		JFactory::getApplication()->redirect('index.php?option=com_neno&view=groupselements');
