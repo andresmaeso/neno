@@ -293,15 +293,43 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 	function changeTableTranslateState() {
 
 		var id = jQuery(this).parent('fieldset').attr('data-field');
-		var status = parseInt(jQuery(this).val());
+		var status = jQuery(this).val();
+		var row = jQuery('.row-table[data-id="table-' + id + '"]');
+		var toggler = row.find('.toggle-fields');
 
-		if (!jQuery('[for="check-toggle-translate-table-' + id + '-' + status + '"]').hasClass('active')) {
-			markLabelAsActiveByStatus(id, status, true);
+		if (status == 1) {
+			row.find('.bar').removeClass('bar-disabled');
+			jQuery('[for="check-toggle-translate-table-' + id + '-1"]').addClass('active btn-success');
+			jQuery('[for="check-toggle-translate-table-' + id + '-0"]').removeClass('active btn-danger');
 
-			if (status != 2) {
-				setTranslateStatus(id, status);
+			//Add field toggler
+			toggler.off('click').on('click', toggleFieldVisibility);
+			toggler.addClass('toggler toggler-collapsed');
+			toggler.find('span').addClass('icon-arrow-right-3');
+		} else {
+			row.find('.bar').addClass('bar-disabled');
+			jQuery('[for="check-toggle-translate-table-' + id + '-0"]').addClass('active btn-danger');
+			jQuery('[for="check-toggle-translate-table-' + id + '-1"]').removeClass('active btn-success');
+
+			//Remove fields
+			if (toggler.hasClass('toggler-expanded')) {
+				toggler.click();
 			}
+			toggler.off('click');
+			toggler.removeClass('toggler toggler-collapsed');
+			toggler.find('span').removeClass();
 		}
+
+		//Show an alert that count no longer is accurate
+		jQuery('#reload-notice').remove();
+		jQuery('.navbar-fixed-top .navbar-inner').append('<div style="padding:10px 30px;" id="reload-notice"><div class="alert alert-warning"><?php echo JText::_('COM_NENO_VIEW_GROUPSELEMENTS_RELOAD_WARNING'); ?><a href="index.php?option=com_neno&view=groupselements" class="btn btn-info pull-right" style="height: 16px; font-size: 12px;margin-top:-4px"><?php echo JText::_('COM_NENO_VIEW_GROUPSELEMENTS_RELOAD_BTN'); ?></a></div></div>').height('92');
+		jQuery('body').css('padding-top', '93px');
+
+		jQuery.ajax({
+				beforeSend: onBeforeAjax,
+				url       : 'index.php?option=com_neno&task=groupselements.toggleContentElementTable&tableId=' + id + '&translateStatus=' + status
+			}
+		);
 	}
 
 	function setTranslateStatus(tableId, status) {
@@ -523,7 +551,13 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 	Joomla.submitbutton = function (task) {
 		if (task === 'addGroup') {
 			showModalGroupForm(true);
-		} else {
+		}
+		else if (task === 'groupselements.refreshWordCount') {
+			if (confirm('<?php echo JText::_('COM_NENO_VIEW_GROUPSELEMENTS_REFRESH_WORD_COUNT_CONFIRMATION_MESSAGE'); ?>')) {
+				originalJoomla.apply(this, arguments);
+			}
+		}
+		else {
 			//Submit as normal
 			originalJoomla.apply(this, arguments);
 		}

@@ -310,12 +310,22 @@ function addExtensions() {
 }
 
 
-//Keeps left editor in same scroll position as right one
+// Keeps left editor in same scroll position as right one
 function mirrorscroll(cm) {
-
-	var scrollinfo = cm.getScrollInfo();
-	var translation_id = getTranslationId(jQuery(cm.getTextArea()));
-	editors[translation_id].left.scrollTo(null, scrollinfo.top);
+    
+    var translation_id = getTranslationId(jQuery(cm.getTextArea()));
+    
+    // If the left mirror has been hovered then disable mirror scroll for that element
+    // We use hover because scroll would cause it to be disabled when mirror scrolled (inception)
+    jQuery('.main-translation-div[data-translation-id="'+translation_id+'"] .lefteditor-wrapper .CodeMirror').on('mouseover', function(){
+        editors[translation_id].left.disableMirrorScroll = true;
+    });
+    
+    // Set the left scroll to be the same as the right
+    if (typeof editors[translation_id].left.disableMirrorScroll == 'undefined') {
+        var scrollinfo = cm.getScrollInfo();
+        editors[translation_id].left.scrollTo(null, scrollinfo.top);
+    }
 
 }
 

@@ -120,7 +120,7 @@ class NenoHelper
 	{
 		$prefix = JFactory::getDbo()->getPrefix();
 
-		return $prefix . str_replace(array('com_'), '', strtolower($componentName));
+		return $prefix . str_replace(array( 'com_' ), '', strtolower($componentName));
 	}
 
 	/**
@@ -249,11 +249,11 @@ class NenoHelper
 		// If there are word left, let's capitalize them.
 		if (!empty($nameParts))
 		{
-			$nameParts = array_merge(array($firstWord), array_map('ucfirst', $nameParts));
+			$nameParts = array_merge(array( $firstWord ), array_map('ucfirst', $nameParts));
 		}
 		else
 		{
-			$nameParts = array($firstWord);
+			$nameParts = array( $firstWord );
 		}
 
 		return implode('', $nameParts);
@@ -277,7 +277,7 @@ class NenoHelper
 		}
 		else
 		{
-			$group = new NenoContentElementGroup(array('group_name' => $extension['name']));
+			$group = new NenoContentElementGroup(array( 'group_name' => $extension['name'] ));
 		}
 
 		$group->addExtension($extension['extension_id']);
@@ -495,7 +495,7 @@ class NenoHelper
 	{
 		$fileParts = explode('.', $languageFileName);
 
-		$result = self::removeCoreLanguageFilesFromArray(array($languageFileName), $fileParts[0]);
+		$result = self::removeCoreLanguageFilesFromArray(array( $languageFileName ), $fileParts[0]);
 
 		return empty($result);
 	}
@@ -556,7 +556,7 @@ class NenoHelper
 			);
 
 		$db->setQuery($query);
-		$joomlaCoreLanguageFiles = array_merge($db->loadArray(), array($language . '.ini'));
+		$joomlaCoreLanguageFiles = array_merge($db->loadArray(), array( $language . '.ini' ));
 
 		return $joomlaCoreLanguageFiles;
 	}
@@ -936,7 +936,7 @@ class NenoHelper
 	 */
 	public static function getGroups($loadExtraData = true, $avoidDoNotTranslate = false)
 	{
-		$cacheId   = NenoCache::getCacheId(__FUNCTION__, array(1));
+		$cacheId   = NenoCache::getCacheId(__FUNCTION__, array( 1 ));
 		$cacheData = NenoCache::getCacheData($cacheId);
 
 		if ($cacheData === null)
@@ -946,7 +946,7 @@ class NenoHelper
 			$query = $db->getQuery(true);
 
 			$subquery1   = $db->getQuery(true);
-			$arrayWhere1 = array('t.group_id = g.id');
+			$arrayWhere1 = array( 't.group_id = g.id' );
 
 			if ($avoidDoNotTranslate)
 			{
@@ -1792,7 +1792,7 @@ class NenoHelper
 				->from('#__associations')
 				->where(
 					array(
-						'id IN (' . implode(',', array_merge($associations, array($menuItem->id))) . ')',
+						'id IN (' . implode(',', array_merge($associations, array( $menuItem->id ))) . ')',
 						'context = ' . $db->quote('com_menus.item')
 					)
 				);
@@ -2712,7 +2712,7 @@ class NenoHelper
 			)
 			->from('#__updates AS u')
 			->where(
-				array('u.update_site_id = ' . (int) $updateSiteId),
+				array( 'u.update_site_id = ' . (int) $updateSiteId ),
 				'REPLACE(element, \'pkg_\', \'\') NOT IN(' . implode(',', $db->quote(array_keys(JFactory::getLanguage()->getKnownLanguages()))) . ')'
 			)
 			->order('name')
@@ -2748,7 +2748,7 @@ class NenoHelper
 		$languagesInstallerModel = JModelLegacy::getInstance('Languages', 'InstallerModel');
 
 		// Install language
-		$languagesInstallerModel->install(array($languageId));
+		$languagesInstallerModel->install(array( $languageId ));
 
 		if (self::isLanguageInstalled($jiso) && !self::hasContentCreated($languageData['element']))
 		{
@@ -3310,7 +3310,7 @@ class NenoHelper
 				$convertedString .= '<p id="' . $key . '">' . $string . '</p>';
 			}
 
-			$structure = array($structure, $convertedString);
+			$structure = array( $structure, $convertedString );
 		}
 
 		return $structure;
@@ -3328,7 +3328,7 @@ class NenoHelper
 		if (self::isHtml($string))
 		{
 			$dom = new DOMDocument;
-			$dom->loadHTML($string);
+			$dom->loadHTML(mb_convert_encoding($string, 'HTML-ENTITIES', 'UTF-8'));
 
 			return $dom;
 		}
@@ -3358,7 +3358,7 @@ class NenoHelper
 	 */
 	protected static function recursiveDomExplorer(DOMElement $domElement, &$index = 1)
 	{
-		$humanReadableAttributes = array('alt', 'title', 'summary');
+		$humanReadableAttributes = array( 'alt', 'title', 'summary' );
 		$strings                 = array();
 
 		/* @var $node DomElement */
@@ -3805,7 +3805,7 @@ class NenoHelper
 				$breakPoint               = $selectedBreakPoint + utf8_strlen($selectedBreakPointString);
 
 				//Add the chunk
-				$chunks[] = JString::substr($string, 0, $breakPoint);
+				$chunks[] = \Joomla\String\String::substr($string, 0, $breakPoint);
 
 			}
 			else
@@ -3814,7 +3814,7 @@ class NenoHelper
 				$wordWrappedString = wordwrap($string, $maxChunkLength, '|||---NENO---|||', true);
 				$wordWrappedArray  = explode('|||---NENO---|||', $wordWrappedString);
 				$chunks[]          = $wordWrappedArray[0];
-				$breakPoint        = JString::strlen($wordWrappedArray[0]) + 3;
+				$breakPoint        = \Joomla\String\String::strlen($wordWrappedArray[0]) + 3;
 			}
 
 			//Reduce the string
@@ -3888,4 +3888,30 @@ class NenoHelper
 		return $translations;
 	}
 
+	/**
+	 *
+	 *
+	 * @param string $string String where get the word count
+	 *
+	 * @return int
+	 */
+	public static function getWordCount($string)
+	{
+		$wc = strip_tags(self::splitHtmlText($string));
+
+		// remove one-letter 'words' that consist only of punctuation
+		$wc = trim(preg_replace("#\s*[(\'|\"|\.|\!|\?|;|,|\\|\/|:|\&|@)]\s*#", " ", $wc));
+
+		// remove superfluous whitespace
+		$wc = preg_replace("/\s\s+/", " ", $wc);
+
+		// split string into an array of words
+		$wc = explode(" ", $wc);
+
+		// remove empty elements
+		$wc = array_filter(array_map('trim', $wc));
+
+		// return the number of words
+		return count($wc);
+	}
 }

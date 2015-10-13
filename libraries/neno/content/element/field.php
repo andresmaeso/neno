@@ -19,14 +19,10 @@ class NenoContentElementField extends NenoContentElement implements NenoContentE
 	 * @var array
 	 */
 	public static $translatableFields = array(
-		'varchar'
-	,
-		'tinytext'
-	,
-		'text'
-	,
-		'mediumtext'
-	,
+		'varchar',
+		'tinytext',
+		'text',
+		'mediumtext',
 		'longtext'
 	);
 	/**
@@ -562,17 +558,28 @@ class NenoContentElementField extends NenoContentElement implements NenoContentE
 
 			if (!empty($strings))
 			{
-				foreach ($languages as $language)
+				foreach ($strings as $string)
 				{
-					if ($defaultLanguage !== $language->lang_code)
+					$progressCounters = $this->getProgressCounters();
+					NenoHelper::setSetupState(
+						JText::sprintf(
+							'COM_NENO_INSTALLATION_MESSAGE_PARSING_GROUP_TABLE_FIELD_PROGRESS',
+							$this->getTable()->getGroup()->getGroupName(),
+							$this->getTable()->getTableName(),
+							$this->getFieldName(),
+							$progressCounters['processed'],
+							$progressCounters['total']
+						),
+						3
+					);
+					if ($string['state'] == 1 || ($string['state'] == 0 && NenoSettings::get('copy_unpublished', 1)) || ($string['state'] == -2 && NenoSettings::get('copy_trashed', 0)))
 					{
-						$commonData['language'] = $language->lang_code;
-
-						foreach ($strings as $string)
+						foreach ($languages as $language)
 						{
-							if ($string['state'] == 1 || ($string['state'] == 0 && NenoSettings::get('copy_unpublished', 1)) || ($string['state'] == -2 && NenoSettings::get('copy_trashed', 0)))
+							if ($defaultLanguage !== $language->lang_code)
 							{
-								$commonData['string'] = $string['string'];
+								$commonData['language'] = $language->lang_code;
+								$commonData['string']   = $string['string'];
 
 								// If the string is empty or is a number, let's mark as translated.
 								if (empty($string['string']) || is_numeric($string['string']))
@@ -584,8 +591,9 @@ class NenoContentElementField extends NenoContentElement implements NenoContentE
 									$commonData['state'] = NenoContentElementTranslation::NOT_TRANSLATED_STATE;
 								}
 
-								$translation = new NenoContentElementTranslation($commonData);
-								$sourceData  = array();
+								$translation     = new NenoContentElementTranslation($commonData);
+								$sourceData      = array();
+								$fieldBreakpoint = array();
 
 								foreach ($primaryKeyData as $primaryKey)
 								{
@@ -595,8 +603,12 @@ class NenoContentElementField extends NenoContentElement implements NenoContentE
 										'value' => $string[ $primaryKey ]
 									);
 
-									$sourceData[] = $fieldData;
+									$sourceData[]                   = $fieldData;
+									$fieldBreakpoint[ $primaryKey ] = $string[ $primaryKey ];
 								}
+
+								// Save breakpoint into the database
+								NenoSettings::set('field_breakpoint', json_encode($fieldBreakpoint));
 
 								$translation->setSourceElementData($sourceData);
 
@@ -633,6 +645,8 @@ class NenoContentElementField extends NenoContentElement implements NenoContentE
 						}
 					}
 				}
+
+				NenoSettings::set('field_breakpoint', null);
 			}
 		}
 		else
@@ -650,6 +664,54 @@ class NenoContentElementField extends NenoContentElement implements NenoContentE
 		return true;
 	}
 
+	public function getProgressCounters()
+	{
+		$db                = JFactory::getDbo();
+		$query             = $db->getQuery(true);
+		$subqueryTotal     = $db->getQuery(true);
+		$subqueryProcessed = $db->getQuery(true);
+
+		$subqueryTotal
+			->select('COUNT(*)')
+			->from($this->table->getTableName());
+
+		$subqueryProcessed
+			->select('COUNT(*)')
+			->from($this->table->getTableName());
+
+		$primaryKeyData = $this->getTable()->getPrimaryKey();
+		$breakpoint     = NenoSettings::get('field_breakpoint', null);
+
+		if (!empty($breakpoint))
+		{
+			$breakpoint = json_decode($breakpoint, true);
+			foreach ($primaryKeyData as $primaryKey)
+			{
+				if (!empty($breakpoint[ $primaryKey ]))
+				{
+					$subqueryProcessed->where($db->quoteName($primaryKey) . ' < ' . $breakpoint[ $primaryKey ]);
+				}
+			}
+		}
+		else
+		{
+			$subqueryProcessed = 0;
+		}
+
+		$query
+			->select(
+				array(
+					'(' . (string) $subqueryTotal . ') AS total',
+					'(' . (string) $subqueryProcessed . ') AS processed'
+				)
+			);
+
+		$db->setQuery($query);
+		$progressCounters = $db->loadAssoc();
+
+		return $progressCounters;
+	}
+
 	/**
 	 * Get all the strings related to this field
 	 *
@@ -659,9 +721,8 @@ class NenoContentElementField extends NenoContentElement implements NenoContentE
 	 */
 	protected function getStrings($recordId = null)
 	{
-		$rows               = array();
-		$primaryKey         = $this->getTable()->getPrimaryKey();
-		$filteredByRecordId = false;
+		$rows       = array();
+		$primaryKey = $this->getTable()->getPrimaryKey();
 
 		// If the table has primary key, let's go through them
 		if (!empty($primaryKey))
@@ -670,6 +731,12 @@ class NenoContentElementField extends NenoContentElement implements NenoContentE
 			$query = $db->getQuery(true);
 
 			$primaryKeyData = $this->getTable()->getPrimaryKey();
+			$breakpoint     = NenoSettings::get('field_breakpoint', null);
+
+			if (!empty($breakpoint))
+			{
+				$breakpoint = json_decode($breakpoint, true);
+			}
 
 			foreach ($primaryKeyData as $primaryKey)
 			{
@@ -678,8 +745,13 @@ class NenoContentElementField extends NenoContentElement implements NenoContentE
 				if (!empty($recordId[ $primaryKey ]))
 				{
 					$query->where($db->quoteName($primaryKey) . ' = ' . $recordId[ $primaryKey ]);
-					$filteredByRecordId = true;
 				}
+				elseif (!empty($breakpoint[ $primaryKey ]))
+				{
+					$query->where($db->quoteName($primaryKey) . ' >= ' . $breakpoint[ $primaryKey ]);
+				}
+
+				$query->order($db->quoteName($primaryKey) . ' ASC');
 			}
 
 			$query
@@ -695,56 +767,11 @@ class NenoContentElementField extends NenoContentElement implements NenoContentE
 				$query->select('1 AS state');
 			}
 
-			if (!$filteredByRecordId)
-			{
-				$whereStatements = $this->generateWhereStatementsBasedOnTableFilter();
-
-				if (!empty($whereStatements))
-				{
-					$query->where($whereStatements);
-				}
-			}
-
 			$db->setQuery($query);
 			$rows = $db->loadAssocList();
 		}
 
 		return $rows;
-	}
-
-	/**
-	 * Generate where statements based on the filters configured by the user.
-	 *
-	 * @return array
-	 */
-	protected function generateWhereStatementsBasedOnTableFilter()
-	{
-		$db    = JFactory::getDbo();
-		$query = $db->getQuery(true);
-
-		$query
-			->select(
-				array(
-					'f.field_name',
-					'ft.comparaison_operator AS operator',
-					'ft.filter_value AS value'
-				)
-			)
-			->from('#__neno_content_element_table_filters AS ft')
-			->innerJoin('#__neno_content_element_fields AS f ON f.id = ft.field_id')
-			->where('table_id = ' . (int) $this->table->id);
-
-		$db->setQuery($query);
-		$filters = $db->loadAssocList();
-
-		$whereStatements = array();
-
-		foreach ($filters as $filter)
-		{
-			$whereStatements[] = $db->quoteName($filter['field_name']) . ' ' . $filter['operator'] . ' ' . $db->quote($filter['value']);
-		}
-
-		return $whereStatements;
 	}
 
 	/**

@@ -242,10 +242,11 @@ class NenoContentElementTranslation extends NenoContentElement
 	 * - For a language file entry, it will load the following 10 rows
 	 *
 	 * @param integer $translationId
+	 *
+	 * @return array
 	 */
 	protected static function getRelatedTranslations($translationId)
 	{
-
 		$relatedTranslations = array();
 		$translation         = self::load($translationId);
 
@@ -269,9 +270,10 @@ class NenoContentElementTranslation extends NenoContentElement
 		}
 
 		// Remove related translations where source is empty if that is the setting
-		$hide_empty_strings = NenoSettings::get('hide_empty_strings');
-		if ($hide_empty_strings)
+		$hideEmptyStrings = NenoSettings::get('hide_empty_strings');
+		if ($hideEmptyStrings)
 		{
+			/* @var $relatedTranslation NenoContentElementTranslation */
 			foreach ($relatedTranslations as $key => $relatedTranslation)
 			{
 				$originalText = $relatedTranslation->getOriginalText();
@@ -1047,7 +1049,7 @@ class NenoContentElementTranslation extends NenoContentElement
 	public function persist()
 	{
 		// Update word counter
-		$this->wordCounter = str_word_count($this->getString());
+		$this->wordCounter = NenoHelper::getWordCount($this->getString());
 
 		if ($this->contentType == self::DB_STRING)
 		{
@@ -1219,6 +1221,22 @@ class NenoContentElementTranslation extends NenoContentElement
 		// If the translation comes from database content, let's load it
 		if ($this->contentType == self::DB_STRING)
 		{
+			$query->clear()
+			      ->select(
+				      array(
+					      'f.field_name',
+					      't.table_name'
+				      )
+			      )
+			      ->from('`#__neno_content_element_fields` AS f')
+			      ->innerJoin('`#__neno_content_element_tables` AS t ON f.table_id = t.id')
+			      ->where('f.id = ' . $this->element->id);
+
+			$db->setQuery($query);
+			$row = $db->loadRow();
+
+			list($fieldName, $tableName) = $row;
+
 			// Ensure data integrity
 			$this->string = NenoHelperData::ensureDataIntegrity($this->element->id, $this->string, $this->language);
 			$query        = $this->generateSQLStatement('update', $this->string, true, $this->language);
