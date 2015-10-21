@@ -3375,13 +3375,21 @@ class NenoHelper
 			{
 				foreach ($humanReadableAttributes as $humanAttribute)
 				{
-					if ($node->hasAttribute($humanAttribute))
+					$nodeClass       = get_class($node);
+					$notAllowedClass = array(
+						'DOMComment',
+						'DOMCdataSection'
+					);
+					if (!in_array($nodeClass, $notAllowedClass))
 					{
-						$attribute         = $node->getAttribute($humanAttribute);
-						$text              = trim($attribute);
-						$strings[ $index ] = $text;
-						$node->setAttribute($humanAttribute, str_replace($text, '[{|' . $index . '|}]}', $attribute));
-						$index++;
+						if ($node->hasAttribute($humanAttribute))
+						{
+							$attribute         = $node->getAttribute($humanAttribute);
+							$text              = trim($attribute);
+							$strings[ $index ] = $text;
+							$node->setAttribute($humanAttribute, str_replace($text, '[{|' . $index . '|}]}', $attribute));
+							$index++;
+						}
 					}
 				}
 			}
