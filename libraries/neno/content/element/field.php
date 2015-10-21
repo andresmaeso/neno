@@ -561,17 +561,21 @@ class NenoContentElementField extends NenoContentElement implements NenoContentE
 				foreach ($strings as $string)
 				{
 					$progressCounters = $this->getProgressCounters();
-					NenoHelper::setSetupState(
-						JText::sprintf(
-							'COM_NENO_INSTALLATION_MESSAGE_PARSING_GROUP_TABLE_FIELD_PROGRESS',
-							$this->getTable()->getGroup()->getGroupName(),
-							$this->getTable()->getTableName(),
-							$this->getFieldName(),
-							$progressCounters['processed'],
-							$progressCounters['total']
-						),
-						3
-					);
+					if (!NenoSettings::get('installation_completed'))
+					{
+						NenoHelper::setSetupState(
+							JText::sprintf(
+								'COM_NENO_INSTALLATION_MESSAGE_PARSING_GROUP_TABLE_FIELD_PROGRESS',
+								$this->getTable()->getGroup()->getGroupName(),
+								$this->getTable()->getTableName(),
+								$this->getFieldName(),
+								$progressCounters['processed'],
+								$progressCounters['total']
+							),
+							3
+						);
+					}
+
 					if ($string['state'] == 1 || ($string['state'] == 0 && NenoSettings::get('copy_unpublished', 1)) || ($string['state'] == -2 && NenoSettings::get('copy_trashed', 0)))
 					{
 						foreach ($languages as $language)
@@ -731,7 +735,7 @@ class NenoContentElementField extends NenoContentElement implements NenoContentE
 			$query = $db->getQuery(true);
 
 			$primaryKeyData = $this->getTable()->getPrimaryKey();
-			$breakpoint     = NenoSettings::get('field_breakpoint', null);
+			$breakpoint     = NenoSettings::get('installation_completed') ? null : NenoSettings::get('field_breakpoint', null);
 
 			if (!empty($breakpoint))
 			{
