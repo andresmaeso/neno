@@ -183,9 +183,58 @@ class NenoControllerInstallation extends JControllerAdmin
 
 				$data->tablesFound = $tablesFound;
 				break;
+			case 5:
+				$groups = NenoHelper::getGroups();
+
+				/* @var $group NenoContentElementGroup */
+				foreach ($groups as $key => $group)
+				{
+					$group->getTables();
+					$groups[$key] = $group->prepareDataForView();
+				}
+				$data->groups = $groups;
+				break;
 		}
 
 		return $data;
+	}
+
+	/**
+	 *
+	 *
+	 * @return void
+	 *
+	 * @throws Exception
+	 */
+	public function previewContentFromTable()
+	{
+		$app   = JFactory::getApplication();
+		$input = $app->input;
+
+		$tableId = $input->getInt('tableId');
+
+		/* @var $table NenoContentElementTable */
+		$table                  = NenoContentElementTable::load($tableId);
+		$displayData            = new stdClass;
+		$displayData->tableName = $table->getTableName();
+
+		if (!empty($table))
+		{
+			$displayData->records = $table->getRandomContentFromTable();
+			$fields               = $table->getFields(false, true);
+
+			/* @var $field NenoContentElementField */
+			foreach ($fields as $key => $field)
+			{
+				$fields[$key] = $field->prepareDataForView();
+			}
+
+			$displayData->fields = $fields;
+		}
+
+		echo JLayoutHelper::render('previewcontent', $displayData, JPATH_NENO_LAYOUTS);
+
+		$app->close();
 	}
 
 	/**

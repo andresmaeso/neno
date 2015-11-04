@@ -51,6 +51,11 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 	protected $discovered;
 
 	/**
+	 * @var int
+	 */
+	public $recordCount;
+
+	/**
 	 * {@inheritdoc}
 	 *
 	 * @param   mixed $data          Table data
@@ -83,8 +88,27 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 			if ($loadExtraData)
 			{
 				$this->getWordCount();
+				$this->getRecordCount();
 			}
 		}
+	}
+
+	/**
+	 * Loads record count
+	 *
+	 * @return void
+	 */
+	protected function getRecordCount()
+	{
+		$db    = JFactory::getDbo();
+		$query = $db->getQuery(true);
+
+		$query
+			->select('COUNT(*) AS counter')
+			->from($db->quoteName($this->getTableName()));
+
+		$db->setQuery($query);
+		$this->recordCount = $db->loadResult();
 	}
 
 	/**
@@ -141,7 +165,7 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 
 				for ($i = 0; $i < count($fieldsInfo); $i++)
 				{
-					$fieldInfo        = $fieldsInfo[ $i ];
+					$fieldInfo        = $fieldsInfo[$i];
 					$fieldInfo->table = $this;
 					$field            = new NenoContentElementField($fieldInfo, $loadExtraData);
 
@@ -155,8 +179,7 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 		}
 		elseif ($onlyTranslatable)
 		{
-			$reArrange = false;
-			$fields    = array();
+			$fields = array();
 			/* @var $field NenoContentElementField */
 			foreach ($this->fields as $key => $field)
 			{
@@ -722,7 +745,7 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 							if ($field->getId() == $fieldId)
 							{
 								$reArrangeFields = true;
-								unset($this->fields[ $key ]);
+								unset($this->fields[$key]);
 								break;
 							}
 						}
@@ -842,5 +865,34 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 				$translation->remove();
 			}
 		}
+	}
+
+	/**
+	 * Loads random records from this table
+	 *
+	 * @param int $limit
+	 *
+	 * @return mixed
+	 */
+	public function getRandomContentFromTable($limit = 3)
+	{
+		$db    = JFactory::getDbo();
+		$query = $db->getQuery(true);
+
+		$this->getFields(false, true);
+
+		/* @var $field NenoContentElementField */
+		foreach ($this->fields as $field)
+		{
+			$query->select($db->quoteName($field->getFieldName()));
+		}
+
+		$query
+			->from($db->quoteName($this->getTableName()))
+			->order('RAND()');
+
+		$db->setQuery($query, 0, $limit);
+
+		return $db->loadObjectList();
 	}
 }
