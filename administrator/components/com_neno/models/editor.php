@@ -48,9 +48,7 @@ class NenoModelEditor extends NenoModelStrings
 	public function consolidateTranslations($translationId)
 	{
 		/* @var $translation NenoContentElementTranslation */
-		$translation = NenoContentElementTranslation::load($translationId);
-		$db          = JFactory::getDbo();
-		$query       = $db->getQuery(true);
+		$translation = NenoContentElementTranslation::load($translationId, false, true);
 
 		if (!empty($translation))
 		{
@@ -63,8 +61,14 @@ class NenoModelEditor extends NenoModelStrings
 						'_condition' => '<>',
 						'_value'     => $translation->getId()
 					)
-				)
+				),false,true
 			);
+
+			// Making sure that is an array
+			if (!is_array($translationsToConsolidate))
+			{
+				$translationsToConsolidate = array ($translationsToConsolidate);
+			}
 
 			/* @var $translationToConsolidate NenoContentElementTranslation */
 			foreach ($translationsToConsolidate as $translationToConsolidate)

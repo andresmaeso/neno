@@ -60,4 +60,4 @@ defined('_JEXEC') or die;
         </div>
     </div>
 </div>
-
+<?php echo NenoHelperBackend::renderVersionInfoBox(); ?>

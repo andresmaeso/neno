@@ -16,7 +16,8 @@ JHtml::_('behavior.multiselect');
 JHtml::_('formbehavior.chosen', 'select');
 
 // Include the CSS file
-JHtml::stylesheet('media/neno/css/admin.css');
+$version = NenoHelperBackend::getNenoVersion();
+JHtml::stylesheet('media/neno/css/admin.css?v=' . $version);
 
 // Joomla Component Creator code to allow adding non select list filters
 if (!empty($this->extraSidebar))
@@ -42,7 +43,7 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 		jQuery(".radio").off('change').on('change', function () {
 			jQuery.ajax({
 				beforeSend: onBeforeAjax,
-				url: 'index.php?option=com_neno&task=dashboard.toggleLanguage&language=' + jQuery(this).data('language')
+				url       : 'index.php?option=com_neno&task=dashboard.toggleLanguage&language=' + jQuery(this).data('language')
 			});
 		});
 
@@ -53,7 +54,7 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 				jQuery(this).closest('.language-wrapper').slideUp();
 				jQuery.ajax({
 					beforeSend: onBeforeAjax,
-					url: 'index.php?option=com_neno&task=removeLanguage&language=' + jQuery(this).data('language')
+					url       : 'index.php?option=com_neno&task=removeLanguage&language=' + jQuery(this).data('language')
 				});
 			}
 
@@ -65,46 +66,68 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 			e.preventDefault();
 			alert('<?php echo JText::_('COM_NENO_LANGUAGE_IS_NOT_READY_YET_MESSAGE'); ?>');
 		});
+
+		jQuery('.save-translator-comment').off('click').on('click', function () {
+			var language = jQuery(this).data('language');
+
+			jQuery.post(
+				'index.php?option=com_neno&task=saveExternalTranslatorsComment',
+				{
+					placement: 'language',
+					language : language,
+					comment  : jQuery(".comment-to-translator[data-language='" + language + "']").val()
+				},
+				function (response) {
+
+					if (response == 'ok') {
+						var text = '<?php echo JText::_('COM_NENO_COMMENTS_TO_TRANSLATOR_LANGUAGE_EDIT'); ?>';
+						text = text.replace('%s', language);
+						jQuery(".add-comment-to-translator-button[data-language='" + language + "']").html('<span class="icon-pencil"></span> ' + text);
+					}
+
+					jQuery('#addCommentFor' + language).modal('toggle');
+				}
+			);
+		});
+
+		jQuery('#publish-module').off('click').on('click', function () {
+			jQuery("input[name='task']").val('dashboard.publishSwitcher');
+			jQuery('#adminForm').submit();
+
+		})
 	}
 
 </script>
 
-
-<div id="j-sidebar-container" class="span2">
-	<?php echo $this->sidebar; ?>
-</div>
-<div id="j-main-container" class="span10">
-	<?php if (!$this->isLanguageSwitcherPublished): ?>
-		<div class="alert">
-			<form action="index.php?option=com_neno&task=dashboard.publishSwitcher" method="POST">
-				<h3><?php echo JText::_('COM_NENO_DASHBOARD_LANGUAGE_SWITCHER_NOT_PUBLISHED_H3'); ?></h3>
-
-				<p><?php echo JText::_('COM_NENO_DASHBOARD_LANGUAGE_SWITCHER_NOT_PUBLISHED_P1'); ?></p>
-
-				<p><?php echo JText::sprintf('COM_NENO_DASHBOARD_LANGUAGE_SWITCHER_NOT_PUBLISHED_P2', $this->positionField); ?></p>
-				<button class="btn btn-success">
-					<?php echo JText::_('COM_NENO_DASHBOARD_LANGUAGE_SWITCHER_NOT_PUBLISHED_PUBLISH_BUTTON'); ?>
-				</button>
-				<a href="index.php?option=com_neno&task=dashboard.doNotShowWarningMessage" class="btn">
-					<?php echo JText::_('COM_NENO_DASHBOARD_LANGUAGE_SWITCHER_NOT_PUBLISHED_DO_NOT_REMIND_ME_BUTTON'); ?>
-				</a>
-			</form>
-		</div>
-	<?php endif; ?>
-	<div class="languages-holder">
-		<?php foreach ($this->items as $item): ?>
-			<?php $item->placement = 'dashboard'; ?>
-			<?php echo JLayoutHelper::render('languageconfiguration', $item, JPATH_NENO_LAYOUTS); ?>
-		<?php endforeach; ?>
-		<button type="button" class="btn btn-primary"
-		        id="add-languages-button" <?php echo $this->canInstallLanguages ? '' : 'disabled'; ?>>
-			<?php echo JText::_('COM_NENO_INSTALLATION_TARGET_LANGUAGES_ADD_LANGUAGE_BUTTON'); ?>
-		</button>
+<form action="index.php?option=com_neno&view=dashboard" method="post" name="adminForm"
+	id="adminForm">
+	<div id="j-sidebar-container" class="span2">
+		<?php echo $this->sidebar; ?>
 	</div>
-</div>
+	<div id="j-main-container" class="span10">
+
+		<input type="hidden" name="task" value="" />
+		<input type="hidden" name="boxchecked" value="0" />
+		<?php echo JHtml::_('form.token'); ?>
+		<?php if (!$this->isLanguageSwitcherPublished): ?>
+			<?php echo JLayoutHelper::render('languageswitcheralert', $this->positionField, JPATH_NENO_LAYOUTS); ?>
+		<?php endif; ?>
+		<div class="languages-holder">
+			<?php foreach ($this->items as $item): ?>
+				<?php $item->placement = 'dashboard'; ?>
+				<?php echo JLayoutHelper::render('languageconfiguration', $item, JPATH_NENO_LAYOUTS); ?>
+			<?php endforeach; ?>
+			<button type="button" class="btn btn-primary"
+				id="add-languages-button">
+				<?php echo JText::_('COM_NENO_INSTALLATION_TARGET_LANGUAGES_ADD_LANGUAGE_BUTTON'); ?>
+			</button>
+		</div>
+	</div>
+</form>
 <div class="modal hide fade" id="languages-modal">
 	<div class="modal-header">
-		&nbsp;<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+		&nbsp;
+		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
 	</div>
 	<div class="modal-body" style="height: 400px"></div>
 	<div class="modal-footer">
@@ -132,8 +155,8 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 	jQuery('#add-languages-button').click(function () {
 		jQuery.ajax({
 			beforeSend: onBeforeAjax,
-			url: 'index.php?option=com_neno&task=showInstallLanguagesModal&placement=dashboard',
-			success: function (html) {
+			url       : 'index.php?option=com_neno&task=showInstallLanguagesModal&placement=dashboard',
+			success   : function (html) {
 				var modal = jQuery('#languages-modal');
 				modal.find('.modal-body').empty().append(html);
 				modal.find('.modal-header h3').html("<?php echo JText::_('COM_NENO_INSTALLATION_TARGET_LANGUAGES_LANGUAGE_MODAL_TITLE'); ?>");
@@ -142,3 +165,4 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 		});
 	})
 </script>
+<?php echo NenoHelperBackend::renderVersionInfoBox(); ?>

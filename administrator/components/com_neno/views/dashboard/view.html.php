@@ -34,11 +34,6 @@ class NenoViewDashboard extends JViewLegacy
 	protected $sidebar;
 
 	/**
-	 * @var bool
-	 */
-	protected $canInstallLanguages;
-
-	/**
 	 * @var string
 	 */
 	protected $extraSidebar;
@@ -68,7 +63,6 @@ class NenoViewDashboard extends JViewLegacy
 	{
 		$this->state                       = $this->get('State');
 		$this->items                       = $this->get('Items');
-		$this->canInstallLanguages         = $this->get('IsPossibleToInstallLanguage');
 		$this->isLanguageSwitcherPublished = $this->get('IsSwitcherPublished');
 
 		if (!$this->isLanguageSwitcherPublished)
@@ -88,6 +82,8 @@ class NenoViewDashboard extends JViewLegacy
 		$toolbar = JToolbar::getInstance();
 		$toolbar->addButtonPath(JPATH_NENO . '/button');
 		$toolbar->appendButton('TC', NenoHelperApi::getTCAvailable());
+
+		JToolbarHelper::custom('fixMenus', 'refresh', 'refresh', JText::_('COM_NENO_DASHBOARD_FIX_MENU_BUTTON'), false);
 
 		JToolBarHelper::title(JText::_('COM_NENO_DASHBOARD_TITLE'), 'screen');
 

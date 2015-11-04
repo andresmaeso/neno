@@ -99,6 +99,8 @@ class NenoControllerInstallation extends JControllerAdmin
 						$languagesData[$key]['placement']          = 'installation';
 						$languagesData[$key]['image']              = NenoHelper::getLanguageImage($knownLanguage['tag']);
 						$languagesData[$key]['published']          = NenoHelper::isLanguagePublished($knownLanguage['tag']);
+						$languagesData[$key]['comment']            = NenoHelper::getLanguageTranslatorComment($knownLanguage['tag']);
+
 
 						foreach ($defaultTranslationsMethods as $ordering => $defaultTranslationsMethod)
 						{
@@ -113,8 +115,7 @@ class NenoControllerInstallation extends JControllerAdmin
 					$db->execute();
 				}
 
-				$data->languages           = $languagesData;
-				$data->canInstallLanguages = true;
+				$data->languages = $languagesData;
 
 				break;
 			case 4:
@@ -327,6 +328,7 @@ class NenoControllerInstallation extends JControllerAdmin
 			}
 			else
 			{
+				/* @var $element NenoContentElementGroup */
 				$element->discoverElement();
 			}
 		}
@@ -390,6 +392,7 @@ class NenoControllerInstallation extends JControllerAdmin
 						$group = new NenoContentElementGroup(array ('group_name' => $extension['name']));
 					}
 
+					/* @var $group NenoContentElementGroup */
 					$group->addExtension($extension['extension_id']);
 
 					$extensionName = NenoHelper::getExtensionName($extension);

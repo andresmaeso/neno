@@ -30,6 +30,7 @@
     margin-left: -20px;
     margin-right: -20px;
     padding: 20px;
+    min-height: 70px;
 }
 .language-wrapper.language-dashboard .language-configuration {
     display: none;
@@ -41,6 +42,9 @@
 .language-wrapper .language-configuration button {
     float: right;
     margin-left: 2%;
+}
+.add-comment-to-translator-button {
+    float: right;
 }
 .language-wrapper .link-ge {
     line-height: 27px;
@@ -72,4 +76,17 @@ button.disabled {
 }
 .method-selectors .control-label {
     margin-top: 3px;
+}
+.modal {
+    width: 580px !important;
+    margin-left: -290px !important;
+    left: 50% !important;
+}
+.modal-body p,
+.modal-body h3 {
+    padding: 0 15px !important;
+}
+.modal-body textarea {
+    width: 98%;
+    height: 70px;
 }

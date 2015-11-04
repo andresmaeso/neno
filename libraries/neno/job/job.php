@@ -43,6 +43,11 @@ class NenoJob extends NenoObject
 	const JOB_STATE_NO_TC = 5;
 
 	/**
+	 * Status when the job has tried to be sent but the system is not ready yet
+	 */
+	const JOB_STATE_NOT_READY = 6;
+
+	/**
 	 * @var array
 	 */
 	public $translations;
@@ -118,16 +123,7 @@ class NenoJob extends NenoObject
 
 		if (!empty($this->translationMethod))
 		{
-			$db    = JFactory::getDbo();
-			$query = $db->getQuery(true);
-
-			$query
-				->select('*')
-				->from('#__neno_translation_methods')
-				->where('id = ' . (int) $this->translationMethod);
-
-			$db->setQuery($query);
-			$this->translationMethod = $db->loadObject();
+			$this->translationMethod = NenoHelper::getTranslationMethodById($this->translationMethod);
 		}
 	}
 
@@ -149,7 +145,7 @@ class NenoJob extends NenoObject
 			->select('id')
 			->from('#__neno_content_element_translations AS tr')
 			->where(
-				array (
+				array(
 					'language = ' . $db->quote($toLanguage),
 					'state = ' . NenoContentElementTranslation::NOT_TRANSLATED_STATE,
 					'EXISTS (SELECT 1 FROM #__neno_content_element_translation_x_translation_methods AS trtm WHERE tr.id = trtm.translation_id AND translation_method_id = ' . $translationMethod . ')',
@@ -164,7 +160,7 @@ class NenoJob extends NenoObject
 
 		if (!empty($translationObjects))
 		{
-			$jobData = array (
+			$jobData = array(
 				'fromLanguage'      => NenoSettings::get('source_language'),
 				'toLanguage'        => $toLanguage,
 				'state'             => self::JOB_STATE_GENERATED,
@@ -194,7 +190,7 @@ class NenoJob extends NenoObject
 		if (parent::persist())
 		{
 			$db = JFactory::getDbo();
-			/* @var $query NenoDatabaseQueryMysqli */
+			/* @var $query NenoDatabaseQueryMysqlx */
 			$query = $db->getQuery(true);
 
 			if (!empty($this->translations))
@@ -202,7 +198,7 @@ class NenoJob extends NenoObject
 				$query
 					->replace('#__neno_jobs_x_translations')
 					->columns(
-						array (
+						array(
 							'job_id',
 							'translation_id'
 						)
@@ -339,20 +335,21 @@ class NenoJob extends NenoObject
 		/* @var $zipAdapter JArchiveZip */
 		$zipAdapter = JArchive::getAdapter('zip');
 
-		file_put_contents(
-			JPATH_ROOT . '/tmp/' . $filename . '.json.zip',
-			fopen(NenoSettings::get('server_url') . 'tmp/' . NenoSettings::get('license_code') . '/' . $filename . '.json.zip', 'r')
-		);
+		$fullPath = JPATH_ROOT . '/tmp/' . $filename . '.json.zip';
+
+		// Check if the file has been downloaded properly
+		if (!NenoHelperApi::getJobFile($this->id, $fullPath))
+		{
+			return false;
+		}
 
 		try
 		{
-			return $zipAdapter->extract(
-				JPATH_ROOT . '/tmp/' . $filename . '.json.zip',
-				$tmpPath . '/' . $filename . '.json'
-			);
-		}
-		catch (RuntimeException $e)
+			return $zipAdapter->extract($fullPath, $tmpPath . '/' . $filename . '.json');
+		} catch (RuntimeException $e)
 		{
+			NenoLog::log($e->getMessage(), NenoLog::PRIORITY_ERROR, true);
+
 			return false;
 		}
 	}
@@ -384,16 +381,54 @@ class NenoJob extends NenoObject
 			foreach ($fileContents['strings'] as $translationId => $translationText)
 			{
 				/* @var $translation NenoContentElementTranslation */
-				$translation = NenoContentElementTranslation::load($translationId);
-				$translation
-					->setString($translationText)
-					->persist();
+				$translation = NenoContentElementTranslation::load($translationId, false, true);
+
+				if (!empty($translation))
+				{
+					$translation->setString(
+						NenoHelper::replaceTranslationsInHtmlTag($translation->getOriginalText(), html_entity_decode($translationText, ENT_COMPAT | ENT_HTML401, $this->getCorrectEncodingCharset($this->getToLanguage())))
+					);
+
+					// Mark this translation method as completed
+					$translation->markTranslationMethodAsCompleted($this->translationMethod->id);
+
+					if ($translation->isBeingCompleted())
+					{
+						$translation->setState(NenoContentElementTranslation::TRANSLATED_STATE);
+					}
+
+					// Saving translation
+					if ($translation->persist())
+					{
+						// Move translation to the target even if it's not completed. Machine => Professional || Professional => Manual
+						$translation->moveTranslationToTarget();
+					}
+				}
+			}
+
+			// Ensure the shadow tables of the target language have their language column (if there's any) properly set.
+			$tables = NenoContentElementTable::load(array('translate' => 1));
+
+			/* @var $table NenoContentElementTable */
+			foreach ($tables as $table)
+			{
+				$table->checkIntegrity($this->getToLanguage());
 			}
 
 			return true;
 		}
 
 		return false;
+	}
+
+	protected function getCorrectEncodingCharset($language)
+	{
+		$encoding = array(
+			'fr-FR' => 'ISO8859-15',
+			'es-ES' => 'ISO8859-15'
+		);
+
+		return isset($encoding[$language]) ? $encoding[$language] : 'UTF-8';
 	}
 
 	/**
@@ -408,8 +443,8 @@ class NenoJob extends NenoObject
 			->setSentTime(new DateTime)
 			->setState(self::JOB_STATE_SENT);
 
-		$data = array (
-			'filename'             => $this->getFileName() . '.json.zip',
+		$data = array(
+			'filename'             => JUri::root() . 'tmp/' . $this->getFileName() . '.json.zip',
 			'words'                => $this->getWordCount(),
 			'translation_method'   => NenoHelper::convertTranslationMethodIdToName($this->getTranslationMethod()->id),
 			'source_language'      => $this->getFromLanguage(),
@@ -424,9 +459,20 @@ class NenoJob extends NenoObject
 				->setSentTime(null)
 				->setState(self::JOB_STATE_GENERATED);
 
-			if ($response['code'] == 402)
+			if ($response['code'] !== 200)
 			{
-				$this->setState(self::JOB_STATE_NO_TC);
+				switch ($response['code'])
+				{
+					// System disabled
+					case 501:
+						$this->setState(self::JOB_STATE_NOT_READY);
+						break;
+					// More TC needed
+					case 402:
+						$this->setState(self::JOB_STATE_NO_TC);
+						break;
+				}
+
 			}
 		}
 
@@ -446,27 +492,30 @@ class NenoJob extends NenoObject
 	{
 		$filename = $this->getFileName();
 
-		$jobData = array (
+		$jobData = array(
 			'jobId'              => $this->getId(),
 			'job_create_time'    => $this->getCreatedTime(true),
 			'file_name'          => $filename,
 			'translation_method' => NenoHelper::convertTranslationMethodIdToName($this->getTranslationMethod()->id),
 			'from'               => $this->getFromLanguage(),
 			'to'                 => $this->getToLanguage(),
+			'comment'            => NenoSettings::get('external_translators_notes'),
+			'word_count'         => $this->getWordCount(),
+			'callback_url'       => JUri::root() . 'index.php?option=com_neno&task=translationReady&jobId=' . $this->getId(),
 			'strings'            => $this->getTranslations()
 		);
 
 		$config  = JFactory::getConfig();
 		$tmpPath = $config->get('tmp_path');
 
-		$fileData = array (
+		$fileData = array(
 			'name' => $filename . '.json',
 			'data' => json_encode($jobData)
 		);
 
 		/* @var $zipArchiveAdapter JArchiveZip */
 		$zipArchiveAdapter = JArchive::getAdapter('zip');
-		$result            = $zipArchiveAdapter->create($tmpPath . '/' . $filename . '.json.zip', array ($fileData));
+		$result            = $zipArchiveAdapter->create(JPATH_ROOT . DIRECTORY_SEPARATOR . 'tmp' . DIRECTORY_SEPARATOR . $filename . '.json.zip', array($fileData));
 
 		$this->fileName = $filename;
 
@@ -545,10 +594,11 @@ class NenoJob extends NenoObject
 			$query = $db->getQuery(true);
 			$query
 				->select(
-					array (
+					array(
 						't.id',
 						't.content_type',
-						't.content_id'
+						't.content_id',
+						't.comment'
 					)
 				)
 				->from('`#__neno_jobs_x_translations` AS jt')
@@ -556,7 +606,7 @@ class NenoJob extends NenoObject
 				->where('job_id = ' . $this->getId());
 			$db->setQuery($query);
 			$translations       = $db->loadAssocList();
-			$this->translations = array ();
+			$this->translations = array();
 
 			foreach ($translations as $translation)
 			{
@@ -565,7 +615,10 @@ class NenoJob extends NenoObject
 					$translation['content_type'],
 					$translation['content_id']
 				);
-				$this->translations[$translation['id']] = $translationOriginalText;
+				$this->translations[$translation['id']] = array(
+					'text'    => NenoHelper::splitHtmlText($translationOriginalText),
+					'comment' => $translation['comment']
+				);
 			}
 		}
 

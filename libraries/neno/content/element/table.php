@@ -41,7 +41,7 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 	protected $translate;
 
 	/**
-	 * @var array
+	 * @var array|null
 	 */
 	protected $fields;
 
@@ -67,11 +67,6 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 		$this->tableName = NenoHelper::unifyTableName($this->tableName);
 
 		$this->primaryKey = is_array($this->primaryKey) ? json_encode($this->primaryKey) : json_decode($this->primaryKey);
-
-		if (!is_array($data))
-		{
-			$data = get_object_vars($data);
-		}
 
 		if (!empty($data['groupId']) && $loadParent)
 		{
@@ -105,7 +100,7 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 	{
 		if ($this->fields === null || $onlyFieldsWithNoTranslations)
 		{
-			$this->fields = array ();
+			$this->fields = array();
 
 			if ($onlyFieldsWithNoTranslations)
 			{
@@ -116,7 +111,7 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 					->select('f.id')
 					->from('#__neno_content_element_fields AS f')
 					->where(
-						array (
+						array(
 							'f.table_id = ' . $this->getId(),
 							'NOT EXISTS (SELECT 1 FROM #__neno_content_element_translations AS tr WHERE tr.content_id = f.id AND tr.content_type = ' . $db->quote('db_string') . ')'
 						)
@@ -146,7 +141,7 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 
 				for ($i = 0; $i < count($fieldsInfo); $i++)
 				{
-					$fieldInfo        = $fieldsInfo[$i];
+					$fieldInfo        = $fieldsInfo[ $i ];
 					$fieldInfo->table = $this;
 					$field            = new NenoContentElementField($fieldInfo, $loadExtraData);
 
@@ -157,6 +152,21 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 					}
 				}
 			}
+		}
+		elseif ($onlyTranslatable)
+		{
+			$reArrange = false;
+			$fields    = array();
+			/* @var $field NenoContentElementField */
+			foreach ($this->fields as $key => $field)
+			{
+				if ($field->isTranslatable())
+				{
+					$fields[] = $field;
+				}
+			}
+
+			return $fields;
 		}
 
 		return $this->fields;
@@ -198,7 +208,7 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 
 			$query
 				->select(
-					array (
+					array(
 						'SUM(word_counter) AS counter',
 						'tr.state'
 					)
@@ -211,7 +221,7 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 					' AND tr.language LIKE ' . $db->quote($workingLanguage)
 				)
 				->where(
-					array (
+					array(
 						'f.table_id = ' . $this->getId(),
 						'f.translate = 1'
 					)
@@ -294,7 +304,7 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 	{
 		if (!is_array($this->primaryKey))
 		{
-			$this->primaryKey = json_decode($this->primaryKey);
+			$this->primaryKey = (array) json_decode($this->primaryKey);
 		}
 
 		return $this->primaryKey;
@@ -447,7 +457,12 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 		if ($this->translate)
 		{
 			// Check if there are children not discovered
-			$field = NenoContentElementField::load(array ('discovered' => 0, 'table_id' => $this->id, '_limit' => 1, 'translate' => 1));
+			$field = NenoContentElementField::load(array(
+				'discovered' => 0,
+				'table_id'   => $this->id,
+				'_limit'     => 1,
+				'translate'  => 1
+			));
 
 			if (!empty($field))
 			{
@@ -477,8 +492,9 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 	 */
 	public function persist()
 	{
-		// If the table has been marked as translatable, let's check for the content element file
-		if ($this->translate)
+		$isNew = $this->isNew();
+
+		if ($isNew && $this->translate)
 		{
 			$this->checkTranslatableStatusFromContentElementFile();
 		}
@@ -495,6 +511,12 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 			{
 				// Creates shadow tables and copy the content on it
 				$db->createShadowTables($this->tableName);
+
+				if (!$isNew)
+				{
+					// Sync existing tables,
+					$db->syncTable($this->tableName);
+				}
 			}
 
 			/* @var $field NenoContentElementField */
@@ -517,27 +539,13 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 							$db->deleteContentElementsFromSourceTableToShadowTables($this->tableName, $language->lang_code);
 						}
 					}
+
+					$db->setContentForAllLanguagesToSourceLanguage($this->tableName, $defaultLanguage);
 				}
 			}
 		}
 
 		return $result;
-	}
-
-	/**
-	 * Check if the table should be translatable
-	 *
-	 * @return void
-	 */
-	public function checkTranslatableStatusFromContentElementFile()
-	{
-		$filePath = JPATH_NENO . '/contentelements/' . str_replace('#__', '', $this->tableName) . '_contentelements.xml';
-
-		if (file_exists($filePath))
-		{
-			$xml             = simplexml_load_file($filePath);
-			$this->translate = ((int) $xml->translate) == 1;
-		}
 	}
 
 	/**
@@ -554,14 +562,51 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 	 * Mark this table as translatable/untranslatable
 	 *
 	 * @param   boolean $translate Translation status
+	 * @param   boolean $force     Force the status
 	 *
 	 * @return $this
 	 */
-	public function setTranslate($translate)
+	public function setTranslate($translate, $force = false)
 	{
 		$this->translate = $translate;
 
+		// If the table has been marked as translatable, let's check for the content element file
+		if ($this->translate && !$force)
+		{
+			$this->checkTranslatableStatusFromContentElementFile();
+		}
+
 		return $this;
+	}
+
+	/**
+	 * Check if the table should be translatable
+	 *
+	 * @return void
+	 */
+	public function checkTranslatableStatusFromContentElementFile()
+	{
+		$filePath = $this->getContentElementFilename();
+
+		if (file_exists($filePath))
+		{
+			$xml             = simplexml_load_file($filePath);
+			$this->translate = ((int) $xml->translate) == 1;
+		}
+		else // Let's have a look to the table name
+		{
+			$this->translate = !(int) preg_match('/(log_)|(_log)[^a-zA-Z1-9]/', $this->tableName);
+		}
+	}
+
+	/**
+	 * Get content element filename
+	 *
+	 * @return string
+	 */
+	public function getContentElementFilename()
+	{
+		return JPATH_NENO . '/contentelements/' . str_replace('#__', '', $this->tableName) . '_contentelements.xml';
 	}
 
 	/**
@@ -609,5 +654,193 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 		}
 
 		return $found;
+	}
+
+	/**
+	 * Get primary keys field
+	 *
+	 * @return array
+	 */
+	public function getPrimaryKeys()
+	{
+		$primaryKeys = array();
+
+		foreach ($this->primaryKey as $primaryKey)
+		{
+			$primaryKeys[] = NenoContentElementField::load(
+				array(
+					'field_name' => $primaryKey,
+					'table_id'   => $this->id
+				)
+			);
+		}
+
+		return $primaryKeys;
+	}
+
+	/**
+	 * Sync table hierarchy with the content in the database
+	 *
+	 * @return void
+	 */
+	public function sync()
+	{
+		/* @var $db NenoDatabaseDriverMysqlx */
+		$db = JFactory::getDbo();
+
+		$fieldNames = array_keys($db->getTableColumns($this->tableName));
+
+		$query = $db->getQuery(true);
+
+		$query
+			->select('id')
+			->from('#__neno_content_element_fields')
+			->where(
+				array(
+					'field_name NOT IN (' . implode(',', $db->quote($fieldNames)) . ')',
+					'table_id = ' . (int) $this->id
+				)
+			);
+
+		$db->setQuery($query);
+		$fieldIds        = $db->loadArray();
+		$reArrangeFields = false;
+
+		foreach ($fieldIds as $fieldId)
+		{
+			/* @var $field NenoContentElementField */
+			$field = NenoContentElementField::load($fieldId);
+
+			if (!empty($field))
+			{
+				if ($field->remove())
+				{
+					if (!empty($this->fields))
+					{
+						foreach ($this->fields as $key => $field)
+						{
+							if ($field->getId() == $fieldId)
+							{
+								$reArrangeFields = true;
+								unset($this->fields[ $key ]);
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if ($reArrangeFields)
+		{
+			$this->fields = array_values($this->fields);
+		}
+
+		$db->syncTable($this->tableName);
+	}
+
+	public function checkIntegrity($language = null)
+	{
+		/* @var $db NenoDatabaseDriverMysqlx */
+		$db           = JFactory::getDbo();
+		$tableColumns = array_keys($db->getTableColumns($this->tableName));
+
+		$languages = array();
+
+		// If a language was passed, get languages otherwise
+		if ($language !== null)
+		{
+			$languages[] = $language;
+		}
+		else
+		{
+			$languagesKnown = NenoHelper::getLanguages(false);
+
+			foreach ($languagesKnown as $languageKnown)
+			{
+				$languages[] = $languageKnown->lang_code;
+			}
+		}
+
+		if (in_array('language', $tableColumns))
+		{
+			foreach ($languages as $language)
+			{
+				$shadowTable = $db->generateShadowTableName($this->tableName, $language);
+
+				$query = $db->getQuery(true);
+				$query
+					->update($db->quoteName($shadowTable))
+					->set('language = ' . $db->quote($language));
+
+				$db->setQuery($query);
+				$db->execute();
+			}
+		}
+	}
+
+	/**
+	 * Apply filter to existing translations
+	 *
+	 * @return void
+	 */
+	public function applyFiltersToExistingContent()
+	{
+		$db    = JFactory::getDbo();
+		$query = $db->getQuery(true);
+
+		$query
+			->select('t.id')
+			->from('#__neno_content_element_translations AS t')
+			->where(
+				array(
+					't.content_type = ' . $db->quote('db_string'),
+					'EXISTS (SELECT 1 FROM #__neno_content_element_fields AS f ON t.content_id = f.id WHERE f.table_id = ' . (int) $this->id . ')'
+				)
+			);
+
+		$db->setQuery($query);
+		$translationIds = $db->loadColumn();
+
+		$query
+			->clear()
+			->select(
+				array(
+					'f.field_name AS field',
+					'comparaison_operator AS operator',
+					'filter_value AS value'
+				)
+			)
+			->from('#__neno_content_element_table_filters AS tf')
+			->innerJoin('#__neno_content_element_fields AS f ON tf.field_id = f.id')
+			->where('table_id = ' . (int) $this->id);
+
+		$db->setQuery($query);
+		$filters = $db->loadAssocList();
+
+		foreach ($translationIds as $translationId)
+		{
+			/* @var $translation NenoContentElementTranslation */
+			$translation = NenoContentElementTranslation::load($translationId, false, true);
+			$sqlQuery    = $translation->generateSQLStatement();
+
+			$sqlQuery
+				->clear('select')
+				->select('1');
+
+			foreach ($filters as $filter)
+			{
+				$query->where($db->quoteName($filter['field']) . ' ' . $filter['operator'] . ' ' . $filter['value']);
+			}
+
+			$db->setQuery($query);
+			$result = $db->loadResult();
+
+			// If the translation does not meet this requirements, let's delete it
+			if (empty($result))
+			{
+				$translation->remove();
+			}
+		}
 	}
 }

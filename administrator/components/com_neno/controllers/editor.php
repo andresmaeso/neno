@@ -30,7 +30,7 @@ class NenoControllerEditor extends NenoControllerStrings
 	{
 		$app             = JFactory::getApplication();
 		$input           = $app->input;
-		$text            = html_entity_decode($input->getHtml('text'));
+		$text            = html_entity_decode($input->getRaw('text'));
 		$workingLanguage = NenoHelper::getWorkingLanguage();
 		$defaultLanguage = NenoSettings::get('source_language');
 		$translator      = NenoSettings::get('translator');
@@ -38,8 +38,8 @@ class NenoControllerEditor extends NenoControllerStrings
 
 		try
 		{
-			/* @var $nenoTranslate NenoTranslateApi */
-			$nenoTranslate = NenoTranslateApi::getAdapter($translator);
+			/* @var $nenoTranslate NenoTranslatorApi */
+			$nenoTranslate = NenoTranslatorApi::getAdapter($translator);
 
 			try
 			{
@@ -77,13 +77,50 @@ class NenoControllerEditor extends NenoControllerStrings
 
 		if (!empty($translationId))
 		{
-			$translation = NenoContentElementTranslation::getTranslation($translationId);
+			$translation = NenoContentElementTranslation::getTranslation($translationId, true);
+
 			echo JLayoutHelper::render('editor', $translation->prepareDataForView(true), JPATH_NENO_LAYOUTS);
+            
+            //Show related
+            if (!empty($translation->related))
+            {
+                // Get the setting for load_related_content
+                $loadRelatedContent = NenoSettings::get('load_related_content');
+                echo JLayoutHelper::render('editorrelatedcontentheader', $loadRelatedContent, JPATH_NENO_LAYOUTS);
+                
+                if ($loadRelatedContent) {
+                    foreach($translation->related as $related)
+                    {
+                        echo JLayoutHelper::render('editor', $related->prepareDataForView(true), JPATH_NENO_LAYOUTS);
+                    }
+                }
+            }
 		}
 
 		JFactory::getApplication()->close();
 	}
 
+	/**
+	 * Get a translations
+	 *
+	 * @return void
+	 */
+	public function getTranslationNotes()
+	{
+		$input         = $this->input;
+		$translationId = $input->getInt('id');
+
+		if (!empty($translationId))
+		{
+			$translation = NenoContentElementTranslation::getTranslation($translationId);
+			echo JLayoutHelper::render('editornotetotranslator', $translation->prepareDataForView(true), JPATH_NENO_LAYOUTS);
+		}
+
+		JFactory::getApplication()->close();
+	}
+
+    
+    
 	/**
 	 * Save translation as draft
 	 *
@@ -109,15 +146,15 @@ class NenoControllerEditor extends NenoControllerStrings
 	/**
 	 * Save translation into the database
 	 *
-	 * @param   int      $translationId   Translation ID
-	 * @param   string   $translationText Translation Text
-	 * @param   int|bool $changeState     Translation status
+	 * @param   int    $translationId   Translation ID
+	 * @param   string $translationText Translation Text
+	 * @param   int    $changeState     Translation status
 	 *
 	 * @return bool
 	 *
 	 * @throws Exception
 	 */
-	protected function saveTranslation($translationId, $translationText, $changeState = false)
+	protected function saveTranslation($translationId, $translationText, $changeState)
 	{
 		/* @var $translation NenoContentElementTranslation */
 		$translation = NenoContentElementTranslation::load($translationId, false, true);
@@ -149,34 +186,61 @@ class NenoControllerEditor extends NenoControllerStrings
 	 *
 	 * @return void
 	 */
-	public function saveAsCompleted()
+	public function saveAllAsCompleted()
 	{
+        // Get input and turn it into an array with objects
 		$input           = $this->input;
-		$translationId   = $input->getInt('id');
-		$translationText = $input->get('text', '', 'RAW');
-
-		if ($this->saveTranslation($translationId, $translationText, NenoContentElementTranslation::TRANSLATED_STATE))
-		{
-			/* @var $translation NenoContentElementTranslation */
-			$translation = NenoContentElementTranslation::load($translationId, false);
-
-			$data = array (
-				'translation' => $translation->prepareDataForView()
-			);
-
-			$original_text = $translation->getOriginalText();
-
-			$model   = $this->getModel();
-			$counter = $model->getSimilarTranslationsCounter($translationId, $translation->getLanguage(), $original_text);
-
-			if ($counter != 0)
-			{
-				$data['message'] = JText::sprintf('COM_NENO_EDITOR_CONSOLIDATE_MESSAGE', $counter, NenoHelper::html2text($original_text, 200), NenoHelper::html2text($translationText, 200));
-				$data['counter'] = $counter;
-			}
-
-			echo json_encode($data);
-		}
+		$stringsJson = $input->get('strings', '', 'RAW');
+        $strings = json_decode($stringsJson);
+        
+        // Create an array to hold info about the translations
+        $messages = array();
+        
+        if (!empty($strings) && count($strings) > 0)
+        {
+            $checkedStrings = array();
+            foreach ($strings as $string)
+            {
+                // Save the translation
+                if ($this->saveTranslation($string->translation_id, $string->text, NenoContentElementTranslation::TRANSLATED_STATE))
+                {
+                    /* @var $translation NenoContentElementTranslation */
+                    $translation = NenoContentElementTranslation::load($string->translation_id, false);
+                    
+                    // Check for number of same translations to offer consolidation
+                    // Only check for one string once
+                    $counter = 0;
+                    $originalText = $translation->getOriginalText();
+                    if (in_array(strtolower(trim($originalText)), $checkedStrings) === false)
+                    {
+                        $checkedStrings[] = strtolower(trim($originalText));
+                        $model   = $this->getModel();
+                        $counter = $model->getSimilarTranslationsCounter($string->translation_id, $translation->getLanguage(), $originalText);
+                    }
+                    
+                    // If we found matches prepare data to return
+                    $message = array();
+                    if ($counter != 0)
+                    {
+                        $message['translation_id'] = $string->translation_id;
+                        $message['message'] = '<div><input type="checkbox" class="consolidate-checkbox" value="'.$string->translation_id.'" checked="checked"> '
+                                                .JText::sprintf('COM_NENO_EDITOR_CONSOLIDATE_MESSAGE', $counter, NenoHelper::html2text($originalText, 200), NenoHelper::html2text($string->text, 200))
+                                                .'</div>';
+                        $message['counter'] = $counter;
+                    }
+                    
+                    if ( ! empty($message))
+                    {
+                        $messages[] = $message;
+                    }
+                }                
+            }
+        }
+        
+        // Echo any messages
+        if (count($messages) > 0) {
+            echo json_encode($messages);
+        }
 
 		JFactory::getApplication()->close();
 	}
@@ -200,16 +264,23 @@ class NenoControllerEditor extends NenoControllerStrings
 	 *
 	 * @return void
 	 */
-	public function consolidateTranslation()
+	public function consolidateTranslations()
 	{
-		$input         = $this->input;
-		$translationId = $input->post->getInt('id');
-
-		if (!empty($translationId))
+		$input = $this->input;
+		$json_ids = $input->post->get('ids', '', 'RAW');
+        $ids = json_decode($json_ids);
+        
+		if (!empty($ids))
 		{
-			$model = $this->getModel();
-			$model->consolidateTranslations($translationId);
+			foreach ($ids as $id)
+            {
+                $model = $this->getModel();
+                $model->consolidateTranslations($id);
+            }
 		}
+        
+        exit;
+        
 	}
 
 	public function saveTranslatorConfig()
@@ -221,4 +292,23 @@ class NenoControllerEditor extends NenoControllerStrings
 		NenoSettings::set('translator', $translator);
 		NenoSettings::set('translator_api_key', $translatorKey);
 	}
+    
+    public function saveDefaultAction()
+    {
+		$input         = $this->input;
+		$action    = $input->get->getInt('action');
+		NenoSettings::set('default_translate_action', $action);
+    }
+    
+    
+    public function toggleShowRelated() {
+        
+        $currentState = NenoSettings::get('load_related_content');
+        $newState = 1 - $currentState;
+        NenoSettings::set('load_related_content', $newState);
+        exit();
+        
+    }
+    
+    
 }

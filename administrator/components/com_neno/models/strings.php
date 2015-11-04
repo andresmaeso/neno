@@ -135,7 +135,7 @@ class NenoModelStrings extends JModelList
 		if (!empty($elements))
 		{
 			$app->setUserState($this->context . '.filter.elements', $elements);
-			$this->setState('filter.group_id', array ());
+			//$this->setState('filter.group_id', array ());
 		}
 
 		$this->setState('filter.element', $app->getUserState($this->context . '.filter.elements'));
@@ -146,7 +146,7 @@ class NenoModelStrings extends JModelList
 		if (!empty($elements))
 		{
 			$app->setUserState($this->context . '.filter.files', $elements);
-			$this->setState('filter.group_id', array ());
+			//$this->setState('filter.group_id', array ());
 		}
 
 		$this->setState('filter.files', $app->getUserState($this->context . '.filter.files'));
@@ -207,8 +207,6 @@ class NenoModelStrings extends JModelList
 		$db              = JFactory::getDbo();
 		$workingLanguage = NenoHelper::getWorkingLanguage();
 
-		NenoLog::log('Querying #__neno_content_element_tables from getListQuery of NenoModelStrings', 3);
-
 		// Create a new query object.
 		$dbStrings           = parent::getListQuery();
 		$languageFileStrings = parent::getListQuery();
@@ -236,7 +234,7 @@ class NenoModelStrings extends JModelList
 			)
 			->group(
 				array (
-					'tr1.string',
+					'HEX(tr1.string)',
 					'tr1.state'
 				)
 			)
@@ -264,7 +262,7 @@ class NenoModelStrings extends JModelList
 			)
 			->group(
 				array (
-					'tr2.string',
+					'HEX(tr2.string)',
 					'tr2.state'
 				)
 			)
@@ -323,7 +321,6 @@ class NenoModelStrings extends JModelList
 			{
 				$languageFileStrings->select('g2.id AS group_id');
 				$dbStrings->select('g1.id AS group_id');
-				$groupIdAdded = true;
 			}
 
 			// Do not show any strings for this language file
@@ -373,8 +370,8 @@ class NenoModelStrings extends JModelList
 		// Hide empty strings if the user wants to do that
 		if (NenoSettings::get('hide_empty_strings', true))
 		{
-			$dbStrings->where('tr1.string <> ' . $db->quote(''));
-			$languageFileStrings->where('tr2.string <> ' . $db->quote(''));
+			$dbStrings->where('tr1.original_text <> ' . $db->quote(''));
+			$languageFileStrings->where('tr2.original_text <> ' . $db->quote(''));
 		}
 
 		$query = parent::getListQuery();

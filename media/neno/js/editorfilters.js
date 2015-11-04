@@ -11,37 +11,7 @@ jQuery(document).ready(function () {
     jQuery('#elements-wrapper').scroll(function(){
         var wrapper = jQuery(this);
         if(wrapper.scrollTop() + wrapper.innerHeight()>=wrapper[0].scrollHeight && wrapper.innerHeight() > 10) {
-            document.adminForm.limitstart.value = parseInt(document.adminForm.limitstart.value) + 30;
             loadStrings();
-        }
-    });
-
-    // Bind keyboard events
-    jQuery('body').on('keydown', function (e) {
-        var ev = e || window.event;
-
-        // Ctrl+S
-        if (ev.keyCode == 83 && e.ctrlKey) {
-            ev.preventDefault();
-            saveDraft();
-        }
-
-        // Ctrl+Enter
-        if (ev.keyCode == 13 && e.ctrlKey) {
-            ev.preventDefault();
-            saveTranslationAndNext();
-        }
-
-        // Ctrl+Space
-        if (ev.keyCode == 32 && e.ctrlKey) {
-            ev.preventDefault();
-            loadNextTranslation();
-        }
-
-        // Ctrl+→
-        if (ev.keyCode == 39 && e.ctrlKey && !e.shiftKey) {
-            ev.preventDefault();
-            copyOriginal();
         }
     });
 
@@ -70,6 +40,12 @@ jQuery(document).ready(function () {
         loadStrings(true);
     });
 
+    jQuery('#adminForm').off('submit').on('submit', function (e) {
+        var ev = e || window.event;
+        ev.preventDefault();
+        loadStrings(true);
+    });
+
     // Fit filters inside the sidebar
     jQuery(window).resize(function(){
        jQuery('#filter_search').width(jQuery('#j-sidebar-container').innerWidth() - jQuery('.submit-form').width() - 57);
@@ -83,10 +59,17 @@ jQuery(document).ready(function () {
     setResultsWrapperHeight();
 
     // Bind click event to close multiselects
-    jQuery('html').click(function(e){
-        var ev = e || window.event;
-        if(jQuery(ev.target).parents('.js-stools-container-filters').length == 0 && !jQuery(ev.target).hasClass('icon-arrow-down-3') && !jQuery(ev.target).hasClass('icon-arrow-right-3')) {
-            jQuery('.js-stools-container-filters .btn-toggle').each(function (e) {
+    // If you click anywhere else it closes
+    jQuery('html').click(function(ev){
+        
+        // To prevent fake jquery .click() from closing the box skip those
+        // http://stackoverflow.com/questions/6674669/in-jquery-how-can-i-tell-between-a-programmatic-and-user-click
+        if(ev.hasOwnProperty('originalEvent') === false) {
+            return;
+        }
+        
+        if(jQuery(ev.target).parents('.js-stools-container-filters').length === 0 && !jQuery(ev.target).hasClass('icon-arrow-down-3') && !jQuery(ev.target).hasClass('icon-arrow-right-3')) {
+            jQuery('.js-stools-container-filters .btn-toggle').each(function() {
                 if (jQuery(this).hasClass('open')){
                     jQuery('#' + jQuery(this).attr('data-toggle')).slideToggle('fast');
                     jQuery(this).toggleClass('open');
@@ -96,4 +79,14 @@ jQuery(document).ready(function () {
             setTimeout(setResultsWrapperHeight,500);
         }
     });
+
+    // Show sidebar if it's hidden
+    setTimeout(function(){
+        if (jQuery('#j-sidebar-container').hasClass('j-sidebar-hidden')) {
+            toggleSidebar(false);
+        }
+    }, 100);
+
+    // Bind click event in order to load translations
+    bindStringsTranslationsLoading();
 });

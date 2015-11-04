@@ -18,74 +18,86 @@ defined('_JEXEC') or die;
  */
 class NenoViewExternalTranslations extends JViewLegacy
 {
-	/**
-	 * @var array
-	 */
-	protected $items;
+    /**
+     * @var array
+     */
+    protected $items;
 
-	/**
-	 * @var Joomla\Registry\Registry
-	 */
-	protected $state;
+    /**
+     * @var Joomla\Registry\Registry
+     */
+    protected $state;
 
-	/**
-	 * @var string
-	 */
-	protected $sidebar;
+    /**
+     * @var string
+     */
+    protected $sidebar;
 
-	/**
-	 * @var int
-	 */
-	protected $tcNeeded;
+    /**
+     * @var int
+     */
+    protected $tcNeeded;
 
-	/**
-	 * @var string
-	 */
-	protected $extraSidebar;
+    /**
+     * @var string
+     */
+    protected $extraSidebar;
 
-	/**
-	 * Display the view
-	 *
-	 * @param   string $tpl Template
-	 *
-	 * @return void
-	 *
-	 * @throws Exception This will happen if there are errors during the process to load the data
-	 *
-	 * @since 1.0
-	 */
-	public function display($tpl = null)
-	{
-		$this->state    = $this->get('State');
-		$this->items    = $this->get('Items');
-		$this->tcNeeded = $this->get('TCNeeded');
+    /**
+     * @var string
+     */
+    protected $comment;
 
-		// Check for errors.
-		if (count($errors = $this->get('Errors')))
-		{
-			throw new Exception(implode("\n", $errors));
-		}
+    /**
+     * @var bool
+     */
+    protected $needsTc;
 
-		NenoHelperBackend::addSubmenu('externaltranslations');
-		$this->addToolbar();
+    /**
+     * Display the view
+     *
+     * @param   string $tpl Template
+     *
+     * @return void
+     *
+     * @throws Exception This will happen if there are errors during the process to load the data
+     *
+     * @since 1.0
+     */
+    public function display($tpl = null)
+    {
+        $this->state    = $this->get('State');
+        $this->items    = $this->get('Items');
+        $this->tcNeeded = $this->get('TCNeeded');
+        $this->comment  = $this->get('Comment');
+        $this->needsTc  = NenoHelperApi::getTCAvailable() < $this->tcNeeded;
 
-		$this->sidebar = JHtmlSidebar::render();
+        // Check for errors.
+        if (count($errors = $this->get('Errors')))
+        {
+            throw new Exception(implode("\n", $errors));
+        }
 
-		parent::display($tpl);
-	}
+        NenoHelperBackend::addSubmenu('externaltranslations');
+        $this->addToolbar();
 
-	/**
-	 * Add the page title and toolbar.
-	 *
-	 * @return void
-	 *
-	 * @since    1.6
-	 */
-	protected function addToolbar()
-	{
-		// Set sidebar action - New in 3.0
-		JHtmlSidebar::setAction('index.php?option=com_neno&view=externaltranslations');
+        $this->sidebar = JHtmlSidebar::render();
 
-		$this->extraSidebar = '';
-	}
+        parent::display($tpl);
+    }
+
+    /**
+     * Add the page title and toolbar.
+     *
+     * @return void
+     *
+     * @since    1.6
+     */
+    protected function addToolbar()
+    {
+        // Set sidebar action - New in 3.0
+        JHtmlSidebar::setAction('index.php?option=com_neno&view=externaltranslations');
+
+        $this->extraSidebar = '';
+    }
 }

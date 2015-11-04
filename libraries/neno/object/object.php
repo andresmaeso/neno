@@ -328,7 +328,6 @@ abstract class NenoObject
 	public function getProperties($allFields = false)
 	{
 		$classReflection  = $this->getClassReflectionObject();
-		$propertiesFilter = null;
 
 		if (!$allFields)
 		{

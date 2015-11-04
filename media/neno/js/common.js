@@ -4,180 +4,19 @@
  * @license     GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-function loadTranslation(string) {
-    var idString;
-    if (jQuery.type(string) == 'object') {
-        jQuery('.string-activated').removeClass('string-activated');
-        idString = string.data('id');
-    } else {
-        idString = string;
-    }
-    jQuery('div[data-id=' + idString + ']').addClass('string-activated');
 
-    // Get information
-    jQuery.ajax({
-            beforeSend: onBeforeAjax,
-            url: 'index.php?option=com_neno&task=editor.getTranslation&id=' + idString,
-            success: function (data) {
-                jQuery('#editor-wrapper').html(data);
-            }
-        }
-    );
+
+function highlightBox(selector) {
+    
+    jQuery(selector).addClass('highlighted-box');
+    setTimeout(function () {
+        jQuery(selector).removeClass('highlighted-box');
+    }, 500);    
+    
 }
 
-function loadNextTranslation() {
-    var nextString = jQuery('.string-activated').next('div').next('div');
-    if (nextString.length) {
-        loadTranslation(nextString);
-    }
-}
 
-function updateEditorString(row, data) {
-    if (jQuery('#input-status-' + data.state).prop('checked') || jQuery('#status-multiselect input:checked').length == 0) {
-        var string = data.string;
-        var statuses = ['', 'translated', 'queued', 'changed', 'not-translated'];
-        try {
-            var stringObject = jQuery(string);
-            if (stringObject.length) {
-                string = stringObject.text();
-            }
-        }
-        catch (err) {
-        }
-        if (string.length > 50) {
-            string = string.substr(0, 45) + '...';
-        }
-        row.find('.string-text').html(string);
-        row.find('.status').removeClass().addClass('status');
-        row.find('.status').addClass(statuses[data.state]);
-    } else {
-        loadNextTranslation();
-        row.remove();
-    }
-}
 
-function saveTranslationAndNext() {
-    var text = jQuery('.translated-content').val();
-    var translationId = jQuery('#save-next-button').data('id');
-    jQuery.ajax({
-            beforeSend: onBeforeAjax,
-            type: 'POST',
-            url: 'index.php?option=com_neno&task=editor.saveAsCompleted',
-            dataType: "json",
-            data: {
-                id: translationId,
-                text: text
-            },
-            success: function (data) {
-                if (typeof data.message != 'undefined') {
-                    jQuery('#consolidate-modal .modal-body p').html(data.message);
-                    jQuery('#consolidate-button').off('click').data('translation', translationId).on('click', function () {
-                        var translationId = jQuery(this).data('translation');
-                        jQuery.ajax({
-                                beforeSend: onBeforeAjax,
-                                type: 'POST',
-                                data: {
-                                    id: translationId
-                                },
-                                url: 'index.php?option=com_neno&task=editor.consolidateTranslation',
-                                success: function () {
-                                    jQuery('#consolidate-modal').modal('hide');
-                                    jQuery('#consolidate-confirm-modal .modal-body p span').html(data.counter);
-                                    jQuery('#consolidate-confirm-modal').modal('show');
-                                }
-                            }
-                        );
-                    });
-                    jQuery('#consolidate-modal').modal('show');
-                    jQuery('#consolidate-button').focus();
-                }
-                var row = jQuery('#elements-wrapper .string[data-id=' + data.translation.id + ']');
-                if (row.length) {
-                    updateEditorString(row, data.translation);
-                }
-                if (row.length && row[0] == jQuery('#elements-wrapper .string[data-id=' + data.translation.id + ']')[0]) {
-                    loadNextTranslation();
-                }
-            }
-        }
-    );
-}
-
-function saveDraft() {
-    var text = jQuery('.translated-content').val();
-    var translationId = jQuery('#draft-button').data('id');
-    jQuery.ajax({
-            beforeSend: onBeforeAjax,
-            type: 'POST',
-            url: 'index.php?option=com_neno&task=editor.saveAsDraft',
-            dataType: "json",
-            data: {
-                id: translationId,
-                text: text
-            },
-            success: function (data) {
-                var row = jQuery('#elements-wrapper .string[data-id=' + data.id + ']');
-                if (row) {
-                    updateEditorString(row, data);
-                }
-            }
-        }
-    );
-}
-
-function translate() {
-    var text = jQuery('.original-text').html().trim();
-    jQuery.ajax({
-            beforeSend: onBeforeAjax,
-            type: 'POST',
-            url: 'index.php?option=com_neno&task=editor.translate',
-            dataType: "json",
-            data: {
-                text: text
-            },
-            success: function (data) {
-                jQuery('.translated-content').val(data.text);
-                if (data.status == "err") {
-                    jQuery('.translated-error .error-message').html(data.error);
-                    jQuery('.translated-error').show();
-                }
-                jQuery('.translated-by').show();
-                jQuery('.translated-content').focus();
-            }
-        }
-    );
-}
-
-function askForTranslatorAPIKey() {
-    jQuery('#translate-btn').off('click').on('click', function () {
-        jQuery('#translatorKeyModal').modal('show');
-    });
-
-    jQuery('#saveTranslatorKey').off('click').on('click', function () {
-        var translator = jQuery('#translator').val();
-        var translatorKey = jQuery('#translator_api_key').val();
-        jQuery.ajax({
-                beforeSend: onBeforeAjax,
-                type: 'POST',
-                data: {
-                    translator: translator,
-                    translatorKey: translatorKey
-                },
-                url: 'index.php?option=com_neno&task=editor.saveTranslatorConfig',
-                success: function () {
-                    jQuery('#saveTranslatorKey').modal('hide');
-                    window.location.reload();
-                }
-            }
-        );
-    });
-
-    var options = {
-        html: true,
-        placement: "right"
-    }
-    jQuery('.settings-tooltip').tooltip(options);
-}
 
 // Check if the user has lost the session
 function onBeforeAjax() {
@@ -188,6 +27,9 @@ function onBeforeAjax() {
     });
 }
 
+/**
+ * Fixes issues with a language such as "language out of date" or "missing content"
+ */
 function fixIssue() {
     var button = jQuery(this);
     button.closest('.alert').remove();
@@ -267,31 +109,40 @@ function loadMissingTranslationMethodSelectors(listSelector, placement) {
         var selected_methods_string = '&selected_methods[]=' + jQuery(this).find(':selected').val();
         var lang = jQuery(this).closest(listSelector).data('language');
         var otherParams = '';
+        var element = jQuery(this);
 
         if (typeof lang != 'undefined') {
             otherParams = '&language=' + lang;
         }
 
         var modal = jQuery('#translationMethodModal');
-        var run = false;
-        var element = jQuery(this);
 
-        modal.find('.yes-btn').off('click').on('click', function () {
-            saveTranslationMethod(element.find(':selected').val(), lang, selector_id + 1, true);
-            run = true;
-            modal.modal('hide');
-            apply = true;
-        });
+        // There isn't a modal, so we are on the installation process setting up the translation method for the source language
+        if (modal.length == 0) {
+            executeAjaxForTranslationMethodSelectors(listSelector, 'general', n, selected_methods_string, element, otherParams);
+        }
+        else {
+            var run = modal.length == 0;
 
-        modal.off('hide').on('hide', function () {
-            if (!run) {
-                saveTranslationMethod(element.find(':selected').val(), lang, selector_id + 1, false);
-            }
 
-            executeAjaxForTranslationMethodSelectors(listSelector, placement, n, selected_methods_string, element, otherParams);
-        });
+            modal.modal('show');
+            modal.find('.yes-btn').off('click').on('click', function () {
+                saveTranslationMethod(element.find(':selected').val(), lang, selector_id + 1, true);
+                run = true;
+                modal.modal('hide');
+                apply = true;
+            });
 
-        modal.modal('show');
+            modal.off('hide').on('hide', function () {
+                if (!run) {
+                    saveTranslationMethod(element.find(':selected').val(), lang, selector_id + 1, false);
+                }
+
+                executeAjaxForTranslationMethodSelectors(listSelector, placement, n, selected_methods_string, element, otherParams);
+            });
+
+        }
+
     }
 }
 
@@ -314,20 +165,20 @@ function executeAjaxForTranslationMethodSelectors(listSelector, placement, n, se
                 }
             }
 
-            jQuery('.translation-method-selector').off('change').on('change', loadMissingTranslationMethodSelectors);
             jQuery('select').chosen();
+            jQuery('.translation-method-selector').off('change').on('change', loadMissingTranslationMethodSelectors);
             var container = element.parents('.language-configuration');
             var select1 = element.parents(listSelector).find("[data-selector-container-id='1']");
             if (select1.length) {
                 if (!container.hasClass('expanded')) {
-                    container.height(
-                        container.height() + 26
+                    container.css('min-height',
+                        parseInt(container.css('min-height')) + 60
                     );
                     container.addClass('expanded');
                 }
             } else if (container.hasClass('expanded')) {
-                container.height(
-                    container.height() - 26
+                container.css('min-height',
+                    parseInt(container.css('min-height')) - 60
                 );
                 container.removeClass('expanded');
             }
@@ -353,17 +204,6 @@ function saveTranslationMethod(translationMethod, language, ordering, applyToEle
             applyToElements: applyToElements
         }
     });
-}
-
-function copyOriginal() {
-    var original = jQuery('.original-text').html().trim();
-    original = original.replace(/<span class="highlighted-tag">|<\/span>/g, '');
-    original = original.replace(/&lt;/g, '<');
-    original = original.replace(/&gt;/g, '>');
-    jQuery('.translated-content').val(original);
-    jQuery('.translated-by').hide();
-    jQuery('.translated-error').hide();
-    jQuery('.translated-content').focus();
 }
 
 function setResultsWrapperHeight() {

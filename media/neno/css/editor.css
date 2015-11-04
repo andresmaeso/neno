@@ -1,19 +1,19 @@
-.original-text {
-    /*width: 100% !important;
-    max-width: 100%;*/
+.editor-buttons {
+    height: 80px;
 }
 
-.original-text,
+.original-content,
 .translated-content {
-    min-height: 500px;
-    padding: 5% !important;
-    width: 90% !important;
-    max-width: 90%;
+    display: none;
 }
 
-.original-text {
-    word-break: break-word;
-    white-space: normal !important;
+.main-translation-div {
+    margin-left: 20px;
+    margin-bottom: 20px;
+}
+
+.below-lefteditor, .below-righteditor {
+    height: 42px;
 }
 
 button .small-text {
@@ -85,8 +85,15 @@ button .normal-text {
 .translated-error,
 .translated-by,
 .last-modified {
-    color: #aaa;
+    color: #bbb;
     font-style: italic;
+    margin-bottom: 5px;
+    font-size: 11px;
+}
+
+.last-modified,
+.add-comment-to-translator {
+    display: none;
 }
 
 .translated-error,
@@ -107,8 +114,6 @@ button .normal-text {
     overflow-y: scroll !important;
 }
 .breadcrumbs {
-    font-size: 16px;
-    padding: 15px 0;
     color: #888;
 }
 .breadcrumbs .icon-unpublish:before{
@@ -119,10 +124,12 @@ button .normal-text {
 }
 
 .breadcrumbs .gt {
-    font-size: 12px;
+    font-size: 10px;
     color: #ccc;
-    margin: 0 10px;
+    margin: 0 5px;
 }
+
+
 .highlighted-tag {
     color: #87AEC5;
 }
@@ -148,3 +155,83 @@ button .normal-text {
 td.setting-label {
     width: 50% !important;
 }
+
+.highlighted-box {
+    border-color: rgba(82,168,236,0.8) !important;
+    outline: 0 !important;
+    outline: thin dotted \9 !important;
+    -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(82,168,236,.6) !important;
+    -moz-box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(82,168,236,.6) !important;
+    box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(82,168,236,.6) !important;
+}
+
+.lefteditor-wrapper .CodeMirror {
+    background-color: #F5F5F5;
+}
+
+#related-content-header {
+    margin-left: -12px;
+}
+
+/**
+* Add note to translators link and modal
+*/
+
+.add-comment-to-translator {
+    float: left;
+    font-size: 12px;
+}
+
+.add-comment-to-translator a {
+    color: #aaa;
+    border-bottom: 1px dashed #aaa;
+}
+.add-comment-to-translator a:hover {
+    text-decoration: none;
+}
+
+
+.comment-modal .modal-body p,
+.comment-modal .modal-body h3 {
+    padding: 0 15px !important;
+}
+
+.comment-modal .modal-body textarea {
+    width: 98%;
+    height: 70px;
+}
+.comment-modal .modal-footer input {
+    float: left;
+    margin: 2px 7px 0 0;
+}
+.comment-modal .modal-footer p {
+    float: left;
+    text-align: left;
+    margin-bottom: 0;
+}
+.comment-modal .modal-footer label {
+    margin-bottom: 0;
+}
+.comment-modal .modal-footer .comment-breadcrumbs {
+    margin-left: 21px;
+    color: #666;
+}
+
+.editor-loading {
+    background-image: url('../images/ajax-loader.gif');
+    background-repeat: no-repeat;
+    background-position: 40px 40px;
+}
+
+/**
+* CodeMirror
+*/
+.CodeMirror {
+    border: 1px solid #E3E3E3;
+    font-size: 16px;
+    height: auto;
+    margin: 4px 0;
+    padding: 4px;
+}
+
+

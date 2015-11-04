@@ -16,440 +16,453 @@ defined('_JEXEC') or die;
  */
 class NenoContentElementLanguageString extends NenoContentElement implements NenoContentElementInterface
 {
-	/**
-	 * @var NenoContentElementLanguageFile
-	 */
-	protected $languageFile;
+    /**
+     * @var NenoContentElementLanguageFile
+     */
+    protected $languageFile;
 
-	/**
-	 * @var string
-	 */
-	protected $constant;
+    /**
+     * @var string
+     */
+    protected $constant;
 
-	/**
-	 * @var String
-	 */
-	protected $string;
+    /**
+     * @var String
+     */
+    protected $string;
 
-	/**
-	 * @var DateTime
-	 */
-	protected $timeAdded;
+    /**
+     * @var DateTime|string
+     */
+    protected $timeAdded;
 
-	/**
-	 * @var DateTime
-	 */
-	protected $timeChanged;
+    /**
+     * @var DateTime
+     */
+    protected $timeChanged;
 
-	/**
-	 * @var DateTime
-	 */
-	protected $timeDeleted;
+    /**
+     * @var DateTime
+     */
+    protected $timeDeleted;
 
-	/**
-	 * @var array
-	 */
-	protected $translations;
+    /**
+     * @var array|null
+     */
+    protected $translations;
 
-	/**
-	 * @var bool
-	 */
-	protected $discovered;
+    /**
+     * @var bool
+     */
+    protected $discovered;
 
-	/**
-	 * Constructor
-	 *
-	 * @param   mixed $data          Language string data
-	 * @param   bool  $loadExtraData If extra data should be loaded
-	 * @param   bool  $loadParent    If the parent should be loaded
-	 */
-	public function __construct($data, $loadExtraData = false, $loadParent = false)
-	{
-		parent::__construct($data);
-		$this->translations = null;
-		$data               = (array) $data;
+    /**
+     * @var string
+     */
+    protected $comment;
 
-		if ($this->isNew())
-		{
-			$this->timeAdded = new DateTime;
-		}
-		else
-		{
-			if (!$this->timeAdded instanceof DateTime)
-			{
-				$this->timeAdded = new DateTime($this->timeAdded);
-			}
-		}
+    /**
+     * Constructor
+     *
+     * @param   mixed $data Language string data
+     * @param   bool $loadExtraData If extra data should be loaded
+     * @param   bool $loadParent If the parent should be loaded
+     */
+    public function __construct($data, $loadExtraData = false, $loadParent = false)
+    {
+        parent::__construct($data);
+        $this->translations = null;
+        $data = (array)$data;
 
-		if ($loadParent)
-		{
-			$this->languageFile = NenoContentElementLanguageFile::load($data['languagefileId'], $loadExtraData, $loadParent);
-		}
-	}
+        if ($this->isNew()) {
+            $this->timeAdded = new DateTime;
+        } else {
+            if (!$this->timeAdded instanceof DateTime) {
+                $this->timeAdded = new DateTime($this->timeAdded);
+            }
+        }
 
-	/**
-	 * Get the time when the string was discovered
-	 *
-	 * @return DateTime
-	 */
-	public function getTimeAdded()
-	{
-		return $this->timeAdded;
-	}
+        if ($loadParent) {
+            $this->languageFile = NenoContentElementLanguageFile::load($data['languagefileId'], $loadExtraData, $loadParent);
+        }
+    }
 
-	/**
-	 * Set the time when the string was discovered
-	 *
-	 * @param   DateTime $timeAdded Discover time
-	 *
-	 * @return $this
-	 */
-	public function setTimeAdded($timeAdded)
-	{
-		$this->timeAdded = $timeAdded;
+    /**
+     * Get comment
+     *
+     * @return string
+     */
+    public function getComment()
+    {
+        return $this->comment;
+    }
 
-		return $this;
-	}
+    /**
+     * Set comment
+     *
+     * @param string $comment Comment
+     *
+     * @return $this
+     */
+    public function setComment($comment)
+    {
+        $this->comment = $comment;
 
-	/**
-	 * Get the time when the string was changed (if it has been changed)
-	 *
-	 * @return DateTime
-	 */
-	public function getTimeChanged()
-	{
-		return $this->timeChanged;
-	}
+        return $this;
+    }
 
-	/**
-	 * Set the time when the string changed
-	 *
-	 * @param   DateTime $timeChanged When the string has changed
-	 *
-	 * @return $this
-	 */
-	public function setTimeChanged($timeChanged)
-	{
-		$this->timeChanged = $timeChanged;
+    /**
+     * Get the time when the string was discovered
+     *
+     * @return DateTime
+     */
+    public function getTimeAdded()
+    {
+        return $this->timeAdded;
+    }
 
-		return $this;
-	}
+    /**
+     * Set the time when the string was discovered
+     *
+     * @param   DateTime $timeAdded Discover time
+     *
+     * @return $this
+     */
+    public function setTimeAdded($timeAdded)
+    {
+        $this->timeAdded = $timeAdded;
 
-	/**
-	 * {@inheritdoc}
-	 *
-	 * @param   bool $allFields         Allows to show all the fields
-	 * @param   bool $recursive         Convert this method in recursive
-	 * @param   bool $convertToDatabase Convert property names to database
-	 *
-	 * @return stdClass
-	 */
-	public function toObject($allFields = false, $recursive = false, $convertToDatabase = true)
-	{
-		$data = parent::toObject($allFields, $recursive, $convertToDatabase);
+        return $this;
+    }
 
-		if (!empty($this->languageFile))
-		{
-			$data->languagefile_id = $this->languageFile->getId();
-		}
+    /**
+     * Get the time when the string was changed (if it has been changed)
+     *
+     * @return DateTime
+     */
+    public function getTimeChanged()
+    {
+        return $this->timeChanged;
+    }
 
-		if ($this->timeAdded instanceof DateTime)
-		{
-			$this->timeAdded = $this->timeAdded->format('Y-m-d H:i:s');
-		}
+    /**
+     * Set the time when the string changed
+     *
+     * @param   DateTime $timeChanged When the string has changed
+     *
+     * @return $this
+     */
+    public function setTimeChanged($timeChanged)
+    {
+        $this->timeChanged = $timeChanged;
 
-		return $data;
-	}
+        return $this;
+    }
 
-	/**
-	 * Get the time when the string
-	 *
-	 * @return DateTime
-	 */
-	public function getTimeDeleted()
-	{
-		return $this->timeDeleted;
-	}
+    /**
+     * {@inheritdoc}
+     *
+     * @param   bool $allFields Allows to show all the fields
+     * @param   bool $recursive Convert this method in recursive
+     * @param   bool $convertToDatabase Convert property names to database
+     *
+     * @return stdClass
+     */
+    public function toObject($allFields = false, $recursive = false, $convertToDatabase = true)
+    {
+        $data = parent::toObject($allFields, $recursive, $convertToDatabase);
 
-	/**
-	 * Set the time when the string has been deleted
-	 *
-	 * @param   Datetime $timeDeleted Time when the string was deleted
-	 *
-	 * @return $this
-	 */
-	public function setTimeDeleted(DateTime $timeDeleted)
-	{
-		$this->timeDeleted = $timeDeleted;
+        if (!empty($this->languageFile)) {
+            $data->languagefile_id = $this->languageFile->getId();
+        }
 
-		return $this;
-	}
+        if ($this->timeAdded instanceof DateTime) {
+            $this->timeAdded = $this->timeAdded->format('Y-m-d H:i:s');
+        }
 
-	/**
-	 * Set that the content has changed
-	 *
-	 * @return $this
-	 */
-	public function contentHasChanged()
-	{
-		parent::contentHasChanged();
-		$this->timeChanged = new DateTime;
+        return $data;
+    }
 
-		return $this;
-	}
+    /**
+     * Get the time when the string
+     *
+     * @return DateTime
+     */
+    public function getTimeDeleted()
+    {
+        return $this->timeDeleted;
+    }
 
-	/**
-	 * {@inheritdoc}
-	 *
-	 * @return bool
-	 */
-	public function remove()
-	{
-		$translations = $this->getTranslations();
+    /**
+     * Set the time when the string has been deleted
+     *
+     * @param   Datetime $timeDeleted Time when the string was deleted
+     *
+     * @return $this
+     */
+    public function setTimeDeleted(DateTime $timeDeleted)
+    {
+        $this->timeDeleted = $timeDeleted;
 
-		/* @var $translation NenoContentElementTranslation */
-		foreach ($translations as $translation)
-		{
-			$translation->remove();
-		}
+        return $this;
+    }
 
-		return parent::remove();
-	}
+    /**
+     * Set that the content has changed
+     *
+     * @return $this
+     */
+    public function contentHasChanged()
+    {
+        parent::contentHasChanged();
+        $this->timeChanged = new DateTime;
 
-	/**
-	 * Get translations
-	 *
-	 * @return array
-	 */
-	public function getTranslations()
-	{
-		if ($this->translations == null)
-		{
-			$this->translations = NenoContentElementTranslation::getTranslations($this);
-		}
+        return $this;
+    }
 
-		return $this->translations;
-	}
+    /**
+     * {@inheritdoc}
+     *
+     * @return bool
+     */
+    public function remove()
+    {
+        $translations = $this->getTranslations();
 
-	/**
-	 * Set translations
-	 *
-	 * @param   array $translations Translations
-	 *
-	 * @return $this
-	 */
-	public function setTranslations(array $translations)
-	{
-		$this->translations = $translations;
+        /* @var $translation NenoContentElementTranslation */
+        foreach ($translations as $translation) {
+            $translation->remove();
+        }
 
-		return $this;
-	}
+        return parent::remove();
+    }
 
-	/**
-	 * Discover the element
-	 *
-	 * @return bool True on success
-	 */
-	public function discoverElement()
-	{
-		NenoHelper::setSetupState(
-			JText::sprintf('COM_NENO_INSTALLATION_MESSAGE_PARSING_GROUP_TABLE_FIELD', $this->getLanguageFile()->getGroup()->getGroupName(), $this->getLanguageFile()->getFilename(), $this->getConstant()),
-			3
-		);
+    /**
+     * Get translations
+     *
+     * @return array
+     */
+    public function getTranslations()
+    {
+        if ($this->translations == null) {
+            $this->translations = NenoContentElementTranslation::getTranslations($this);
+        }
 
-		if ($this->persistTranslations())
-		{
-			$this
-				->setDiscovered(true)
-				->persist();
-		}
-	}
+        return $this->translations;
+    }
 
-	/**
-	 * Get language file
-	 *
-	 * @return NenoContentElementLanguagefile
-	 */
-	public function getLanguageFile()
-	{
-		return $this->languageFile;
-	}
+    /**
+     * Set translations
+     *
+     * @param   array $translations Translations
+     *
+     * @return $this
+     */
+    public function setTranslations(array $translations)
+    {
+        $this->translations = $translations;
 
-	/**
-	 * Set group
-	 *
-	 * @param   NenoContentElementLanguageFile $languageFile Language file
-	 *
-	 * @return $this
-	 */
-	public function setLanguageFile(NenoContentElementLanguageFile $languageFile)
-	{
-		$this->languageFile = $languageFile;
+        return $this;
+    }
 
-		return $this;
-	}
+    /**
+     * Discover the element
+     *
+     * @return bool True on success
+     */
+    public function discoverElement()
+    {
+        NenoHelper::setSetupState(
+            JText::sprintf('COM_NENO_INSTALLATION_MESSAGE_PARSING_GROUP_TABLE_FIELD', $this->getLanguageFile()->getGroup()->getGroupName(), $this->getLanguageFile()->getFilename(), $this->getConstant()),
+            3
+        );
 
-	/**
-	 * Get the constant that identifies the string
-	 *
-	 * @return string
-	 */
-	public function getConstant()
-	{
-		return $this->constant;
-	}
+        if ($this->persistTranslations()) {
+            $this
+                ->setDiscovered(true)
+                ->persist();
+        }
+    }
 
-	/**
-	 * Set the constant that identifies the string
-	 *
-	 * @param   string $constant Constant
-	 *
-	 * @return $this
-	 */
-	public function setConstant($constant)
-	{
-		$this->constant = $constant;
+    /**
+     * Get language file
+     *
+     * @return NenoContentElementLanguagefile
+     */
+    public function getLanguageFile()
+    {
+        return $this->languageFile;
+    }
 
-		return $this;
-	}
+    /**
+     * Set group
+     *
+     * @param   NenoContentElementLanguageFile $languageFile Language file
+     *
+     * @return $this
+     */
+    public function setLanguageFile(NenoContentElementLanguageFile $languageFile)
+    {
+        $this->languageFile = $languageFile;
 
-	/**
-	 * Persist translations
-	 *
-	 * @param   string|null $language A language tag to persist only for language, null to persist on all the language known
-	 *
-	 * @return bool True on success
-	 */
-	public function persistTranslations($language = null)
-	{
-		// If it doesn't have translations
-		if (empty($this->translations))
-		{
-			$this->translations = NenoContentElementTranslation::getTranslations($this);
-		}
+        return $this;
+    }
 
-		if (empty($this->translations))
-		{
-			$commonData = array (
-				'contentType' => NenoContentElementTranslation::LANG_STRING,
-				'element'     => $this,
-				'contentId'   => $this->getId(),
-				'state'       => NenoContentElementTranslation::NOT_TRANSLATED_STATE,
-				'string'      => $this->getString(),
-				'timeAdded'   => new DateTime
-			);
+    /**
+     * Get the constant that identifies the string
+     *
+     * @return string
+     */
+    public function getConstant()
+    {
+        return $this->constant;
+    }
 
-			if ($language != null)
-			{
-				$languageData            = new stdClass;
-				$languageData->lang_code = $language;
-				$languages               = array ($languageData);
-			}
-			else
-			{
-				$languages = NenoHelper::getLanguages();
-			}
+    /**
+     * Set the constant that identifies the string
+     *
+     * @param   string $constant Constant
+     *
+     * @return $this
+     */
+    public function setConstant($constant)
+    {
+        $this->constant = $constant;
 
-			$defaultLanguage    = NenoSettings::get('source_language');
-			$this->translations = array ();
+        return $this;
+    }
 
-			foreach ($languages as $language)
-			{
-				if ($defaultLanguage !== $language->lang_code)
-				{
-					// If the string is empty or is a number, let's mark as translated.
-					$string = $this->getString();
+    /**
+     * Persist translations
+     *
+     * @param   string|null $language A language tag to persist only for language, null to persist on all the language known
+     *
+     * @return bool True on success
+     */
+    public function persistTranslations($language = null)
+    {
+        // If it doesn't have translations
+        if (empty($this->translations)) {
+            $this->translations = NenoContentElementTranslation::getTranslations($this);
+        }
 
-					// If the string is empty or is a number, let's mark as translated.
-					if (empty($string['string']) || is_numeric($string['string']))
-					{
-						$commonData['state'] = NenoContentElementTranslation::TRANSLATED_STATE;
-					}
-					else
-					{
-						$commonData['state'] = NenoContentElementTranslation::NOT_TRANSLATED_STATE;
-					}
+        if (empty($this->translations)) {
+            $commonData = array(
+                'contentType' => NenoContentElementTranslation::LANG_STRING,
+                'element' => $this,
+                'contentId' => $this->getId(),
+                'state' => NenoContentElementTranslation::NOT_TRANSLATED_STATE,
+                'string' => $this->getString(),
+                'timeAdded' => new DateTime,
+                'comment' => $this->comment
+            );
 
-					$commonData['language'] = $language->lang_code;
-					$translation            = new NenoContentElementTranslation($commonData);
+            if ($language !== null) {
+                $languageData = new stdClass;
+                $languageData->lang_code = $language;
+                $languages = array($languageData);
+            } else {
+                $languages = NenoHelper::getLanguages(false);
+            }
 
-					// If the translation does not exists already, let's add it
-					if (!$translation->existsAlready())
-					{
-						$translation->persist();
-						$this->translations[] = $translation;
-					}
-				}
-			}
-		}
-		elseif ($this->hasChanged)
-		{
-			for ($i = 0; $i < count($this->translations); $i++)
-			{
-				/* @var $translation NenoContentElementTranslation */
-				$translation = $this->translations[$i];
+            $defaultLanguage = NenoSettings::get('source_language');
+            $this->translations = array();
+            $languageFilename = $this->getLanguageFile()->getFilename();
 
-				// If the state is queued or translate, let's mark it as out of sync
-				if (in_array(
-					$translation->getState(),
-					array (NenoContentElementTranslation::QUEUED_FOR_BEING_TRANSLATED_STATE, NenoContentElementTranslation::TRANSLATED_STATE)
-				))
-				{
-					$translation->setState(NenoContentElementTranslation::SOURCE_CHANGED_STATE);
-				}
+            foreach ($languages as $language) {
+                if ($defaultLanguage !== $language->lang_code) {
+                    // If the string is empty or is a number, let's mark as translated.
+                    $string = $this->getString();
 
-				$this->translations[$i] = $translation;
-			}
-		}
+                    // Check if this string already exists in other language file
+                    $StringTranslation = NenoHelper::existsStringInsideOfLanguageFile(str_replace($defaultLanguage, $language->lang_code, $languageFilename), $this->getConstant());
 
-		return true;
-	}
+                    if ($StringTranslation !== false) {
+                        $commonData['state'] = NenoContentElementTranslation::TRANSLATED_STATE;
+                        $commonData['string'] = $StringTranslation;
+                    } elseif (empty($string) || is_numeric($string)) // If the string is empty or is a number, let's mark as translated.
+                    {
+                        $commonData['state'] = NenoContentElementTranslation::TRANSLATED_STATE;
+                    } else {
+                        $commonData['state'] = NenoContentElementTranslation::NOT_TRANSLATED_STATE;
+                    }
 
-	/**
-	 * Get the string
-	 *
-	 * @return String
-	 */
-	public function getString()
-	{
-		return $this->string;
-	}
 
-	/**
-	 * Get the string
-	 *
-	 * @param   string $string String
-	 *
-	 * @return $this
-	 */
-	public function setString($string)
-	{
-		$this->string = $string;
+                    $commonData['language'] = $language->lang_code;
+                    $translation = new NenoContentElementTranslation($commonData);
 
-		return $this;
-	}
+                    // If the translation does not exists already, let's add it
+                    if (!$translation->existsAlready()) {
+                        $translation->persist();
+                        $this->translations[] = $translation;
+                    }
+                }
+            }
+        } elseif ($this->hasChanged) {
+            for ($i = 0; $i < count($this->translations); $i++) {
+                /* @var $translation NenoContentElementTranslation */
+                $translation = $this->translations[$i];
 
-	/**
-	 * Check if the field has been discovered already
-	 *
-	 * @return boolean
-	 */
-	public function isDiscovered()
-	{
-		return $this->discovered;
-	}
+                // If the state is queued or translate, let's mark it as out of sync
+                if (in_array(
+                    $translation->getState(),
+                    array(NenoContentElementTranslation::QUEUED_FOR_BEING_TRANSLATED_STATE, NenoContentElementTranslation::TRANSLATED_STATE)
+                )) {
+                    $translation->setState(NenoContentElementTranslation::SOURCE_CHANGED_STATE);
+                }
 
-	/**
-	 * Set discovered flag
-	 *
-	 * @param   boolean $discovered Discovered flag
-	 *
-	 * @return $this
-	 */
-	public function setDiscovered($discovered)
-	{
-		$this->discovered = $discovered;
+                $this->translations[$i] = $translation;
+            }
+        }
 
-		return $this;
-	}
+        return true;
+    }
+
+    /**
+     * Get the string
+     *
+     * @return String
+     */
+    public function getString()
+    {
+        return $this->string;
+    }
+
+    /**
+     * Get the string
+     *
+     * @param   string $string String
+     *
+     * @return $this
+     */
+    public function setString($string)
+    {
+        $this->string = $string;
+
+        return $this;
+    }
+
+    /**
+     * Check if the field has been discovered already
+     *
+     * @return boolean
+     */
+    public function isDiscovered()
+    {
+        return $this->discovered;
+    }
+
+    /**
+     * Set discovered flag
+     *
+     * @param   boolean $discovered Discovered flag
+     *
+     * @return $this
+     */
+    public function setDiscovered($discovered)
+    {
+        $this->discovered = $discovered;
+
+        return $this;
+    }
 }

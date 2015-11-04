@@ -32,7 +32,7 @@ class NenoHelperApi
 
 		if ($status !== false && is_array($userData))
 		{
-			return empty($userData['tcAvailable']) ? 0 : $userData['tcAvailable'];
+			return empty($userData['response']['tcAvailable']) ? 0 : $userData['response']['tcAvailable'];
 		}
 
 		return 0;
@@ -47,7 +47,7 @@ class NenoHelperApi
 	 *
 	 * @return array
 	 */
-	public static function makeApiCall($apiCall, $method = 'GET', $parameters = array ())
+	public static function makeApiCall($apiCall, $method = 'GET', $parameters = array())
 	{
 		self::getHttp();
 
@@ -64,34 +64,44 @@ class NenoHelperApi
 			{
 				if ($method === 'get')
 				{
-					$apiResponse = self::$httpClient->{$method}($apiEndpoint . $apiCall, array ('Authorization' => $licenseCode), $parameters);
+					if (!empty($parameters))
+					{
+						$query   = implode('/', $parameters);
+						$apiCall = $apiCall . '/' . $query;
+					}
+
+					$apiResponse = self::$httpClient->{$method}($apiEndpoint . $apiCall, array('Authorization' => $licenseCode));
 				}
 				else
 				{
 					$apiResponse = self::$httpClient->{$method}(
 						$apiEndpoint . $apiCall,
 						json_encode($parameters),
-						array (
+						array(
 							'Content-Type'  => 'application/json',
 							'Authorization' => $licenseCode
 						)
 					);
 				}
 
+				/* @var $apiResponse JHttpResponse */
+				$data = $apiResponse->body;
+
+				if ($apiResponse->headers['Content-Type'] === 'application/json')
+				{
+					$data = json_decode($data, true);
+				}
+
+				$response = $data;
+
 				if ($apiResponse->code == 200)
 				{
-					$data = json_decode($apiResponse->body, true);
-
-					if (!empty($data['response']))
-					{
-						$response       = $data['response'];
-						$responseStatus = true;
-					}
+					$responseStatus = true;
 				}
 			}
 		}
 
-		return array ($responseStatus, $response);
+		return array($responseStatus, $response);
 	}
 
 	/**
@@ -105,5 +115,29 @@ class NenoHelperApi
 		{
 			self::$httpClient = JHttpFactory::getHttp();
 		}
+	}
+
+	/**
+	 * Download Job file from the API
+	 *
+	 * @param int    $jobId    Job ID
+	 * @param string $filePath File path where the file is going to be saved
+	 *
+	 * @return bool
+	 */
+	public static function getJobFile($jobId, $filePath)
+	{
+		list($status, $fileContents) = self::makeApiCall('job', 'GET', array((int) $jobId));
+
+		if ($status)
+		{
+			file_put_contents($filePath, $fileContents);
+		}
+		else
+		{
+			NenoLog::log($fileContents, NenoLog::PRIORITY_ERROR, true);
+		}
+
+		return $status;
 	}
 }

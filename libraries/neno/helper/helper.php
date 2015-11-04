@@ -19,6 +19,11 @@ defined('_JEXEC') or die;
 class NenoHelper
 {
 	/**
+	 * @var array
+	 */
+	protected static $menuModuleReplicated = array();
+
+	/**
 	 * Set the working language on the currently logged in user
 	 *
 	 * @param   string $lang 'en-GB' or 'de-DE'
@@ -37,7 +42,7 @@ class NenoHelper
 		$query
 			->replace('#__user_profiles')
 			->set(
-				array (
+				array(
 					'profile_value = ' . $db->quote($lang),
 					'profile_key = ' . $db->quote('neno_working_language'),
 					'user_id = ' . intval($userId)
@@ -61,7 +66,7 @@ class NenoHelper
 	 */
 	public static function convertStdClassArrayToJObjectArray(array $objectList)
 	{
-		$jObjectList = array ();
+		$jObjectList = array();
 
 		foreach ($objectList as $object)
 		{
@@ -80,7 +85,7 @@ class NenoHelper
 	 */
 	public static function convertNenoObjectListToJObjectList(array $objectList)
 	{
-		$jObjectList = array ();
+		$jObjectList = array();
 
 		/* @var $object NenoObject */
 		foreach ($objectList as $object)
@@ -115,7 +120,7 @@ class NenoHelper
 	{
 		$prefix = JFactory::getDbo()->getPrefix();
 
-		return $prefix . str_replace(array ('com_'), '', strtolower($componentName));
+		return $prefix . str_replace(array( 'com_' ), '', strtolower($componentName));
 	}
 
 	/**
@@ -128,7 +133,7 @@ class NenoHelper
 	 */
 	public static function convertOnePropertyObjectListToArray($objectList, $propertyName = null)
 	{
-		$arrayResult = array ();
+		$arrayResult = array();
 
 		if (!empty($objectList))
 		{
@@ -158,7 +163,7 @@ class NenoHelper
 	 */
 	public static function convertOnePropertyArrayToSingleArray($objectList, $propertyName = null)
 	{
-		$arrayResult = array ();
+		$arrayResult = array();
 
 		if (!empty($objectList))
 		{
@@ -171,7 +176,7 @@ class NenoHelper
 
 			foreach ($objectList as $object)
 			{
-				$arrayResult[] = $object[$propertyName];
+				$arrayResult[] = $object[ $propertyName ];
 			}
 		}
 
@@ -219,11 +224,11 @@ class NenoHelper
 	 */
 	public static function convertDatabaseArrayToClassArray(array $databaseArray)
 	{
-		$objectData = array ();
+		$objectData = array();
 
 		foreach ($databaseArray as $fieldName => $fieldValue)
 		{
-			$objectData[self::convertDatabaseColumnNameToPropertyName($fieldName)] = $fieldValue;
+			$objectData[ self::convertDatabaseColumnNameToPropertyName($fieldName) ] = $fieldValue;
 		}
 
 		return $objectData;
@@ -244,11 +249,11 @@ class NenoHelper
 		// If there are word left, let's capitalize them.
 		if (!empty($nameParts))
 		{
-			$nameParts = array_merge(array ($firstWord), array_map('ucfirst', $nameParts));
+			$nameParts = array_merge(array( $firstWord ), array_map('ucfirst', $nameParts));
 		}
 		else
 		{
-			$nameParts = array ($firstWord);
+			$nameParts = array( $firstWord );
 		}
 
 		return implode('', $nameParts);
@@ -272,7 +277,7 @@ class NenoHelper
 		}
 		else
 		{
-			$group = new NenoContentElementGroup(array ('group_name' => $extension['name']));
+			$group = new NenoContentElementGroup(array( 'group_name' => $extension['name'] ));
 		}
 
 		$group->addExtension($extension['extension_id']);
@@ -401,7 +406,13 @@ class NenoHelper
 		// If there is a template, let's try to get those files
 		if (!empty($template))
 		{
-			$overwriteFiles = JFolder::files(JPATH_ROOT . "/templates/$template/language/$defaultLanguage/", $languageFilePattern);
+			$templateLanguageFilesPath = JPATH_ROOT . "/templates/$template/language/$defaultLanguage/";
+			$overwriteFiles            = false;
+
+			if (file_exists($templateLanguageFilesPath))
+			{
+				$overwriteFiles = JFolder::files(JPATH_ROOT . "/templates/$template/language/$defaultLanguage/", $languageFilePattern);
+			}
 
 			if ($overwriteFiles !== false)
 			{
@@ -409,7 +420,7 @@ class NenoHelper
 			}
 		}
 
-		$languageFiles = array ();
+		$languageFiles = array();
 
 		foreach ($languageFilesPath as $languageFilePath)
 		{
@@ -420,7 +431,7 @@ class NenoHelper
 				if (self::isLanguageFileAlreadyDiscovered($languageFilePath))
 				{
 					$languageFile = NenoContentElementLanguageFile::load(
-						array (
+						array(
 							'filename' => $languageFilePath
 						)
 					);
@@ -428,7 +439,7 @@ class NenoHelper
 				else
 				{
 					$languageFile = new NenoContentElementLanguageFile(
-						array (
+						array(
 							'filename'  => $languageFilePath,
 							'extension' => $extensionName
 						)
@@ -460,7 +471,7 @@ class NenoHelper
 			->select('template')
 			->from('#__template_styles')
 			->where(
-				array (
+				array(
 					'home = 1',
 					'client_id = 0'
 				)
@@ -484,7 +495,7 @@ class NenoHelper
 	{
 		$fileParts = explode('.', $languageFileName);
 
-		$result = self::removeCoreLanguageFilesFromArray(array ($languageFileName), $fileParts[0]);
+		$result = self::removeCoreLanguageFilesFromArray(array( $languageFileName ), $fileParts[0]);
 
 		return empty($result);
 	}
@@ -501,7 +512,7 @@ class NenoHelper
 	{
 		// Get all the language files from Joomla core extensions based on a particular language
 		$coreFiles  = self::getJoomlaCoreLanguageFiles($language);
-		$validFiles = array ();
+		$validFiles = array();
 
 		// Filter
 		foreach ($files as $file)
@@ -538,14 +549,14 @@ class NenoHelper
 			)
 			->from('#__extensions')
 			->where(
-				array (
+				array(
 					'extension_id < 10000',
 					'type IN (' . implode(',', $db->quote($extensions)) . ')'
 				)
 			);
 
 		$db->setQuery($query);
-		$joomlaCoreLanguageFiles = array_merge($db->loadArray(), array ($language . '.ini'));
+		$joomlaCoreLanguageFiles = array_merge($db->loadArray(), array( $language . '.ini' ));
 
 		return $joomlaCoreLanguageFiles;
 	}
@@ -557,7 +568,7 @@ class NenoHelper
 	 */
 	public static function whichExtensionsShouldBeTranslated()
 	{
-		return array (
+		return array(
 			'component',
 			'module',
 			'plugin',
@@ -601,14 +612,14 @@ class NenoHelper
 	{
 		/* @var $db NenoDatabaseDriverMysqlx */
 		$db     = JFactory::getDbo();
-		$tables = $db->getComponentTables($tablePattern === null ? $group->getGroupName() : $tablePattern);
+		$tables = $group->isOtherGroup() ? NenoHelperBackend::getTablesNotDiscovered() : $db->getComponentTables($tablePattern === null ? $group->getGroupName() : $tablePattern);
 
-		$result = array ();
+		$result = array();
 
 		for ($i = 0; $i < count($tables); $i++)
 		{
 			// Get Table name
-			$tableName     = self::unifyTableName($tables[$i]);
+			$tableName     = self::unifyTableName($tables[ $i ]);
 			$table         = null;
 			$tablesIgnored = self::getDoNotTranslateTables();
 
@@ -616,36 +627,14 @@ class NenoHelper
 			{
 				if (!self::isTableAlreadyDiscovered($tableName))
 				{
-					// Create an array with the table information
-					$tableData = array (
-						'tableName'  => $tableName,
-						'primaryKey' => $db->getPrimaryKey($tableName),
-						'translate'  => 1,
-						'group'      => $group
-					);
-
-					// Create ContentElement object
-					$table = new NenoContentElementTable($tableData);
-
-					// Get all the columns a table contains
-					$fields = $db->getTableColumns($table->getTableName());
-
-					foreach ($fields as $fieldName => $fieldType)
-					{
-						$fieldData = array (
-							'fieldName' => $fieldName,
-							'fieldType' => $fieldType,
-							'translate' => NenoContentElementField::isTranslatableType($fieldType),
-							'table'     => $table
-						);
-
-						$field = new NenoContentElementField($fieldData);
-						$table->addField($field);
-					}
+					$table = self::createTableInstance($tableName, $group);
 				}
 				elseif ($includeDiscovered)
 				{
-					$table = NenoContentElementTable::load(array ('table_name' => $tableName, 'group_id' => $group->getId()));
+					$table = NenoContentElementTable::load(array(
+						'table_name' => $tableName,
+						'group_id'   => $group->getId()
+					));
 				}
 			}
 
@@ -659,6 +648,48 @@ class NenoHelper
 	}
 
 	/**
+	 * Create Table instance
+	 *
+	 * @param string                  $tableName Table name
+	 * @param NenoContentElementGroup $group     Group
+	 *
+	 * @return NenoContentElementTable
+	 */
+	public static function createTableInstance($tableName, NenoContentElementGroup $group)
+	{
+		/* @var $db NenoDatabaseDriverMysqlx */
+		$db = JFactory::getDbo();
+		// Create an array with the table information
+		$tableData = array(
+			'tableName'  => $tableName,
+			'primaryKey' => $db->getPrimaryKey($tableName),
+			'translate'  => !$group->isOtherGroup(),
+			'group'      => $group
+		);
+
+		// Create ContentElement object
+		$table = new NenoContentElementTable($tableData);
+
+		// Get all the columns a table contains
+		$fields = $db->getTableColumns($table->getTableName());
+
+		foreach ($fields as $fieldName => $fieldType)
+		{
+			$fieldData = array(
+				'fieldName' => $fieldName,
+				'fieldType' => $fieldType,
+				'translate' => NenoContentElementField::isTranslatableType($fieldType),
+				'table'     => $table
+			);
+
+			$field = new NenoContentElementField($fieldData);
+			$table->addField($field);
+		}
+
+		return $table;
+	}
+
+	/**
 	 * Converts a table name to the Joomla table naming convention: #__table_name
 	 *
 	 * @param   string $tableName Table name
@@ -669,7 +700,7 @@ class NenoHelper
 	{
 		$prefix = JFactory::getDbo()->getPrefix();
 
-		return '#__' . str_replace(array ($prefix, '#__'), '', $tableName);
+		return '#__' . preg_replace('/^(' . $prefix . '|#__)/', '', $tableName);
 	}
 
 	/**
@@ -679,7 +710,7 @@ class NenoHelper
 	 */
 	public static function getDoNotTranslateTables()
 	{
-		return array (
+		return array(
 			'#__contentitem_tag_map',
 			'#__content_frontpage',
 			'#__content_rating',
@@ -764,7 +795,7 @@ class NenoHelper
 
 		$query
 			->select(
-				array (
+				array(
 					'DISTINCT lang',
 					'translation_method_id',
 					'ordering'
@@ -813,7 +844,7 @@ class NenoHelper
 				->clear()
 				->insert('#__neno_installation_messages')
 				->columns(
-					array (
+					array(
 						'message',
 						'type',
 						'percent',
@@ -842,11 +873,11 @@ class NenoHelper
 		{
 			if ($prepend)
 			{
-				$array[$i] = $string . $array[$i];
+				$array[ $i ] = $string . $array[ $i ];
 			}
 			else
 			{
-				$array[$i] = $array[$i] . $string;
+				$array[ $i ] = $array[ $i ] . $string;
 			}
 		}
 	}
@@ -863,7 +894,7 @@ class NenoHelper
 		jimport('joomla.filesystem.file');
 		$pathParts = explode('/', $filePath);
 
-		return JFile::stripExt($pathParts[count($pathParts) - 1]);
+		return JFile::stripExt($pathParts[ count($pathParts) - 1 ]);
 	}
 
 	/**
@@ -905,7 +936,7 @@ class NenoHelper
 	 */
 	public static function getGroups($loadExtraData = true, $avoidDoNotTranslate = false)
 	{
-		$cacheId   = NenoCache::getCacheId(__FUNCTION__, array (1));
+		$cacheId   = NenoCache::getCacheId(__FUNCTION__, array( 1 ));
 		$cacheData = NenoCache::getCacheData($cacheId);
 
 		if ($cacheData === null)
@@ -915,7 +946,7 @@ class NenoHelper
 			$query = $db->getQuery(true);
 
 			$subquery1   = $db->getQuery(true);
-			$arrayWhere1 = array ('t.group_id = g.id');
+			$arrayWhere1 = array( 't.group_id = g.id' );
 
 			if ($avoidDoNotTranslate)
 			{
@@ -937,12 +968,17 @@ class NenoHelper
 				->select('g.id')
 				->from('`#__neno_content_element_groups` AS g')
 				->where(
-					array (
+					array(
 						'EXISTS (' . (string) $subquery1 . ')',
 						'EXISTS (' . (string) $subquery2 . ')',
 						'(NOT EXISTS (' . (string) $subquery1 . ') AND NOT EXISTS (' . (string) $subquery2 . ') AND NOT EXISTS(SELECT 1 FROM #__neno_content_element_groups_x_extensions AS ge WHERE g.id = ge.group_id))'
 					), 'OR')
-				->order('group_name');
+				->order(
+					array(
+						'IFNULL((SELECT DISTINCT 1 FROM #__neno_content_element_groups_x_translation_methods AS gtm WHERE gtm.group_id = g.id) ,0)',
+						'group_name'
+					)
+				);
 
 			$db->setQuery($query);
 			$groups = $db->loadObjectList();
@@ -951,16 +987,16 @@ class NenoHelper
 
 			for ($i = 0; $i < $countGroups; $i++)
 			{
-				$group              = NenoContentElementGroup::getGroup($groups[$i]->id, $loadExtraData);
+				$group              = NenoContentElementGroup::getGroup($groups[ $i ]->id, $loadExtraData);
 				$translationMethods = $group->getAssignedTranslationMethods();
 
 				if ($avoidDoNotTranslate && empty($translationMethods))
 				{
-					unset ($groups[$i]);
+					unset ($groups[ $i ]);
 					continue;
 				}
 
-				$groups[$i] = $group;
+				$groups[ $i ] = $group;
 			}
 
 			NenoCache::setCacheData($cacheId, $groups);
@@ -985,7 +1021,7 @@ class NenoHelper
 
 		$query
 			->select(
-				array (
+				array(
 					'id',
 					'name_constant'
 				)
@@ -994,7 +1030,7 @@ class NenoHelper
 
 		$db->setQuery($query);
 		$methods            = $db->loadObjectList('id');
-		$translationMethods = array ();
+		$translationMethods = array();
 
 		if ($type != 'list')
 		{
@@ -1004,7 +1040,7 @@ class NenoHelper
 		{
 			foreach ($methods as $id => $methodData)
 			{
-				$translationMethods[$id] = JText::_($methodData->name_constant);
+				$translationMethods[ $id ] = JText::_($methodData->name_constant);
 			}
 		}
 
@@ -1024,7 +1060,7 @@ class NenoHelper
 		$string = htmlspecialchars($string);
 		$ending = '';
 
-		if ($truncate)
+		if ($truncate !== null)
 		{
 			$parts       = preg_split('/([\s\n\r]+)/', $string, null, PREG_SPLIT_DELIM_CAPTURE);
 			$parts_count = count($parts);
@@ -1033,7 +1069,7 @@ class NenoHelper
 
 			for (; $last_part < $parts_count; ++$last_part)
 			{
-				$length += mb_strlen($parts[$last_part]);
+				$length += mb_strlen($parts[ $last_part ]);
 
 				if ($length - 3 > $truncate)
 				{
@@ -1071,73 +1107,17 @@ class NenoHelper
 		if ($cachedData === null)
 		{
 			/* @var $db NenoDatabaseDriverMysqlX */
-			$db     = JFactory::getDbo();
-			$query  = $db->getQuery(true);
-			$string = null;
+			$db    = JFactory::getDbo();
+			$query = $db->getQuery(true);
 
-			$query
-				->select('content_id')
-				->from('#__neno_content_element_translations')
-				->where('id = ' . $translationId);
-
-			$db->setQuery($query);
-			$translationElementId = (int) $db->loadResult();
+			$translationElementId = self::getContentIdByTranslationId($translationId);
 
 			// If the translation comes from database content, let's load it
 			if ($translationType == NenoContentElementTranslation::DB_STRING)
 			{
-				$queryCacheId   = NenoCache::getCacheId('originalTextQuery', array ($translationElementId));
-				$queryCacheData = NenoCache::getCacheData($queryCacheId);
-
-				if ($queryCacheData === null)
-				{
-					$query
-						->clear()
-						->select(
-							array (
-								'f.field_name',
-								't.table_name'
-							)
-						)
-						->from('`#__neno_content_element_fields` AS f')
-						->innerJoin('`#__neno_content_element_tables` AS t ON f.table_id = t.id')
-						->where('f.id = ' . $translationElementId);
-
-					$db->setQuery($query);
-					$row = $db->loadRow();
-					NenoCache::setCacheData($queryCacheId, $row);
-					$queryCacheData = $row;
-				}
-
-				list($fieldName, $tableName) = $queryCacheData;
-
-				$query
-					->clear()
-					->select(
-						array (
-							'f.field_name',
-							'ft.value',
-						)
-					)
-					->from('`#__neno_content_element_fields_x_translations` AS ft')
-					->innerJoin('`#__neno_content_element_fields` AS f ON f.id = ft.field_id')
-					->where('ft.translation_id = ' . $translationId);
-
-				$db->setQuery($query);
-				$whereValues = $db->loadAssocList('field_name');
-
-				$query
-					->clear()
-					->select($db->quoteName($fieldName))
-					->from($tableName);
-
-				foreach ($whereValues as $whereField => $where)
-				{
-					$query->where($db->quoteName($whereField) . ' = ' . $db->quote($where['value']));
-				}
-
-				$db->setQuery($query);
-				$string = $db->loadResult();
+				list($fieldName, $tableName) = self::getOriginalText($translationElementId);
+				$whereValues = self::getWhereValuesForTranslation($translationId);
+				$string      = self::getFieldContentFromTranslationData($fieldName, $tableName, $whereValues);
 			}
 			else
 			{
@@ -1156,6 +1136,115 @@ class NenoHelper
 		}
 
 		return $cachedData;
+	}
+
+	public static function getContentIdByTranslationId($translationId)
+	{
+		$cacheId = NenoCache::getCacheId(__FUNCTION__, func_get_args());
+
+		if (NenoCache::getCacheData($cacheId) === null)
+		{
+			/* @var $db NenoDatabaseDriverMysqlX */
+			$db    = JFactory::getDbo();
+			$query = $db->getQuery(true);
+
+			$query
+				->select('content_id')
+				->from('#__neno_content_element_translations')
+				->where('id = ' . $translationId);
+
+			$db->setQuery($query);
+			$translationElementId = (int) $db->loadResult();
+
+			NenoCache::setCacheData($cacheId, $translationElementId);
+		}
+
+		return NenoCache::getCacheData($cacheId);
+	}
+
+	public static function getOriginalText($translationElementId)
+	{
+		$cacheId = NenoCache::getCacheId(__FUNCTION__, func_get_args());
+
+		if (NenoCache::getCacheData($cacheId) === null)
+		{
+			$db    = JFactory::getDbo();
+			$query = $db->getQuery(true);
+
+			$query
+				->clear()
+				->select(
+					array(
+						'f.field_name',
+						't.table_name'
+					)
+				)
+				->from('`#__neno_content_element_fields` AS f')
+				->innerJoin('`#__neno_content_element_tables` AS t ON f.table_id = t.id')
+				->where('f.id = ' . $translationElementId);
+
+			$db->setQuery($query);
+			$row = $db->loadRow();
+			NenoCache::setCacheData($cacheId, $row);
+		}
+
+		return NenoCache::getCacheData($cacheId);
+	}
+
+	public static function getWhereValuesForTranslation($translationId)
+	{
+		$cacheId = NenoCache::getCacheId(__FUNCTION__, func_get_args());
+
+		if (NenoCache::getCacheData($cacheId) === null)
+		{
+			$db    = JFactory::getDbo();
+			$query = $db->getQuery(true);
+			$query
+				->clear()
+				->select(
+					array(
+						'f.field_name',
+						'ft.value',
+					)
+				)
+				->from('`#__neno_content_element_fields_x_translations` AS ft')
+				->innerJoin('`#__neno_content_element_fields` AS f ON f.id = ft.field_id')
+				->where('ft.translation_id = ' . $translationId);
+
+			$db->setQuery($query);
+			$whereValues = $db->loadAssocList('field_name');
+
+			NenoCache::setCacheData($cacheId, $whereValues);
+		}
+
+		return NenoCache::getCacheData($cacheId);
+	}
+
+	public static function getFieldContentFromTranslationData($fieldName, $tableName, $whereValues)
+	{
+		$cacheId = NenoCache::getCacheId(__FUNCTION__, func_get_args());
+
+		if (NenoCache::getCacheData($cacheId) === null)
+		{
+			$db    = JFactory::getDbo();
+			$query = $db->getQuery(true);
+			$query
+				->clear()
+				->select($db->quoteName($fieldName))
+				->from($tableName);
+
+			foreach ($whereValues as $whereField => $where)
+			{
+				$query->where($db->quoteName($whereField) . ' = ' . $db->quote($where['value']));
+			}
+
+			$db->setQuery($query);
+			$string = $db->loadResult();
+
+			NenoCache::setCacheData($cacheId, $string);
+		}
+
+		return NenoCache::getCacheData($cacheId);
 	}
 
 	/**
@@ -1219,16 +1308,184 @@ class NenoHelper
 	 */
 	public static function loadTranslationMethods()
 	{
-		$db    = JFactory::getDbo();
-		$query = $db->getQuery(true);
+		$cacheId = NenoCache::getCacheId(__FUNCTION__, array());
+
+		if (NenoCache::getCacheData($cacheId) === null)
+		{
+			$db    = JFactory::getDbo();
+			$query = $db->getQuery(true);
+			$query
+				->select('*')
+				->from('#__neno_translation_methods');
+
+			$db->setQuery($query);
+			$rows = $db->loadObjectList('id');
+
+			NenoCache::setCacheData($cacheId, $rows);
+		}
+
+		return NenoCache::getCacheData($cacheId);
+	}
+
+	/**
+	 * Create the menu structure for a particular language
+	 *
+	 * @param   string $languageTag Language tag
+	 *
+	 * @return void
+	 */
+	public static function createMenuStructureForLanguage($languageTag)
+	{
+		$db             = JFactory::getDbo();
+		$query          = $db->getQuery(true);
+		$sourceLanguage = NenoSettings::get('source_language');
+
+		// Get menutypes for source language
 		$query
-			->select('*')
-			->from('#__neno_translation_methods');
+			->select('DISTINCT mt.*')
+			->from('#__menu AS m')
+			->innerJoin('#__menu_types AS mt ON mt.menutype = m.menutype')
+			->where('m.language = ' . $db->quote($sourceLanguage));
 
 		$db->setQuery($query);
-		$rows = $db->loadObjectList('id');
+		$menuTypes = $db->loadObjectList();
 
-		return $rows;
+		foreach ($menuTypes as $menuType)
+		{
+			// Create each menu type
+			$newMenuType = self::createMenu($languageTag, $menuType, $sourceLanguage);
+
+			// For each menu items, create its copy in the new language
+			$query
+				->clear()
+				->select('m.*')
+				->from('#__menu AS m')
+				->where('m.menutype = ' . $db->quote($menuType->menutype));
+
+			$db->setQuery($query);
+			$menuItems = $db->loadObjectList();
+
+			foreach ($menuItems as $menuItem)
+			{
+				$newMenuItem = clone $menuItem;
+				unset($newMenuItem->id);
+				$newMenuItem->menutype = $newMenuType->menutype;
+				$newMenuItem->alias    = JFilterOutput::stringURLSafe($newMenuItem->alias . '-' . $languageTag);
+				$newMenuItem->language = $languageTag;
+
+				// If the menu item has been inserted properly, let's execute some actions
+				if ($db->insertObject('#__menu', $newMenuItem, 'id'))
+				{
+					// Assign all the modules to this item
+					$queryString = 'INSERT INTO #__modules_menu (moduleid,menuid) SELECT moduleid,' . $db->quote($newMenuItem->id) . ' FROM  #__modules_menu WHERE menuid = ' . $db->quote($menuItem->id);
+					$db->setQuery($queryString);
+					$db->execute();
+
+					// Add this menu to the association
+					$queryString = 'INSERT INTO #__associations (`id`,`context`,`key`) SELECT ' . $db->quote($newMenuItem->id) . ', ' . $db->quote('com_menus.item') . ', `key` FROM #__associations WHERE id =' . $db->quote($menuItem->id) . ' AND context = ' . $db->quote('com_menus.item');
+					$db->setQuery($queryString);
+					$db->execute();
+				}
+			}
+		}
+	}
+
+	/**
+	 * Create a new menu
+	 *
+	 * @param   string   $language        Language
+	 * @param   stdClass $defaultMenuType Default language menu type
+	 * @param   string   $defaultLanguage Default language
+	 *
+	 * @return stdClass
+	 */
+	protected static function createMenu($language, stdClass $defaultMenuType, $defaultLanguage)
+	{
+		$db       = JFactory::getDbo();
+		$query    = $db->getQuery(true);
+		$menuType = $defaultMenuType->menutype . '-' . strtolower($language);
+		if (!isset(self::$menuModuleReplicated[ $language ]))
+		{
+			self::$menuModuleReplicated[ $language ] = array();
+		}
+
+		$query
+			->select('*')
+			->from('#__menu_types')
+			->where('menutype = ' . $db->quote($menuType));
+
+		$db->setQuery($query);
+		$item = $db->loadObject();
+
+		if (empty($item))
+		{
+			$query
+				->clear()
+				->insert('#__menu_types')
+				->columns(
+					array(
+						'menutype',
+						'title'
+					)
+				)
+				->values($db->quote($menuType) . ', ' . $db->quote($defaultMenuType->title . '(' . $language . ')'));
+
+			$db->setQuery($query);
+			$db->execute();
+
+			$query
+				->select('*')
+				->from('#__menu_types')
+				->where('menutype = ' . $db->quote($menuType));
+			$db->setQuery($query);
+			$item = $db->loadObject();
+
+			// Create menu modules
+
+			$query
+				->clear()
+				->select('*')
+				->from('#__modules')
+				->where(
+					array(
+						'module = ' . $db->quote('mod_menu'),
+						'client_id = 0',
+						'params LIKE ' . $db->quote('%' . $defaultMenuType->menutype . '%'),
+						'language = ' . $db->quote($defaultLanguage)
+					)
+				);
+
+			$db->setQuery($query);
+			$modules = $db->loadObjectList();
+
+			if (!empty($modules))
+			{
+				foreach ($modules as $module)
+				{
+					if (!in_array($module->id, self::$menuModuleReplicated[ $language ]))
+					{
+						self::$menuModuleReplicated[] = $module->id;
+						$previousId                   = $module->id;
+						$module->params               = json_decode($module->params, true);
+
+						$module->id                 = 0;
+						$module->params['menutype'] = $item->menutype;
+						$module->params             = json_encode($module->params);
+						$module->language           = $language;
+						$module->title              = $module->title . ' (' . $language . ')';
+
+						$db->insertObject('#__modules', $module, 'id');
+
+						// Assigning items
+						$query = 'INSERT INTO #__modules_menu (menuid,moduleid) SELECT menuid,' . $db->quote($module->id) . ' FROM  #__modules_menu WHERE moduleid = ' . $db->quote($previousId);
+						$db->setQuery($query);
+						$db->execute();
+					}
+				}
+			}
+		}
+
+		return $item;
 	}
 
 	/**
@@ -1257,9 +1514,33 @@ class NenoHelper
 			->clear()
 			->delete('a USING #__associations AS a')
 			->where(
-				array (
+				array(
 					'context = ' . $db->quote('com_menus.item'),
 					'NOT EXISTS (SELECT 1 FROM #__menu AS m WHERE a.id = m.id)'
+				)
+			);
+
+		$db->setQuery($query);
+		$db->execute();
+
+		// Delete associations with just one item
+		$query
+			->clear()
+			->select('DISTINCT id')
+			->from('#__associations')
+			->group('`key`')
+			->having('COUNT(*) = 1');
+
+		$db->setQuery($query);
+		$ids = $db->loadArray();
+
+		$query
+			->clear()
+			->delete('#__associations')
+			->where(
+				array(
+					'context = ' . $db->quote('com_menus.item'),
+					'id IN (' . implode(', ', $db->quote($ids)) . ')'
 				)
 			);
 
@@ -1271,7 +1552,7 @@ class NenoHelper
 			->update('#__modules')
 			->set('language = ' . $db->quote($defaultLanguage))
 			->where(
-				array (
+				array(
 					'published = 1',
 					'module = ' . $db->quote('mod_menu'),
 					'client_id = 0',
@@ -1287,7 +1568,7 @@ class NenoHelper
 			->update('#__menu AS m')
 			->set('language = ' . $db->quote($defaultLanguage))
 			->where(
-				array (
+				array(
 					'client_id = 0',
 					'level <> 0',
 					'language = ' . $db->quote('*')
@@ -1300,24 +1581,25 @@ class NenoHelper
 		$query
 			->clear()
 			->select(
-				array (
+				array(
 					'm.*'
 				)
 			)
 			->from('#__menu_types AS mt')
 			->leftJoin('#__menu AS m ON mt.menutype = m.menutype')
 			->where(
-				array (
-					'NOT EXISTS(SELECT 1 FROM #__associations AS a WHERE a.id = m.id)',
+				array(
+					'NOT EXISTS(SELECT 1 FROM #__associations AS a WHERE a.id = m.id AND a.`key` = ' . $db->quote('com_menus.item') . ')',
 					'client_id = 0',
 					'level <> 0',
 					'published <> -2'
 				)
-			);
+			)
+			->order('level');
 
 		$db->setQuery($query);
 		$nonAssociatedMenuItems = $db->loadObjectList();
-		$menuAssociations       = array ();
+		$menuAssociations       = array();
 
 		$query
 			->clear()
@@ -1327,7 +1609,7 @@ class NenoHelper
 			->innerJoin('#__associations AS a2 ON a1.key = a2.key')
 			->innerJoin('#__menu AS m2 ON a2.id = m2.id')
 			->where(
-				array (
+				array(
 					'a1.context = ' . $db->quote('com_menus.item'),
 					'a2.context = ' . $db->quote('com_menus.item'),
 					'a1.id <> a2.id',
@@ -1343,12 +1625,12 @@ class NenoHelper
 		$db->setQuery($query);
 		$menuTypes = $db->loadArray();
 
-		foreach ($menuTypes as $menutype)
+		foreach ($menuTypes as $menuType)
 		{
 			$query
 				->clear()
 				->select(
-					array (
+					array(
 						'DISTINCT m2.menutype',
 						'm2.language'
 					)
@@ -1358,7 +1640,7 @@ class NenoHelper
 				->innerJoin('#__associations AS a2 ON a1.key = a2.key')
 				->innerJoin('#__menu AS m2 ON a2.id = m2.id')
 				->where(
-					array (
+					array(
 						'a1.context = ' . $db->quote('com_menus.item'),
 						'a2.context = ' . $db->quote('com_menus.item'),
 						'a1.id <> a2.id',
@@ -1368,31 +1650,31 @@ class NenoHelper
 						'm2.client_id = 0',
 						'm2.level <> 0',
 						'm2.published <> -2',
-						'm1.menutype = ' . $db->quote($menutype)
+						'm1.menutype = ' . $db->quote($menuType)
 					)
 				);
 
 			$db->setQuery($query);
-			$menuAssociations[$menutype] = $db->loadAssocList('language');
+			$menuAssociations[ $menuType ] = $db->loadAssocList('language');
 		}
 
-		$menuItemsCreated  = array ();
-		$modulesDuplicated = array ();
+		$menuItemsCreated  = array();
+		$modulesDuplicated = array();
 
 		foreach ($nonAssociatedMenuItems as $key => $menuItem)
 		{
-			if (!isset($menuAssociations[$menuItem->menutype]))
+			if (!isset($menuAssociations[ $menuItem->menutype ]))
 			{
-				$menuAssociations[$menuItem->menutype] = array ();
+				$menuAssociations[ $menuItem->menutype ] = array();
 			}
 
-			$associations = array ();
+			$associations = array();
 			$insert       = false;
 			$insertQuery  = $db->getQuery(true);
 			$insertQuery
 				->insert('#__associations')
 				->columns(
-					array (
+					array(
 						'id',
 						$db->quoteName('context'),
 						$db->quoteName('key')
@@ -1403,14 +1685,14 @@ class NenoHelper
 			{
 				if ($language->lang_code !== $menuItem->language)
 				{
-					$menuItemsCreated[$language->lang_code] = array ();
+					$menuItemsCreated[ $language->lang_code ] = array();
 
 					// If there's no menu associated
-					if (empty($menuAssociations[$menuItem->menutype][$language->lang_code]))
+					if (empty($menuAssociations[ $menuItem->menutype ][ $language->lang_code ]))
 					{
-						if (!isset($menuAssociations[$menuItem->menutype][$language->lang_code]))
+						if (!isset($menuAssociations[ $menuItem->menutype ][ $language->lang_code ]))
 						{
-							$menuAssociations[$menuItem->menutype][$language->lang_code] = array ();
+							$menuAssociations[ $menuItem->menutype ][ $language->lang_code ] = array();
 						}
 
 						$newMenuType           = new stdClass;
@@ -1421,21 +1703,21 @@ class NenoHelper
 						// If the menu has been inserted properly, let's save into the data structure
 						if (!empty($newMenuType))
 						{
-							$menuAssociations[$menuItem->menutype][$language->lang_code]['menutype'] = $newMenuType->menutype;
-							$menuAssociations[$menuItem->menutype][$language->lang_code]['language'] = $language->lang_code;
+							$menuAssociations[ $menuItem->menutype ][ $language->lang_code ]['menutype'] = $newMenuType->menutype;
+							$menuAssociations[ $menuItem->menutype ][ $language->lang_code ]['language'] = $language->lang_code;
 						}
 					}
 
 					$newMenuItem = clone $menuItem;
 					unset($newMenuItem->id);
-					$newMenuItem->menutype = $menuAssociations[$menuItem->menutype][$language->lang_code]['menutype'];
+					$newMenuItem->menutype = $menuAssociations[ $menuItem->menutype ][ $language->lang_code ]['menutype'];
 					$newMenuItem->alias    = JFilterOutput::stringURLSafe($newMenuItem->alias . '-' . $language->lang_code);
 					$newMenuItem->language = $language->lang_code;
 
 					// If the menu item has been inserted properly, let's execute some actions
 					if ($db->insertObject('#__menu', $newMenuItem, 'id'))
 					{
-						$menuItemsCreated[$language->lang_code][] = $newMenuItem->id;
+						$menuItemsCreated[ $language->lang_code ][] = $newMenuItem->id;
 
 						// Assign all the modules to this item
 						$query = 'INSERT INTO #__modules_menu (moduleid,menuid) SELECT moduleid,' . $db->quote($newMenuItem->id) . ' FROM  #__modules_menu WHERE menuid = ' . $db->quote($menuItem->id);
@@ -1444,49 +1726,6 @@ class NenoHelper
 						$query          = $db->getQuery(true);
 						$associations[] = $newMenuItem->id;
 					}
-				}
-
-				$query
-					->clear()
-					->select($db->quoteName('key', 'associationKey'))
-					->from('#__associations')
-					->where(
-						array (
-							'id IN (' . implode(',', array_merge($associations, array ($menuItem->id))) . ')',
-							'context = ' . $db->quote('com_menus.item')
-						)
-					);
-
-				$db->setQuery($query);
-				$associationKey = $db->loadResult();
-
-				if (empty($associationKey))
-				{
-					if (!in_array($menuItem->id, $associations))
-					{
-						$associations[] = $menuItem->id;
-					}
-
-					$associations   = array_unique($associations);
-					$associationKey = md5(json_encode($associations));
-				}
-				else
-				{
-					$query
-						->clear()
-						->select('id')
-						->from('#__associations')
-						->where($db->quoteName('key') . ' = ' . $db->quote($associationKey));
-
-					$db->setQuery($query);
-					$alreadyInserted = $db->loadArray();
-					$associations    = array_diff($associations, $alreadyInserted);
-				}
-
-				foreach ($associations as $association)
-				{
-					$insertQuery->values($association . ',' . $db->quote('com_menus.item') . ',' . $db->quote($associationKey));
-					$insert = true;
 				}
 			}
 
@@ -1497,7 +1736,7 @@ class NenoHelper
 				->from('#__modules AS m')
 				->innerJoin('#__modules_menu AS mm ON m.id = mm.moduleid')
 				->where(
-					array (
+					array(
 						'mm.menuid = ' . (int) $menuItem->id,
 						'm.language <> ' . $db->quote('*')
 					)
@@ -1512,7 +1751,7 @@ class NenoHelper
 					->clear()
 					->insert('#__modules_menu')
 					->columns(
-						array (
+						array(
 							'moduleid',
 							'menuid'
 						)
@@ -1524,7 +1763,7 @@ class NenoHelper
 					{
 						$previousId = $module->id;
 
-						if (!isset($modulesDuplicated[$previousId . $language]))
+						if (!isset($modulesDuplicated[ $previousId . $language ]) && $module->language != $language)
 						{
 							unset($module->id);
 							$module->language = $language;
@@ -1532,19 +1771,62 @@ class NenoHelper
 
 							if ($db->insertObject('#__modules', $module, 'id'))
 							{
-								$modulesDuplicated[$previousId . $language] = $module->id;
+								$modulesDuplicated[ $previousId . $language ] = $module->id;
 							}
 						}
 
 						foreach ($newMenuItems as $newMenuItem)
 						{
-							$query->values($modulesDuplicated[$previousId . $language] . ',' . $newMenuItem->id);
+							$query->values($modulesDuplicated[ $previousId . $language ] . ',' . $newMenuItem->id);
 						}
 					}
 				}
 
 				$db->setQuery($query);
 				$db->execute();
+			}
+
+			$query
+				->clear()
+				->select($db->quoteName('key', 'associationKey'))
+				->from('#__associations')
+				->where(
+					array(
+						'id IN (' . implode(',', array_merge($associations, array( $menuItem->id ))) . ')',
+						'context = ' . $db->quote('com_menus.item')
+					)
+				);
+
+			$db->setQuery($query);
+			$associationKey = $db->loadResult();
+
+			if (empty($associationKey))
+			{
+				if (!in_array($menuItem->id, $associations))
+				{
+					$associations[] = $menuItem->id;
+				}
+
+				$associations   = array_unique($associations);
+				$associationKey = md5(json_encode($associations));
+			}
+			else
+			{
+				$query
+					->clear()
+					->select('id')
+					->from('#__associations')
+					->where($db->quoteName('key') . ' = ' . $db->quote($associationKey));
+
+				$db->setQuery($query);
+				$alreadyInserted = $db->loadArray();
+				$associations    = array_diff($associations, $alreadyInserted);
+			}
+
+			foreach ($associations as $association)
+			{
+				$insertQuery->values($association . ',' . $db->quote('com_menus.item') . ',' . $db->quote($associationKey));
+				$insert = true;
 			}
 
 			if ($insert)
@@ -1566,99 +1848,158 @@ class NenoHelper
 
 		foreach ($modules as $module)
 		{
-			$previousId    = $module->id;
-			$previousTitle = $module->title;
-
 			foreach ($languages as $language)
 			{
 				if ($language->lang_code != $defaultLanguage)
 				{
-					$module->id       = 0;
-					$module->title    = $previousTitle . ' (' . $language->lang_code . ')';
-					$module->language = $language->lang_code;
-
-					// If the module has been inserted correctly, let's assign it
-					if ($db->insertObject('#__modules', $module, 'id'))
+					if (!isset(self::$menuModuleReplicated[ $language->lang_code ]))
 					{
-						$insert      = false;
-						$insertQuery = $db->getQuery(true);
-						$insertQuery
-							->clear()
-							->insert('#__modules_menu')
-							->columns(
-								array (
-									'moduleid',
-									'menuid'
-								)
-							);
+						self::$menuModuleReplicated[ $language->lang_code ] = array();
+					}
+					if (!in_array($module->id, self::$menuModuleReplicated[ $language->lang_code ]))
+					{
+						self::$menuModuleReplicated[] = $module->id;
+						$previousId                   = $module->id;
+						$previousTitle                = $module->title;
+						$module->id                   = 0;
+						$module->title                = $previousTitle . ' (' . $language->lang_code . ')';
+						$module->language             = $language->lang_code;
 
-						// Check if the previous module is assigned to all
-						$query
-							->clear()
-							->select('1')
-							->from('#__modules_menu')
-							->where(
-								array (
-									'moduleid = ' . $previousId,
-									'menuid'
-								)
-							);
-
-						$db->setQuery($query);
-						$result = $db->loadResult();
-
-						if ($result == 1)
+						// If the module has been inserted correctly, let's assign it
+						if ($db->insertObject('#__modules', $module, 'id'))
 						{
-							$insertQuery->values($module->id . ', 0');
-							$insert = true;
-						}
-						else
-						{
-							// Check if the module has assigned selected
+							$insert      = false;
+							$insertQuery = $db->getQuery(true);
+							$insertQuery
+								->clear()
+								->insert('#__modules_menu')
+								->columns(
+									array(
+										'moduleid',
+										'menuid'
+									)
+								);
+
+							// Check if the previous module is assigned to all
 							$query
 								->clear()
-								->select('DISTINCT m2.id')
-								->from('#__modules_menu AS mm')
-								->innerJoin('#__menu AS m1 ON mm.menuid = m1.id')
-								->innerJoin('#__associations AS a1 ON a1.id = m1.id')
-								->innerJoin('#__associations AS a2 ON a1.key = a2.key')
-								->innerJoin('#__menu AS m2 ON a2.id = m2.id')
+								->select('1')
+								->from('#__modules_menu')
 								->where(
-									array (
-										'a1.context = ' . $db->quote('com_menus.item'),
-										'a2.context = ' . $db->quote('com_menus.item'),
-										'a1.id <> a2.id',
-										'm1.client_id = 0',
-										'm1.level <> 0',
-										'm1.published <> -2',
-										'm2.client_id = 0',
-										'm2.level <> 0',
-										'm2.published <> -2',
-										'mm.moduleid = ' . $previousId,
-										'm1.language = ' . $db->quote($defaultLanguage),
-										'm2.language = ' . $db->quote($language->lang_code)
+									array(
+										'moduleid = ' . $previousId,
+										'menuid = 0'
 									)
 								);
 
 							$db->setQuery($query);
-							$menuIds = $db->loadArray();
+							$result = $db->loadResult();
 
-							if (!empty($menuIds))
+							if ($result == 1)
 							{
+								$insertQuery->values($module->id . ', 0');
 								$insert = true;
+							}
+							else
+							{
+								// Check if the module has assigned selected
+								$query
+									->clear()
+									->select('DISTINCT m2.id')
+									->from('#__modules_menu AS mm')
+									->innerJoin('#__menu AS m1 ON mm.menuid = m1.id')
+									->innerJoin('#__associations AS a1 ON a1.id = m1.id')
+									->innerJoin('#__associations AS a2 ON a1.key = a2.key')
+									->innerJoin('#__menu AS m2 ON a2.id = m2.id')
+									->where(
+										array(
+											'a1.context = ' . $db->quote('com_menus.item'),
+											'a2.context = ' . $db->quote('com_menus.item'),
+											'a1.id <> a2.id',
+											'm1.client_id = 0',
+											'm1.level <> 0',
+											'm1.published <> -2',
+											'm2.client_id = 0',
+											'm2.level <> 0',
+											'm2.published <> -2',
+											'mm.moduleid = ' . $previousId,
+											'm1.language = ' . $db->quote($defaultLanguage),
+											'm2.language = ' . $db->quote($language->lang_code)
+										)
+									);
 
-								foreach ($menuIds as $menuId)
+								$db->setQuery($query);
+								$menuIds = $db->loadArray();
+
+								if (!empty($menuIds))
 								{
-									$insertQuery->values($module->id . ',' . $menuId);
+									$insert = true;
+
+									foreach ($menuIds as $menuId)
+									{
+										$insertQuery->values($module->id . ',' . $menuId);
+									}
 								}
 							}
-						}
 
-						if ($insert)
-						{
-							$db->setQuery($insertQuery);
-							$db->execute();
+							if ($insert)
+							{
+								$db->setQuery($insertQuery);
+								$db->execute();
+							}
 						}
+					}
+				}
+			}
+		}
+
+		// Fixing levels issue
+		foreach ($languages as $language)
+		{
+			if ($language->lang_code !== $defaultLanguage)
+			{
+				$query
+					->clear()
+					->select('m1.*')
+					->from('#__menu AS m1')
+					->where(
+						array(
+							'client_id = 0',
+							'level <> 0',
+							'level <> 1',
+							'EXISTS (SELECT 1 FROM #__menu AS m2 WHERE m2.id = m1.parent_id AND m2.language <> m1.language)'
+						)
+					);
+
+				$db->setQuery($query);
+				$menuItemsThatNeedsToBeFixed = $db->loadObjectList();
+
+				foreach ($menuItemsThatNeedsToBeFixed as $menuItem)
+				{
+					$query
+						->clear()
+						->select('m2.id')
+						->from('#__menu AS m1')
+						->innerJoin('#__associations AS a1 ON a1.id = m1.id')
+						->innerJoin('#__associations AS a2 ON a1.key = a2.key')
+						->innerJoin('#__menu AS m2 ON a2.id = m2.id')
+						->where(
+							array(
+								'a1.context = ' . $db->quote('com_menus.item'),
+								'a2.context = ' . $db->quote('com_menus.item'),
+								'a1.id <> a2.id',
+								'm1.id = ' . $menuItem->parent_id,
+								'm2.language = ' . $db->quote($menuItem->language)
+							)
+						);
+
+					$db->setQuery($query);
+					$parentId = (int) $db->loadResult();
+
+					if (!empty($parentId))
+					{
+						$menuItem->parent_id = $parentId;
+						$db->updateObject('#__menu', $menuItem, 'id');
 					}
 				}
 			}
@@ -1683,7 +2024,7 @@ class NenoHelper
 		$defaultLanguage = NenoSettings::get('source_language');
 
 		// Create a simple array
-		$arr = array ();
+		$arr = array();
 
 		if (!empty($languages))
 		{
@@ -1692,7 +2033,7 @@ class NenoHelper
 				// Do not include the default language
 				if ($lang->lang_code !== $defaultLanguage)
 				{
-					$arr[$lang->lang_code] = $lang;
+					$arr[ $lang->lang_code ] = $lang;
 				}
 			}
 		}
@@ -1703,11 +2044,12 @@ class NenoHelper
 	/**
 	 * Load all published languages on the site
 	 *
-	 * @param   boolean $published Weather or not only the published language should be loaded
+	 * @param   boolean $published     Weather or not only the published language should be loaded
+	 * @param   boolean $includeSource Include source language
 	 *
 	 * @return array objectList
 	 */
-	public static function getLanguages($published = true)
+	public static function getLanguages($published = true, $includeSource = true)
 	{
 		$db    = JFactory::getDbo();
 		$query = $db->getQuery(true);
@@ -1724,13 +2066,22 @@ class NenoHelper
 		}
 
 		$db->setQuery($query);
-		$languages = $db->loadObjectList('lang_code');
+		$languages      = $db->loadObjectList('lang_code');
+		$sourceLanguage = NenoSettings::get('source_language');
 
 		if (!empty($languages))
 		{
 			foreach ($languages as $key => $language)
 			{
-				$languages[$key]->isInstalled = self::isCompletelyInstall($language->lang_code);
+				if (!$includeSource && $key == $sourceLanguage)
+				{
+					unset($languages[ $key ]);
+				}
+				else
+				{
+					$languages[ $key ]->isInstalled = self::isCompletelyInstall($language->lang_code);
+				}
+
 			}
 		}
 
@@ -1746,110 +2097,28 @@ class NenoHelper
 	 */
 	public static function isCompletelyInstall($language)
 	{
-		$db    = JFactory::getDbo();
-		$query = $db->getQuery(true);
-		$query
-			->select('1')
-			->from('#__neno_tasks')
-			->where(
-				array (
-					'task_data LIKE ' . $db->quote('%' . $language . '%'),
-					'task = ' . $db->quote('language')
-				)
-			);
-		$db->setQuery($query);
+		$cacheId = NenoCache::getCacheId(__FUNCTION__, func_get_args());
 
-		return $db->loadResult() != 1;
-	}
-
-	/**
-	 * Create a new menu
-	 *
-	 * @param   string   $language        Language
-	 * @param   stdClass $defaultMenuType Default language menu type
-	 * @param   string   $defaultLanguage Default language
-	 *
-	 * @return stdClass
-	 */
-	protected static function createMenu($language, stdClass $defaultMenuType, $defaultLanguage)
-	{
-		$db       = JFactory::getDbo();
-		$query    = $db->getQuery(true);
-		$menuType = $defaultMenuType->menutype . '-' . strtolower($language);
-
-		$query
-			->select('*')
-			->from('#__menu_types')
-			->where('menutype = ' . $db->quote($menuType));
-
-		$db->setQuery($query);
-		$item = $db->loadObject();
-
-		if (empty($item))
+		if (NenoCache::getCacheData($cacheId) === null)
 		{
+			$db    = JFactory::getDbo();
+			$query = $db->getQuery(true);
 			$query
-				->clear()
-				->insert('#__menu_types')
-				->columns(
-					array (
-						'menutype',
-						'title'
-					)
-				)
-				->values($db->quote($menuType) . ', ' . $db->quote($defaultMenuType->title . '(' . $language . ')'));
-
-			$db->setQuery($query);
-			$db->execute();
-
-			$query
-				->select('*')
-				->from('#__menu_types')
-				->where('menutype = ' . $db->quote($menuType));
-			$db->setQuery($query);
-			$item = $db->loadObject();
-
-			// Create menu modules
-
-			$query
-				->clear()
-				->select('*')
-				->from('#__modules')
+				->select('1')
+				->from('#__neno_tasks')
 				->where(
-					array (
-						'module = ' . $db->quote('mod_menu'),
-						'client_id = 0',
-						'params LIKE ' . $db->quote('%' . $defaultMenuType->menutype . '%'),
-						'language = ' . $db->quote($defaultLanguage)
+					array(
+						'task_data LIKE ' . $db->quote('%' . $language . '%'),
+						'task = ' . $db->quote('language')
 					)
 				);
-
 			$db->setQuery($query);
-			$modules = $db->loadObjectList();
 
-			if (!empty($modules))
-			{
-				foreach ($modules as $module)
-				{
-					$previousId     = $module->id;
-					$module->params = json_decode($module->params, true);
-
-					$module->id                 = 0;
-					$module->params['menutype'] = $item->menutype;
-					$module->params             = json_encode($module->params);
-					$module->language           = $language;
-					$module->title              = $module->title . ' (' . $language . ')';
-
-					$db->insertObject('#__modules', $module, 'id');
-
-					// Assigning items
-					$query = 'INSERT INTO #__modules_menu (menuid,moduleid) SELECT menuid,' . $db->quote($module->id) . ' FROM  #__modules_menu WHERE moduleid = ' . $db->quote($previousId);
-					$db->setQuery($query);
-					$db->execute();
-				}
-			}
+			NenoCache::setCacheData($cacheId, $db->loadResult() != 1);
 		}
 
-		return $item;
+		return NenoCache::getCacheData($cacheId);
+
 	}
 
 	/**
@@ -1861,13 +2130,13 @@ class NenoHelper
 	 */
 	public static function getLanguageErrors(array $language)
 	{
-		$errors = array ();
+		$errors = array();
 
 		if (self::isLanguageFileOutOfDate($language['lang_code']))
 		{
 			$errors[] = JLayoutHelper::render(
 				'fixitbutton',
-				array (
+				array(
 					'message'  => JText::sprintf('COM_NENO_ERRORS_LANGUAGE_OUT_OF_DATE', $language['title']),
 					'language' => $language['lang_code'],
 					'issue'    => 'language_file_out_of_date'
@@ -1880,7 +2149,7 @@ class NenoHelper
 		{
 			$errors[] = JLayoutHelper::render(
 				'fixitbutton',
-				array (
+				array(
 					'message'  => JText::sprintf('COM_NENO_ERRORS_LANGUAGE_DOES_NOT_CONTENT_ROW', $language['title']),
 					'language' => $language['lang_code'],
 					'issue'    => 'content_missing'
@@ -1895,7 +2164,7 @@ class NenoHelper
 		{
 			$errors[] = JLayoutHelper::render(
 				'fixitbutton',
-				array (
+				array(
 					'message'  => JText::sprintf('COM_NENO_ERRORS_CONTENT_FOUND_IN_JOOMLA_TABLES', $language['title']),
 					'language' => $language['lang_code'],
 					'issue'    => 'content_out_of_neno'
@@ -1921,7 +2190,7 @@ class NenoHelper
 
 		$query
 			->select(
-				array (
+				array(
 					'u.version',
 					'e.manifest_cache'
 				)
@@ -1981,7 +2250,7 @@ class NenoHelper
 
 		if ($language !== $defaultLanguage)
 		{
-			$joomlaTablesUsingLanguageField = array (
+			$joomlaTablesUsingLanguageField = array(
 				'#__banners',
 				'#__categories',
 				'#__contact_details',
@@ -1992,14 +2261,13 @@ class NenoHelper
 				'#__finder_tokens',
 				'#__finder_tokens_aggregate',
 				'#__newsfeeds',
-				'#__tags',
-				'#__weblinks'
+				'#__tags'
 			);
 
-			$unionQueries = array ();
+			$unionQueries = array();
 			$query->select('COUNT(*) AS counter');
 
-			if ($language == null)
+			if ($language === null)
 			{
 				$query->where('language <> ' . $db->quote($defaultLanguage));
 			}
@@ -2054,7 +2322,7 @@ class NenoHelper
 			->clear()
 			->delete('#__modules')
 			->where(
-				array (
+				array(
 					'language = ' . $db->quote($languageTag),
 					'module = ' . $db->quote('mod_menu')
 				)
@@ -2067,7 +2335,7 @@ class NenoHelper
 			->clear()
 			->delete('#__menu')
 			->where(
-				array (
+				array(
 					'language = ' . $db->quote($languageTag),
 					'client_id = 0'
 				)
@@ -2088,7 +2356,7 @@ class NenoHelper
 			->clear()
 			->delete('#__associations')
 			->where(
-				array (
+				array(
 					'id NOT IN (SELECT id FROM #__menu )',
 					'context = ' . $db->quote('com_menus.item')
 				)
@@ -2105,7 +2373,7 @@ class NenoHelper
 		$db->execute();
 
 		// Drop all the shadow tables
-		$shadowTables = preg_grep('/' . preg_quote($db->getPrefix() . '_' . $db->cleanLanguageTag($languageTag)) . '/', $db->getTableList());
+		$shadowTables = preg_grep('/' . preg_quote($db->getPrefix() . '_' . $db->cleanLanguageTag($languageTag)) . '/', $db->getNenoTableList());
 
 		foreach ($shadowTables as $shadowTable)
 		{
@@ -2118,7 +2386,7 @@ class NenoHelper
 		$query
 			->clear()
 			->select(
-				array (
+				array(
 					'extension_id',
 					'type'
 				)
@@ -2159,6 +2427,17 @@ class NenoHelper
 
 				break;
 			case 'language_file_out_of_date':
+
+				// Delete update for this language
+				$db    = JFactory::getDbo();
+				$query = $db->getQuery(true);
+				$query
+					->delete('#__updates')
+					->where('element LIKE ' . $db->quote('%' . $language));
+				$db->setQuery($query);
+				$db->execute();
+
+				// Find update for this language
 				$languages = self::findLanguages();
 
 				foreach ($languages as $updateLanguage)
@@ -2216,7 +2495,6 @@ class NenoHelper
 				$languageName = $db->loadResult();
 			}
 
-
 			if (empty($languageName))
 			{
 				$query
@@ -2229,7 +2507,7 @@ class NenoHelper
 		}
 
 		// Create content
-		$data = array (
+		$data = array(
 			'lang_code'    => $jiso,
 			'title'        => $languageName,
 			'title_native' => $languageName,
@@ -2311,7 +2589,7 @@ class NenoHelper
 	{
 		$enGbExtensionId = self::getEnGbExtensionId();
 		NenoLog::log('en-GB Extension ID ' . $enGbExtensionId);
-		$languagesFound = array ();
+		$languagesFound = array();
 		$db             = JFactory::getDbo();
 		$query          = $db->getQuery(true);
 
@@ -2352,7 +2630,7 @@ class NenoHelper
 			$query
 				->clear()
 				->select(
-					array (
+					array(
 						'DISTINCT element AS iso',
 						'name'
 					)
@@ -2427,16 +2705,17 @@ class NenoHelper
 
 		$query
 			->select(
-				array (
+				array(
 					'DISTINCT REPLACE(element, \'pkg_\', \'\') AS iso',
 					'u.*'
 				)
 			)
 			->from('#__updates AS u')
 			->where(
-				array ('u.update_site_id = ' . (int) $updateSiteId),
+				array( 'u.update_site_id = ' . (int) $updateSiteId ),
 				'REPLACE(element, \'pkg_\', \'\') NOT IN(' . implode(',', $db->quote(array_keys(JFactory::getLanguage()->getKnownLanguages()))) . ')'
 			)
+			->order('name')
 			->group('u.element');
 
 		$db->setQuery($query);
@@ -2469,7 +2748,7 @@ class NenoHelper
 		$languagesInstallerModel = JModelLegacy::getInstance('Languages', 'InstallerModel');
 
 		// Install language
-		$languagesInstallerModel->install(array ($languageId));
+		$languagesInstallerModel->install(array( $languageId ));
 
 		if (self::isLanguageInstalled($jiso) && !self::hasContentCreated($languageData['element']))
 		{
@@ -2481,7 +2760,7 @@ class NenoHelper
 			$query
 				->insert('#__neno_content_language_defaults')
 				->columns(
-					array (
+					array(
 						'lang',
 						'translation_method_id',
 						'ordering'
@@ -2517,7 +2796,7 @@ class NenoHelper
 
 		$query
 			->select(
-				array (
+				array(
 					'*',
 					'REPLACE(element, \'pkg_\', \'\') AS iso'
 				)
@@ -2546,7 +2825,7 @@ class NenoHelper
 			->select('1')
 			->from('#__extensions')
 			->where(
-				array (
+				array(
 					'type = ' . $db->quote('language'),
 					'element = ' . $db->quote($jiso)
 				)
@@ -2569,7 +2848,7 @@ class NenoHelper
 		/* @var $db NenoDatabaseDriverMysqlx */
 		$db = JFactory::getDbo();
 
-		$joomlaTablesUsingLanguageField = array (
+		$joomlaTablesUsingLanguageField = array(
 			'#__banners',
 			'#__categories',
 			'#__contact_details',
@@ -2580,8 +2859,7 @@ class NenoHelper
 			'#__finder_tokens',
 			'#__finder_tokens_aggregate',
 			'#__newsfeeds',
-			'#__tags',
-			'#__weblinks'
+			'#__tags'
 		);
 
 		foreach ($joomlaTablesUsingLanguageField as $joomlaTableUsingLanguageField)
@@ -2667,20 +2945,6 @@ class NenoHelper
 	}
 
 	/**
-	 * Highlight html tags on a text
-	 *
-	 * @param   string $text String with HTML code already encoded with HTML entities
-	 *
-	 * @return string
-	 */
-	public static function highlightHTMLTags($text)
-	{
-		$text = preg_replace("/(&lt;[\s\S]+?&gt;)/i", '<span class="highlighted-tag">${1}</span>', $text);
-
-		return $text;
-	}
-
-	/**
 	 * Get language default translation methods
 	 *
 	 * @param   string $languageTag Language tag
@@ -2695,7 +2959,7 @@ class NenoHelper
 
 		$query
 			->select(
-				array (
+				array(
 					'DISTINCT tm.*',
 					'(ordering - 1) AS ordering'
 				)
@@ -2703,7 +2967,7 @@ class NenoHelper
 			->from('#__neno_content_language_defaults AS ld')
 			->innerJoin('#__neno_translation_methods AS tm ON tm.id = ld.translation_method_id')
 			->where(
-				array (
+				array(
 					'lang = ' . $db->quote($languageTag),
 					'ld.ordering > ' . $ordering
 				)
@@ -2737,7 +3001,7 @@ class NenoHelper
 				->select('profile_value')
 				->from('#__user_profiles')
 				->where(
-					array (
+					array(
 						'user_id = ' . intval($userId),
 						'profile_key = ' . $db->quote('neno_working_language')
 					)
@@ -2762,7 +3026,10 @@ class NenoHelper
 	 */
 	public static function saveIniFile($filename, array $strings)
 	{
-		$res = array ();
+		$res = array();
+
+		// Unify strings
+		$strings = self::unifiedLanguageStrings($strings, false);
 
 		foreach ($strings as $key => $val)
 		{
@@ -2813,6 +3080,62 @@ class NenoHelper
 	}
 
 	/**
+	 * Unified language strings
+	 *
+	 * @param array $strings language strings
+	 * @param bool  $read    which are the source of those strings
+	 *
+	 * @return array
+	 */
+	public static function unifiedLanguageStrings($strings, $read = true)
+	{
+		if ($read)
+		{
+			$strings = self::unifyLanguageStringsRead($strings);
+		}
+		else
+		{
+			$strings = self::unifyLanguageStringsWrite($strings);
+		}
+
+		return $strings;
+	}
+
+	/**
+	 * Unify strings from a ini file
+	 *
+	 * @param array $strings Strings
+	 *
+	 * @return array
+	 */
+	protected static function unifyLanguageStringsRead($strings)
+	{
+		foreach ($strings as $key => $string)
+		{
+			$strings[ $key ] = str_replace('_QQ_', '"', $string);
+		}
+
+		return $strings;
+	}
+
+	/**
+	 * Unify strings to a ini file
+	 *
+	 * @param array $strings Strings
+	 *
+	 * @return array
+	 */
+	protected static function unifyLanguageStringsWrite($strings)
+	{
+		foreach ($strings as $key => $string)
+		{
+			$strings[ $key ] = str_replace('"', '_QQ_', $string);
+		}
+
+		return $strings;
+	}
+
+	/**
 	 * Get translations dropdown
 	 *
 	 * @return string
@@ -2824,7 +3147,7 @@ class NenoHelper
 		$query
 			->clear()
 			->select(
-				array (
+				array(
 					'translator_name AS value',
 					'translator_name AS text',
 				)
@@ -2846,7 +3169,7 @@ class NenoHelper
 	 */
 	public static function generateFilterDropDown($fieldId, $selected)
 	{
-		$filters = array (
+		$filters = array(
 			'INT',
 			'UNIT',
 			'FLOAT',
@@ -2863,7 +3186,11 @@ class NenoHelper
 			'RAW'
 		);
 
-		return JLayoutHelper::render('dropdownbutton', array ('filters' => $filters, 'selected' => $selected, 'fieldId' => $fieldId), JPATH_NENO_LAYOUTS);
+		return JLayoutHelper::render('dropdownbutton', array(
+			'filters'  => $filters,
+			'selected' => $selected,
+			'fieldId'  => $fieldId
+		), JPATH_NENO_LAYOUTS);
 	}
 
 	/**
@@ -2874,5 +3201,717 @@ class NenoHelper
 	public static function renderFilterHelperText()
 	{
 		echo htmlentities(JLayoutHelper::render('filtertooltip', null, JPATH_NENO_LAYOUTS));
+	}
+
+	/**
+	 * Get translation method
+	 *
+	 * @param int $id Translation method Id
+	 *
+	 * @return stdClass|null
+	 */
+	public static function getTranslationMethodById($id)
+	{
+		$cacheId = NenoCache::getCacheId(__FUNCTION__, func_get_args());
+
+		if (NenoCache::getCacheData($cacheId) === null)
+		{
+			$db    = JFactory::getDbo();
+			$query = $db->getQuery(true);
+
+			$query
+				->select('*')
+				->from('#__neno_translation_methods')
+				->where('id = ' . (int) $id);
+
+			$db->setQuery($query);
+
+			NenoCache::setCacheData($cacheId, $db->loadObject());
+		}
+
+		return NenoCache::getCacheData($cacheId);
+	}
+
+	public static function getTranslationMethodsByTableId($tableId)
+	{
+		$cacheId = NenoCache::getCacheId(__FUNCTION__, func_get_args());
+
+		if (NenoCache::getCacheData($cacheId) === null)
+		{
+			/* @var $db NenoDatabaseDriverMysqlx */
+			$db    = JFactory::getDbo();
+			$query = $db->getQuery(true);
+			$query
+				->select(
+					array(
+						'gtm.lang',
+						'gtm.translation_method_id',
+					)
+				)
+				->from('#__neno_content_element_tables AS t')
+				->innerJoin('#__neno_content_element_groups AS g ON t.group_id = g.id')
+				->innerJoin('#__neno_content_element_groups_x_translation_methods AS gtm ON gtm.group_id = g.id')
+				->where('t.id = ' . $tableId)
+				->order('ordering ASC');
+			$db->setQuery($query);
+			$translationmethods = $db->loadObjectListMultiIndex('lang');
+
+			NenoCache::setCacheData($cacheId, $translationmethods);
+		}
+
+		return NenoCache::getCacheData($cacheId);
+	}
+
+	/**
+	 * Split HTML into p tags with content in it
+	 *
+	 * @param $string
+	 *
+	 * @return string
+	 */
+	public static function splitHtmlText($string)
+	{
+		$result = self::getStructure($string);
+
+		if (is_array($result))
+		{
+			return $result[1];
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Get the structure of a HTML text
+	 *
+	 * @param   string $string        HTML string
+	 * @param   bool   $returnStrings If the content strings should be returned too
+	 *
+	 * @return string|array
+	 */
+	protected static function getStructure($string, $returnStrings = true)
+	{
+		$dom = self::createDomDocument($string);
+
+		if ($dom === false)
+		{
+			return $string;
+		}
+
+		$strings   = self::recursiveDomExplorer($dom->documentElement);
+		$structure = self::fromDomDocumentToString($dom);
+
+		if ($returnStrings)
+		{
+			$convertedString = '';
+
+			foreach ($strings as $key => $string)
+			{
+				$convertedString .= '<p id="' . $key . '">' . $string . '</p>';
+			}
+
+			$structure = array( $structure, $convertedString );
+		}
+
+		return $structure;
+	}
+
+	/**
+	 * Creates DOMDocument class if it's a string, if it's not, return false
+	 *
+	 * @param $string
+	 *
+	 * @return bool|DOMDocument
+	 */
+	protected static function createDomDocument($string)
+	{
+		if (self::isHtml($string))
+		{
+			$dom = new DOMDocument;
+			$dom->loadHTML(mb_convert_encoding($string, 'HTML-ENTITIES', 'UTF-8'));
+
+			return $dom;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Check if the string is a html string
+	 *
+	 * @param   string $string String to check
+	 *
+	 * @return bool
+	 */
+	protected static function isHtml($string)
+	{
+		return preg_match('/<[^<]+>/', $string) != 0;
+	}
+
+	/**
+	 * Recursive function that goes through DOM of a HTML string replacing content with special tags
+	 *
+	 * @param   DOMElement $domElement DOM element
+	 * @param   int        $index      Index
+	 *
+	 * @return array
+	 */
+	protected static function recursiveDomExplorer(DOMElement $domElement, &$index = 1)
+	{
+		$humanReadableAttributes = array( 'alt', 'title', 'summary' );
+		$strings                 = array();
+
+		/* @var $node DomElement */
+		foreach ($domElement->childNodes as $node)
+		{
+			if ($node->nodeName == '#text')
+			{
+				$text              = trim($node->nodeValue);
+				$strings[ $index ] = $text;
+				$node->nodeValue   = str_replace($text, '[{|' . $index . '|}]}', $node->nodeValue);
+				$index++;
+			}
+			else
+			{
+				foreach ($humanReadableAttributes as $humanAttribute)
+				{
+					if ($node->hasAttribute($humanAttribute))
+					{
+						$attribute         = $node->getAttribute($humanAttribute);
+						$text              = trim($attribute);
+						$strings[ $index ] = $text;
+						$node->setAttribute($humanAttribute, str_replace($text, '[{|' . $index . '|}]}', $attribute));
+						$index++;
+					}
+				}
+			}
+
+			// If the node has children, let's go through them
+			if ($node->hasChildNodes())
+			{
+				$strings = $strings + self::recursiveDomExplorer($node, $index);
+			}
+		}
+
+		return $strings;
+	}
+
+	/**
+	 * Convert from DOMDocument to string, It strips html and body tags because database content won't have those tags.
+	 *
+	 * @param   DOMDocument $document Document
+	 *
+	 * @return bool|string
+	 */
+	protected static function fromDomDocumentToString(DOMDocument $document)
+	{
+		$matches = null;
+
+		// Get content between body tags (DOMDocument class add it)
+		if (preg_match('@<body>(.+)<\/body>@s', $document->saveHTML(), $matches) != 0)
+		{
+			return $matches[1];
+		}
+
+		return false;
+	}
+
+	/**
+	 * Replaces translations in a HTML text
+	 *
+	 * @param string $string      Original HTML text
+	 * @param string $translation Text received by the translator
+	 *
+	 * @return string
+	 */
+	public static function replaceTranslationsInHtmlTag($string, $translation)
+	{
+		if (preg_match('/(<p[^>]*>.*?<\/p>)/s', $translation))
+		{
+			$structure = self::getStructure($string, false);
+
+			$document = new DOMDocument;
+			$document->loadHTML($translation);
+
+			$pTags = $document->getElementsByTagName('p');
+
+			/* @var $pTag DomElement */
+			foreach ($pTags as $pTag)
+			{
+				$structure = str_replace('[{|' . $pTag->getAttribute('id') . '|}]', $pTag->nodeValue, $structure);
+			}
+
+			return $structure;
+		}
+		else
+		{
+			return $translation;
+		}
+	}
+
+	/**
+	 * Get language translator comment
+	 *
+	 * @param    string $languageTag Language tag
+	 *
+	 * @return string|null
+	 */
+	public static function getLanguageTranslatorComment($languageTag)
+	{
+		$db = JFactory::getDbo();
+
+		$query = $db->getQuery(true);
+
+		$query
+			->select('comment')
+			->from('#__neno_language_external_translators_comments')
+			->where('language = ' . $db->quote($languageTag));
+
+		$db->setQuery($query);
+
+		return $db->loadResult();
+	}
+
+	/**
+	 * Search for a string into a language file based on its constant
+	 *
+	 * @param $languageFile
+	 * @param $constant
+	 *
+	 * @return bool
+	 */
+	public static function existsStringInsideOfLanguageFile($languageFile, $constant)
+	{
+		if (file_exists($languageFile))
+		{
+			$strings = self::readLanguageFile($languageFile);
+
+			return isset($strings[ $constant ]) ? $strings[ $constant ] : false;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Read language file
+	 *
+	 * @param string $filename
+	 *
+	 * @return array
+	 */
+	public static function readLanguageFile($filename)
+	{
+		return NenoHelper::unifiedLanguageStrings(parse_ini_file($filename));
+	}
+
+	/**
+	 * Get db free space
+	 *
+	 * @return int 0 => Could not be determined, 1 => Enough Space, 2 => less than 80% free, 3 => less than 50% free
+	 */
+	public static function getDbFreeSpace()
+	{
+		/* @var $db NenoDatabaseDriverMysqlx */
+		$db    = JFactory::getDbo();
+		$query = $db->getQuery(true);
+
+		$query
+			->select(
+				array(
+					'sum( data_length + index_length ) / 1024 / 1024 AS occupied_space',
+					'sum( data_free )/ 1024 / 1024 AS free_space'
+
+				)
+			)
+			->from('information_schema.TABLE')
+			->where('table_schema = DATABASE()');
+
+		$db->setQuery($query);
+		$result = 0;
+
+		try
+		{
+			$data = $db->loadRow();
+
+			if ($data['free_space'] != 0)
+			{
+				$totalSpace = $data['free_space'] + $data['occupied_space'];
+
+				// The user has less than 50% of space available
+				if ($totalSpace / 2 <= $data['free_space'])
+				{
+					return 3;
+				}
+				else
+				{
+					if ($totalSpace / 2 <= $data['free_space'])
+					{
+						return 2;
+					}
+					else
+					{
+						return 1;
+					}
+				}
+			}
+		} catch (RuntimeException $e)
+		{
+
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Get db free space
+	 *
+	 * @return int 0 => Could not be determined, 1 => Enough Space, 2 => less than 80% free, 3 => less than 50% free
+	 */
+	public static function getSpaceNeedPerLanguage()
+	{
+		/* @var $db NenoDatabaseDriverMysqlx */
+		$db    = JFactory::getDbo();
+		$query = $db->getQuery(true);
+
+		$query
+			->select('sum( data_length + index_length ) / 1024 / 1024 AS occupied_space')
+			->from('information_schema.TABLE')
+			->where('table_schema = DATABASE()');
+
+		$db->setQuery($query);
+		$result = 0;
+
+		try
+		{
+			$spaceOccupied = $db->loadResult();
+			$result        = $spaceOccupied * 0.8;
+		} catch (RuntimeException $e)
+		{
+
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Get element name by Group Id
+	 *
+	 * @param integer $groupId Group Id
+	 *
+	 * @return string|null
+	 */
+	public static function getElementNameByGroupId($groupId)
+	{
+		$db    = JFactory::getDbo();
+		$query = $db->getQuery(true);
+
+		$query
+			->select('element')
+			->from('`#__neno_content_element_groups_x_extensions` AS ge')
+			->innerJoin('`#__extensions` AS e ON e.extension_id = ge.extension_id')
+			->where('ge.group_id = ' . (int) $groupId);
+
+		$db->setQuery($query);
+
+		return $db->loadResult();
+	}
+
+	/**
+	 * Get language configuration data
+	 *
+	 * @return array
+	 */
+	public static function getLanguageConfigurationData()
+	{
+		/* @var $db NenoDatabaseDriverMysqlx */
+		$db      = JFactory::getDbo();
+		$query   = $db->getQuery(true);
+		$default = NenoSettings::get('source_language');
+
+		$subquery1 = $db->getQuery(true);
+		$subquery2 = $db->getQuery(true);
+
+		$subquery2
+			->select('tr2.*')
+			->from('#__neno_content_element_translations AS tr2')
+			->where('content_type = ' . $db->quote('lang_string'));
+
+		$subquery1
+			->select('tr.*')
+			->from('#__neno_content_element_translations AS tr')
+			->innerJoin('#__neno_content_element_fields AS f ON tr.content_id = f.id')
+			->innerJoin('#__neno_content_element_tables AS t ON t.id = f.table_id')
+			->where(
+				array(
+					'content_type = ' . $db->quote('db_string'),
+					'f.translate = 1',
+					't.translate = 1'
+				)
+			)
+			->union($subquery2);
+
+		$query
+			->select(
+				array(
+					'l.lang_code',
+					'l.published',
+					'l.title',
+					'l.image',
+					'tr.state',
+					'SUM(tr.word_counter) AS word_count',
+					'lc.comment'
+				)
+			)
+			->from('#__languages AS l')
+			->leftJoin('#__neno_language_external_translators_comments AS lc ON l.lang_code = lc.language')
+			->leftJoin('(' . (string) $subquery1 . ') AS tr ON tr.language = l.lang_code')
+			->where('l.lang_code <> ' . $db->quote($default))
+			->group(
+				array(
+					'l.lang_code',
+					'tr.state'
+				)
+			)
+			->order('lang_code');
+
+		$db->setQuery($query);
+
+		$languages = $db->loadObjectListMultiIndex('lang_code');
+		$items     = array();
+
+		if (!empty($languages))
+		{
+			foreach ($languages as $language)
+			{
+				$translated        = 0;
+				$queued            = 0;
+				$changed           = 0;
+				$untranslated      = 0;
+				$item              = new stdClass;
+				$item->lang_code   = $language[0]->lang_code;
+				$item->comment     = $language[0]->comment;
+				$item->published   = $language[0]->published;
+				$item->title       = $language[0]->title;
+				$item->image       = $language[0]->image;
+				$item->errors      = NenoHelper::getLanguageErrors((array) $language[0]);
+				$item->isInstalled = NenoHelper::isCompletelyInstall($item->lang_code);
+
+				foreach ($language as $internalItem)
+				{
+					switch ($internalItem->state)
+					{
+						case NenoContentElementTranslation::TRANSLATED_STATE:
+							$translated = (int) $internalItem->word_count;
+							break;
+						case NenoContentElementTranslation::QUEUED_FOR_BEING_TRANSLATED_STATE:
+							$queued = (int) $internalItem->word_count;
+							break;
+						case NenoContentElementTranslation::SOURCE_CHANGED_STATE:
+							$changed = (int) $internalItem->word_count;
+							break;
+						case NenoContentElementTranslation::NOT_TRANSLATED_STATE:
+							$untranslated = (int) $internalItem->word_count;
+							break;
+					}
+				}
+
+				$item->wordCount               = new stdClass;
+				$item->wordCount->translated   = $translated;
+				$item->wordCount->queued       = $queued;
+				$item->wordCount->changed      = $changed;
+				$item->wordCount->untranslated = $untranslated;
+				$item->wordCount->total        = $translated + $queued + $changed + $untranslated;
+				$item->translationMethods      = NenoHelper::getLanguageDefault($item->lang_code);
+
+				$items[] = $item;
+			}
+		}
+
+		$languagesOnLanguageTable   = array_keys($languages);
+		$knownLanguages             = JFactory::getLanguage()->getKnownLanguages();
+		$defaultTranslationsMethods = NenoHelper::getDefaultTranslationMethods();
+
+		foreach ($knownLanguages as $languageTag => $languageInfo)
+		{
+			if ($languageTag != $default && !in_array($languageTag, $languagesOnLanguageTable))
+			{
+				$languagesData                     = new stdClass;
+				$languagesData->lang_code          = $languageInfo['tag'];
+				$languagesData->title              = $languageInfo['name'];
+				$languagesData->translationMethods = $defaultTranslationsMethods;
+				$languagesData->errors             = NenoHelper::getLanguageErrors((array) $languagesData);
+				$languagesData->placement          = 'dashboard';
+				$languagesData->image              = NenoHelper::getLanguageImage($languageInfo['tag']);
+				$languagesData->published          = NenoHelper::isLanguagePublished($languageInfo['tag']);
+				$languagesData->comment            = NenoHelper::getLanguageTranslatorComment($languageInfo['tag']);
+
+				$items[] = $languagesData;
+			}
+
+		}
+
+		return $items;
+	}
+
+	/**
+	 * Takes a long string and breaks it into natural chunks and returns an array with the chunks
+	 * - The method will attempt to break on certain html tags first, then sentence structures and finally spaces if possible
+	 * - If $string is shorter than $maxChunkLength an array with one entry is returned
+	 *
+	 * @param type $string
+	 * @param type $maxChunkLength
+	 *
+	 * @return array
+	 */
+	public static function chunkHTMLString($string, $maxChunkLength)
+	{
+		$chunks = array();
+
+		//If the given string can fit in the first chunk then just return that
+		if (\Joomla\String\String::strlen($string) < $maxChunkLength)
+		{
+			$chunks[] = $string;
+
+			return $chunks;
+		}
+
+		$cutStrings   = array();
+		$cutStrings[] = '</div>';
+		$cutStrings[] = '</p>';
+		$cutStrings[] = '</ul>';
+		$cutStrings[] = '</table>';
+		$cutStrings[] = '</a>';
+		$cutStrings[] = '. ';
+
+		while (\Joomla\String\String::strlen($string) > $maxChunkLength)
+		{
+
+			//Look for the breakpoint that is located last in the substring that is less than max
+			$potentialCutPoints = array();
+			foreach ($cutStrings as $key => $cutString)
+			{
+				$position = strripos(substr($string, 0, $maxChunkLength), $cutString);
+				if ($position !== false)
+				{
+					$potentialCutPoints[ $position ] = $cutString;
+				}
+			}
+
+			//Select the right most breakpoint
+			if (count($potentialCutPoints))
+			{
+				$selectedBreakPoint       = max(array_keys($potentialCutPoints));
+				$selectedBreakPointString = $potentialCutPoints[ $selectedBreakPoint ];
+				$breakPoint               = $selectedBreakPoint + utf8_strlen($selectedBreakPointString);
+
+				//Add the chunk
+				$chunks[] = \Joomla\String\String::substr($string, 0, $breakPoint);
+
+			}
+			else
+			{
+				//Unable to find a breakpoint, use wordwrap
+				$wordWrappedString = wordwrap($string, $maxChunkLength, '|||---NENO---|||', true);
+				$wordWrappedArray  = explode('|||---NENO---|||', $wordWrappedString);
+				$chunks[]          = $wordWrappedArray[0];
+				$breakPoint        = \Joomla\String\String::strlen($wordWrappedArray[0]) + 3;
+			}
+
+			//Reduce the string
+			$string = \Joomla\String\String::substr($string, $breakPoint);
+
+		}
+
+		//Add the remainder to the last chunk
+		$chunks[] = $string;
+
+		return $chunks;
+
+	}
+
+	/**
+	 * Get related database translations Id
+	 *
+	 * @param int $translationId
+	 *
+	 * @return array
+	 */
+	public static function getRelatedDBTranslationIds($translationId)
+	{
+		$db    = JFactory::getDbo();
+		$query = $db->getQuery(true);
+		$query
+			->select(
+				array(
+					'ft.field_id',
+					'ft.value',
+				)
+			)
+			->from('`#__neno_content_element_fields_x_translations` AS ft')
+			->where('ft.translation_id = ' . $translationId);
+
+		$db->setQuery($query);
+		$whereValues = $db->loadAssocList();
+
+		$query->clear();
+
+		$query
+			->select('a2.translation_id')
+			->from('#__neno_content_element_fields_x_translations AS a2')
+			->where(
+				array(
+					'a2.field_id = ' . $db->quote($whereValues[0]['field_id']),
+					'a2.value = ' . $db->quote($whereValues[0]['value']),
+					'a2.translation_id <> ' . (int) $translationId
+				)
+			);
+
+		for ($key = 1; $key < count($whereValues); $key++)
+		{
+			$subquery = clone $query;
+			$query
+				->clear()
+				->select('a' . ($key + 2) . '.translation_id')
+				->from('#__neno_content_element_fields_x_translations AS a' . ($key + 2))
+				->where(
+					array(
+						'a' . ($key + 2) . '.field_id = ' . $db->quote($whereValues[ $key ]['field_id']),
+						'a' . ($key + 2) . '.value = ' . $db->quote($whereValues[ $key ]['value']),
+						'a' . ($key + 2) . '.translation_id IN (' . (string) $subquery . ')'
+					)
+				);
+		}
+
+		$db->setQuery($query);
+		$translations = array_keys($db->loadAssocList('translation_id'));
+
+		return $translations;
+	}
+
+	/**
+	 *
+	 *
+	 * @param string $string String where get the word count
+	 *
+	 * @return int
+	 */
+	public static function getWordCount($string)
+	{
+		$wc = strip_tags(self::splitHtmlText($string));
+
+		// remove one-letter 'words' that consist only of punctuation
+		$wc = trim(preg_replace("#\s*[(\'|\"|\.|\!|\?|;|,|\\|\/|:|\&|@)]\s*#", " ", $wc));
+
+		// remove superfluous whitespace
+		$wc = preg_replace("/\s\s+/", " ", $wc);
+
+		// split string into an array of words
+		$wc = explode(" ", $wc);
+
+		// remove empty elements
+		$wc = array_filter(array_map('trim', $wc));
+
+		// return the number of words
+		return count($wc);
 	}
 }

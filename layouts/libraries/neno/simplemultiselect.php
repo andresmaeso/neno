@@ -11,8 +11,9 @@
 defined('_JEXEC') or die;
 
 $document = JFactory::getDocument();
-$document->addScript(JUri::root() . '/media/neno/js/multiselect.js');
-$document->addStyleSheet(JUri::root() . '/media/neno/css/multiselect.css');
+$version  = NenoHelperBackend::getNenoVersion();
+$document->addScript(JUri::root() . '/media/neno/js/multiselect.js?v=' . $version);
+$document->addStyleSheet(JUri::root() . '/media/neno/css/multiselect.css?v=' . $version);
 
 $isOverlay = isset($displayData['isOverlay']);
 ?>
@@ -25,19 +26,21 @@ $isOverlay = isset($displayData['isOverlay']);
 		</a>
 
 		<div id="toggle-<?php echo $displayData['type']; ?>-multiselect"
-		     class="dropdown-select menu-multiselect <?php echo ($isOverlay) ? ('overlay') : (''); ?>">
+			class="dropdown-select menu-multiselect <?php echo ($isOverlay) ? ('overlay') : (''); ?>">
 			<table class="table-condensend <?php echo $displayData['type']; ?>-multiselect"
-			       id="<?php echo $displayData['type']; ?>-multiselect">
+				id="<?php echo $displayData['type']; ?>-multiselect">
 				<?php foreach ($displayData['data'] as $datum => $label): ?>
 					<tr class="" data-id="<?php echo $displayData['type'] . '-' . $datum; ?>"
-					    data-label="<?php echo $label; ?>"
-					    data-parent="header">
+						data-label="<?php echo $label; ?>"
+						data-parent="header">
 						<td class="cell-check">
 							<input value="<?php echo $datum; ?>"
-							       id="input-<?php echo $displayData['type'] . '-' . $datum; ?>"
-							       type="checkbox" <?php echo !empty($displayData['selected']) && in_array($datum, $displayData['selected']) ? 'checked=checked' : ''; ?>/>
+								id="input-<?php echo $displayData['type'] . '-' . $datum; ?>"
+								type="checkbox" <?php echo !empty($displayData['selected']) && in_array($datum, $displayData['selected']) ? 'checked=checked' : ''; ?>/>
 						</td>
-						<td title="<?php echo $label; ?>"><label for="input-<?php echo $displayData['type'] . '-' . $datum; ?>"><?php echo $label; ?></label></td>
+						<td title="<?php echo $label; ?>">
+							<label for="input-<?php echo $displayData['type'] . '-' . $datum; ?>"><?php echo $label; ?></label>
+						</td>
 					</tr>
 				<?php endforeach; ?>
 				<?php if (count($displayData['data']) === 0): ?>

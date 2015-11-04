@@ -6,7 +6,7 @@
     "php": ">=5.3.10"
   },
   "require-dev": {
-    "codeception/codeception": "2.0.13",
+    "codeception/codeception": "*",
     "joomla-projects/joomla-browser": "dev-develop",
     "codegyre/robo": "~0.5",
     "joomla-projects/robo": "dev-master",

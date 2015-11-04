@@ -73,7 +73,7 @@ class NenoControllerGroupsElements extends JControllerAdmin
 			}
 			else
 			{
-				$contentElementFiles = array ($destFile);
+				$contentElementFiles = array( $destFile );
 			}
 
 			// Add to each content file the path of the extraction location.
@@ -174,7 +174,7 @@ class NenoControllerGroupsElements extends JControllerAdmin
 		$input = JFactory::getApplication()->input;
 
 		$tableId         = $input->getInt('tableId');
-		$translateStatus = $input->getBool('translateStatus');
+		$translateStatus = $input->getInt('translateStatus');
 
 		/* @var $table NenoContentElementTable */
 		$table = NenoContentElementTable::getTableById($tableId);
@@ -182,15 +182,121 @@ class NenoControllerGroupsElements extends JControllerAdmin
 		// If the table exists, let's work with it.
 		if ($table !== false)
 		{
-			$table->setTranslate($translateStatus);
+			$table->setTranslate($translateStatus, true);
 
-			if ($table->persist() === false)
+			if ($table->persist() !== false)
+			{
+				$fields = $table->getFields(false);
+
+				/* @var $field NenoContentElementField */
+				foreach ($fields as $field)
+				{
+					$oldStatus = $field->isTranslate();
+					$field->setTranslate(
+						$translateStatus === true ? NenoContentElementField::isTranslatableType($field->getFieldType()) : $translateStatus,
+						true
+					);
+
+					// Only persist element that have changed their translate status
+					if ($oldStatus != $field->isTranslate())
+					{
+						$field->persist();
+					}
+				}
+			}
+			else
 			{
 				NenoLog::log('Error saving new state!', NenoLog::PRIORITY_ERROR);
 			}
 		}
 
 		JFactory::getApplication()->close();
+	}
+
+	public function getTableFilterModalLayout()
+	{
+		$app     = JFactory::getApplication();
+		$input   = $app->input;
+		$tableId = $input->getInt('tableId');
+
+		if (!empty($tableId))
+		{
+			$db    = JFactory::getDbo();
+			$query = $db->getQuery(true);
+			$query
+				->select(
+					array(
+						'id AS value',
+						'field_name AS text'
+					)
+				)
+				->from('#__neno_content_element_fields')
+				->where('table_id = ' . (int) $tableId)
+				->order('id ASC');
+
+			$db->setQuery($query);
+			$fields = $db->loadObjectList();
+
+			$displayData                  = new stdClass;
+			$displayData->fields          = $fields;
+			$displayData->fieldsSelect    = JHtml::_('select.genericlist', $displayData->fields, 'fields[]', 'class="filter-field"');
+			$displayData->operators       = $this->getComparaisonOperatorsList();
+			$displayData->operatorsSelect = JHtml::_('select.genericlist', $displayData->operators, 'operators[]', 'class="filter-operator"');
+
+			$query
+				->clear()
+				->select(
+					array(
+						'field_id AS field',
+						'comparaison_operator AS operator',
+						'filter_value AS value'
+					)
+				)
+				->from('#__neno_content_element_table_filters')
+				->where('table_id = ' . (int) $tableId);
+
+			$db->setQuery($query);
+			$displayData->filters = $db->loadAssocList();
+
+			echo JLayoutHelper::render('tablefilters', $displayData, JPATH_NENO_LAYOUTS);
+		}
+
+		$app->close();
+	}
+
+	/**
+	 * Get list of comparaison operators
+	 *
+	 * @return array
+	 */
+	protected function getComparaisonOperatorsList()
+	{
+		return array(
+			array(
+				'value' => '=',
+				'text'  => '='
+			),
+			array(
+				'value' => '<>',
+				'text'  => '!='
+			),
+			array(
+				'value' => '<',
+				'text'  => '<'
+			),
+			array(
+				'value' => '<=',
+				'text'  => '<='
+			),
+			array(
+				'value' => '>',
+				'text'  => '>'
+			),
+			array(
+				'value' => '>=',
+				'text'  => '>='
+			)
+		);
 	}
 
 	/**
@@ -207,7 +313,7 @@ class NenoControllerGroupsElements extends JControllerAdmin
 		$group                 = NenoContentElementGroup::load($groupId);
 		$tables                = $group->getTables();
 		$files                 = $group->getLanguageFiles();
-		$displayData           = array ();
+		$displayData           = array();
 		$displayData['group']  = $group->prepareDataForView();
 		$displayData['tables'] = NenoHelper::convertNenoObjectListToJObjectList($tables);
 		$displayData['files']  = NenoHelper::convertNenoObjectListToJObjectList($files);
@@ -218,14 +324,13 @@ class NenoControllerGroupsElements extends JControllerAdmin
 		JFactory::getApplication()->close();
 	}
 
-
 	public function getTranslationMethodSelector()
 	{
 		$app             = JFactory::getApplication();
 		$input           = $this->input;
 		$n               = $input->getInt('n', 0);
 		$groupId         = $input->getInt('group_id');
-		$selectedMethods = $input->get('selected_methods', array (), 'ARRAY');
+		$selectedMethods = $input->get('selected_methods', array(), 'ARRAY');
 
 		$translationMethods = NenoHelper::loadTranslationMethods();
 
@@ -236,11 +341,11 @@ class NenoControllerGroupsElements extends JControllerAdmin
 		else
 		{
 			$group                               = new stdClass;
-			$group->assigned_translation_methods = array ();
+			$group->assigned_translation_methods = array();
 		}
 
 		// Ensure that we know what was selected for the previous selector
-		if (($n > 0 && !isset($selectedMethods[$n - 1])) || ($n > 0 && $selectedMethods[$n - 1] == 0))
+		if (($n > 0 && !isset($selectedMethods[ $n - 1 ])) || ($n > 0 && $selectedMethods[ $n - 1 ] == 0))
 		{
 			JFactory::getApplication()->close();
 		}
@@ -254,15 +359,15 @@ class NenoControllerGroupsElements extends JControllerAdmin
 		// Reduce the translation methods offered depending on the parents
 		if ($n > 0 && !empty($selectedMethods))
 		{
-			$parentMethod                = $selectedMethods[$n - 1];
-			$acceptableFollowUpMethodIds = $translationMethods[$parentMethod]->acceptable_follow_up_method_ids;
+			$parentMethod                = $selectedMethods[ $n - 1 ];
+			$acceptableFollowUpMethodIds = $translationMethods[ $parentMethod ]->acceptable_follow_up_method_ids;
 			$acceptableFollowUpMethods   = explode(',', $acceptableFollowUpMethodIds);
 
 			foreach ($translationMethods as $k => $translationMethod)
 			{
 				if (!in_array($k, $acceptableFollowUpMethods))
 				{
-					unset($translationMethods[$k]);
+					unset($translationMethods[ $k ]);
 				}
 			}
 		}
@@ -274,7 +379,7 @@ class NenoControllerGroupsElements extends JControllerAdmin
 		}
 
 		// Prepare display data
-		$displayData                                 = array ();
+		$displayData                                 = array();
 		$displayData['translation_methods']          = $translationMethods;
 		$displayData['assigned_translation_methods'] = $group->assigned_translation_methods;
 		$displayData['n']                            = $n;
@@ -313,5 +418,318 @@ class NenoControllerGroupsElements extends JControllerAdmin
 		}
 
 		$app->close();
+	}
+
+	public function scanForContent()
+	{
+		$input = $this->input;
+
+		// Refresh content for groups
+		$groups          = $input->get('groups', array(), 'ARRAY');
+		$tables          = $input->get('tables', array(), 'ARRAY');
+		$files           = $input->get('files', array(), 'ARRAY');
+		$workingLanguage = NenoHelper::getWorkingLanguage();
+
+		if (!empty($groups))
+		{
+			foreach ($groups as $groupId)
+			{
+				/* @var $group NenoContentElementGroup */
+				$group = NenoContentElementGroup::load($groupId);
+
+				if (!empty($group))
+				{
+					$group->refresh($workingLanguage);
+				}
+			}
+		}
+		elseif (!empty($tables) || !empty($files))
+		{
+			foreach ($tables as $tableId)
+			{
+				/* @var $table NenoContentElementTable */
+				$table = NenoContentElementTable::load($tableId);
+
+				if (!empty($table) && $table->isTranslate())
+				{
+					// Sync table
+					$table->sync();
+
+					$fields = $table->getFields(false, true);
+
+					if (!empty($fields))
+					{
+						/* @var $field NenoContentElementField */
+						foreach ($fields as $field)
+						{
+							$field->persistTranslations(null, $workingLanguage);
+						}
+					}
+				}
+			}
+
+			foreach ($files as $fileId)
+			{
+				/* @var $file NenoContentElementLanguageFile */
+				$file = NenoContentElementLanguageFile::load($fileId);
+
+				if (!empty($file))
+				{
+					$file->loadStringsFromFile();
+					$languageStrings = $file->getLanguageStrings();
+
+					if (!empty($languageStrings))
+					{
+						/* @var $languageString NenoContentElementLanguageString */
+						foreach ($languageStrings as $languageString)
+						{
+							$languageString->persistTranslations($workingLanguage);
+						}
+					}
+				}
+			}
+		}
+
+		JFactory::getApplication()->redirect('index.php?option=com_neno&view=groupselements');
+	}
+
+	/**
+	 * Move completed translations to the shadow tables
+	 *
+	 * @return void
+	 *
+	 * @throws Exception
+	 */
+	public function moveTranslationsToTarget()
+	{
+		$input = $this->input;
+
+		// Refresh content for groups
+		$groups          = $input->get('groups', array(), 'ARRAY');
+		$tables          = $input->get('tables', array(), 'ARRAY');
+		$files           = $input->get('files', array(), 'ARRAY');
+		$workingLanguage = NenoHelper::getWorkingLanguage();
+
+		/* @var $db NenoDatabaseDriverMysqlx */
+		$db    = JFactory::getDbo();
+		$query = $db->getQuery(true);
+
+		$query
+			->select('tr.id')
+			->from('#__neno_content_element_translations AS tr')
+			->innerJoin('#__neno_content_element_fields AS f ON tr.content_id = f.id')
+			->innerJoin('#__neno_content_element_tables AS t ON t.id = f.table_id')
+			->where(
+				array(
+					'tr.state = ' . $db->quote(NenoContentElementTranslation::TRANSLATED_STATE),
+					'tr.language = ' . $db->quote($workingLanguage)
+				)
+			);
+
+		if (!empty($groups))
+		{
+			$query
+				->innerJoin('#__neno_content_element_groups AS g ON t.group_id = g.id')
+				->where('g.id IN (' . implode(',', $db->quote($groups)) . ')');
+		}
+		elseif (!empty($tables) || !empty($files))
+		{
+			$where = array();
+
+			if (!empty($tables))
+			{
+				$where[] = '(t.id IN (' . implode(',', $db->quote($tables)) . ') AND tr.content_type = ' . $db->quote(NenoContentElementTranslation::DB_STRING) . ')';
+			}
+
+			if (!empty($files))
+			{
+				$where[] = '(t.id IN (' . implode(',', $db->quote($tables)) . ') AND tr.content_type = ' . $db->quote(NenoContentElementTranslation::LANG_STRING) . ')';
+			}
+
+			$query->where('(' . implode(' OR ', $where) . ')');
+		}
+
+		$db->setQuery($query);
+		$translationIds = $db->loadArray();
+
+		foreach ($translationIds as $translationId)
+		{
+			/* @var $translation NenoContentElementTranslation */
+			$translation = NenoContentElementTranslation::load($translationId, false, true);
+
+			$translation->moveTranslationToTarget();
+		}
+
+		JFactory::getApplication()->redirect('index.php?option=com_neno&view=groupselements');
+	}
+
+	public function checkIntegrity()
+	{
+		$input = $this->input;
+
+		// Refresh content for groups
+		$groups          = $input->get('groups', array(), 'ARRAY');
+		$tables          = $input->get('tables', array(), 'ARRAY');
+		$workingLanguage = NenoHelper::getWorkingLanguage();
+
+		if (!empty($groups))
+		{
+			foreach ($groups as $groupId)
+			{
+				$tables = NenoContentElementTable::load(
+					array(
+						'group_id'  => $groupId,
+						'translate' => 1
+					)
+				);
+
+				// Making sure the result is an array
+				if (!is_array($tables))
+				{
+					$tables = array( $tables );
+				}
+
+				/* @var $table NenoContentElementTable */
+				foreach ($tables as $table)
+				{
+					// Check table integrity
+					$table->checkIntegrity($workingLanguage);
+				}
+			}
+		}
+		elseif (!empty($tables))
+		{
+			foreach ($tables as $tableId)
+			{
+				/* @var $table NenoContentElementTable */
+				$table = NenoContentElementTable::load($tableId);
+
+				if (!empty($table) && $table->isTranslate())
+				{
+					// Check table integrity
+					$table->checkIntegrity($workingLanguage);
+				}
+			}
+		}
+
+		JFactory::getApplication()->redirect('index.php?option=com_neno&view=groupselements');
+	}
+
+	public function saveTableFilters()
+	{
+		$app   = JFactory::getApplication();
+		$input = $app->input;
+
+		$filters = $input->post->get('filters', array(), 'ARRAY');
+		$tableId = $input->post->getInt('tableId');
+
+		if (!empty($filters) && !empty($tableId))
+		{
+			$db    = JFactory::getDbo();
+			$query = $db->getQuery(true);
+
+			$query
+				->delete('#__neno_content_element_table_filters')
+				->where('table_id = ' . (int) $tableId);
+
+			$db->setQuery($query);
+			$db->execute();
+
+			$query
+				->clear()
+				->insert('#__neno_content_element_table_filters')
+				->columns(
+					array(
+						'table_id',
+						'field_id',
+						'comparaison_operator',
+						'filter_value'
+					)
+				);
+
+			foreach ($filters as $filter)
+			{
+				$query
+					->values(
+						$db->quote($tableId) . ','
+						. $db->quote($filter['field']) . ','
+						. $db->quote($filter['operator']) . ','
+						. $db->quote($filter['value'])
+					);
+			}
+
+			$db->setQuery($query);
+			$db->execute();
+
+			// Adding task for table maintenance
+			NenoTaskMonitor::addTask('maintenance', array( 'tableId' => $tableId ));
+
+			echo 'ok';
+		}
+
+		$app->close();
+	}
+
+	public function refreshWordCount()
+	{
+		$input = $this->input;
+
+		// Refresh content for groups
+		$groups          = $input->get('groups', array(), 'ARRAY');
+		$tables          = $input->get('tables', array(), 'ARRAY');
+		$files           = $input->get('files', array(), 'ARRAY');
+		$workingLanguage = NenoHelper::getWorkingLanguage();
+
+		/* @var $db NenoDatabaseDriverMysqlx */
+		$db    = JFactory::getDbo();
+		$query = $db->getQuery(true);
+
+		$query
+			->select('tr.id')
+			->from('#__neno_content_element_translations AS tr')
+			->innerJoin('#__neno_content_element_fields AS f ON tr.content_id = f.id')
+			->innerJoin('#__neno_content_element_tables AS t ON t.id = f.table_id')
+			->where(
+				array(
+					'tr.state = ' . $db->quote(NenoContentElementTranslation::TRANSLATED_STATE),
+					'tr.language = ' . $db->quote($workingLanguage)
+				)
+			);
+
+		if (!empty($groups))
+		{
+			$query
+				->innerJoin('#__neno_content_element_groups AS g ON t.group_id = g.id')
+				->where('g.id IN (' . implode(',', $db->quote($groups)) . ')');
+		}
+		elseif (!empty($tables) || !empty($files))
+		{
+			$where = array();
+
+			if (!empty($tables))
+			{
+				$where[] = '(t.id IN (' . implode(',', $db->quote($tables)) . ') AND tr.content_type = ' . $db->quote(NenoContentElementTranslation::DB_STRING) . ')';
+			}
+
+			if (!empty($files))
+			{
+				$where[] = '(t.id IN (' . implode(',', $db->quote($tables)) . ') AND tr.content_type = ' . $db->quote(NenoContentElementTranslation::LANG_STRING) . ')';
+			}
+
+			$query->where('(' . implode(' OR ', $where) . ')');
+		}
+
+		$db->setQuery($query);
+		$translationIds = $db->loadArray();
+
+		foreach ($translationIds as $translationId)
+		{
+			/* @var $translation NenoContentElementTranslation */
+			$translation = NenoContentElementTranslation::load($translationId, false, true);
+
+			$translation->persist();
+		}
+
+		JFactory::getApplication()->redirect('index.php?option=com_neno&view=groupselements');
 	}
 }

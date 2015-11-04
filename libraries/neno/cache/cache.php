@@ -73,6 +73,6 @@ class NenoCache
 	 */
 	public static function getCacheId($functionName, array $arguments)
 	{
-		return $functionName . md5(json_encode($arguments));
+		return md5($functionName . md5(json_encode($arguments)));
 	}
 }

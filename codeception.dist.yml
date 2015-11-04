@@ -1,12 +1,6 @@
 actor: Tester
 extensions:
-  enabled: [NenoExtension]
-  config:
-    NenoExtension:
-      token: 6186a26b84d34c7351b08ef13cbb5697e7180560
-      cloud_name: jensen-technologies
-      api_key: 586876494264151
-      api_secret: 0AlxHkbRyN28ZGlCQWV50DEH6Jc
+  enabled: [Codeception\Extension\Recorder]
 paths:
     tests: tests
     log: tests/_output
@@ -16,10 +10,3 @@ settings:
     bootstrap: _bootstrap.php
     colors: true
     memory_limit: 1024M
-modules:
-    config:
-        Db:
-            dsn: ''
-            user: ''
-            password: ''
-            dump: tests/_data/dump.sql

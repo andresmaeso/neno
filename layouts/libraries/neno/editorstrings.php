@@ -32,14 +32,6 @@ else
 }
 ?>
 
-<script>
-	jQuery(document).ready(function () {
-		jQuery('.string').unbind('click').bind('click', function () {
-			loadTranslation(jQuery(this));
-		});
-	});
-</script>
-
 <?php if (!empty($translations)): ?>
 	<?php /* @var $translation stdClass */ ?>
 	<?php foreach ($translations as $translation): ?>
