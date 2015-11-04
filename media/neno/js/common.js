@@ -15,9 +15,6 @@ function highlightBox(selector) {
     
 }
 
-
-
-
 // Check if the user has lost the session
 function onBeforeAjax() {
     jQuery.get('index.php?option=com_neno&task=checkSession', function (response) {
