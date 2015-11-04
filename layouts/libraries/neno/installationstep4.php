@@ -16,25 +16,25 @@ JHtml::_('bootstrap.tooltip');
 
 <style>
 	#task-messages {
-		height           : 200px;
-		background-color : #f5f5f5;
-		padding          : 20px;
-		color            : #808080;
-		overflow         : auto;
+		height: 200px;
+		background-color: #f5f5f5;
+		padding: 20px;
+		color: #808080;
+		overflow: auto;
 	}
 
 	.log-level-2 {
-		margin-left : 20px;
-		font-weight : bold;
-		margin-top  : 16px;
+		margin-left: 20px;
+		font-weight: bold;
+		margin-top: 16px;
 	}
 
 	.log-level-3 {
-		margin-left : 40px;
+		margin-left: 40px;
 	}
 
 	#proceed-button {
-		margin-top : 15px;
+		margin-top: 15px;
 	}
 </style>
 
@@ -45,7 +45,7 @@ JHtml::_('bootstrap.tooltip');
 			<h2><?php echo JText::_('COM_NENO_INSTALLATION_SETUP_COMPLETING_TITLE'); ?></h2>
 
 			<div class="progress progress-striped active" id="progress-bar">
-				<div class="bar" style="width: 2%;"></div>
+				<div class="bar"></div>
 			</div>
 			<p><?php echo JText::_('COM_NENO_INSTALLATION_SETUP_COMPLETING_FINISH_SETUP_MESSAGE'); ?></p>
 
@@ -68,7 +68,7 @@ JHtml::_('bootstrap.tooltip');
 
 			<label class="checkbox">
 				<input type="checkbox" class="no-data"
-					id="backup-created-checkbox"><?php echo JText::_('COM_NENO_INSTALLATION_WARNING_MESSAGE_CHECKBOX_MESSAGE'); ?>
+				       id="backup-created-checkbox"><?php echo JText::_('COM_NENO_INSTALLATION_WARNING_MESSAGE_CHECKBOX_MESSAGE'); ?>
 			</label>
 			<button type="button" class="btn no-data" id="proceed-button" disabled>
 				<?php echo JText::_('COM_NENO_INSTALLATION_WARNING_MESSAGE_PROCEED_BUTTON'); ?>
@@ -80,33 +80,12 @@ JHtml::_('bootstrap.tooltip');
 </div>
 
 <script>
-	jQuery('#proceed-button').off('click').on('click', function () {
-		if (jQuery('#backup-created-checkbox').prop('checked')) {
-			jQuery('#warning-message').slideToggle(400, function () {
-				jQuery('#installation-wrapper').slideToggle();
-			});
-
-			interval = setInterval(checkStatus, 2000);
-
-			Notification.requestPermission(function (perm) {
-				if (perm == 'granted') {
-					notifications = true;
-				}
-			});
-		}
-
-		jQuery.installation = false;
-
-		sendDiscoveringStep();
-	});
-
-	jQuery('#backup-created-checkbox').off('click').on('click', function () {
-		jQuery('#proceed-button').attr('disabled', !jQuery(this).prop('checked'));
-	});
+	jQuery.installation = false;
+	sendDiscoveringStep();
 
 	function sendDiscoveringStep() {
 		jQuery.ajax({
-			url    : 'index.php?option=com_neno&task=installation.processDiscoveringStep&r=' + Math.random(),
+			url: 'index.php?option=com_neno&task=installation.processDiscoveringStep&contentType=structure&r=' + Math.random(),
 			success: function (data) {
 				if (data != 'ok') {
 					sendDiscoveringStep();
@@ -117,7 +96,7 @@ JHtml::_('bootstrap.tooltip');
 					window.clearInterval(interval);
 				}
 			},
-			error  : function () {
+			error: function () {
 				sendDiscoveringStep();
 			}
 		});
@@ -125,9 +104,9 @@ JHtml::_('bootstrap.tooltip');
 
 	function checkStatus() {
 		jQuery.ajax({
-			url     : 'index.php?option=com_neno&task=installation.getSetupStatus&r=' + Math.random(),
+			url: 'index.php?option=com_neno&task=installation.getSetupStatus&r=' + Math.random(),
 			dataType: 'json',
-			success : printMessages
+			success: printMessages
 		});
 	}
 
