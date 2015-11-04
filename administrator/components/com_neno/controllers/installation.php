@@ -208,9 +208,8 @@ class NenoControllerInstallation extends JControllerAdmin
 	 */
 	public function previewContentFromTable()
 	{
-		$app   = JFactory::getApplication();
-		$input = $app->input;
-
+		$app     = JFactory::getApplication();
+		$input   = $app->input;
 		$tableId = $input->getInt('tableId');
 
 		/* @var $table NenoContentElementTable */
@@ -221,12 +220,19 @@ class NenoControllerInstallation extends JControllerAdmin
 		if (!empty($table))
 		{
 			$displayData->records = $table->getRandomContentFromTable();
-			$fields               = $table->getFields(false, true);
+			$fields               = $table->getFields();
 
 			/* @var $field NenoContentElementField */
 			foreach ($fields as $key => $field)
 			{
-				$fields[$key] = $field->prepareDataForView();
+				if ($field->isTranslatableType($field->getFieldType()))
+				{
+					$fields[$key] = $field->prepareDataForView();
+				}
+				else
+				{
+					unset($fields[$key]);
+				}
 			}
 
 			$displayData->fields = $fields;

@@ -879,7 +879,7 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 		$db    = JFactory::getDbo();
 		$query = $db->getQuery(true);
 
-		$this->getFields(false, true);
+		$this->getFields();
 
 		/* @var $field NenoContentElementField */
 		foreach ($this->fields as $field)

@@ -15,7 +15,9 @@
 			<h5>Field <?php echo $field->field_name; ?> (<?php echo $field->field_type; ?>)</h5>
 			<ul>
 				<?php foreach ($displayData->records as $record): ?>
-					<li><?php echo htmlentities($record->{$field->field_name}); ?></li>
+					<?php if (!empty($record->{$field->field_name})): ?>
+						<li><?php echo htmlentities($record->{$field->field_name}); ?></li>
+					<?php endif; ?>
 				<?php endforeach; ?>
 			</ul>
 		<?php endif; ?>
