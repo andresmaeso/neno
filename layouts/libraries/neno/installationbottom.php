@@ -37,5 +37,9 @@ $step = $displayData;
 			<span class="bubble"></span>
 			<?php echo JText::_('COM_NENO_INSTALLATION_STEP_5'); ?>
 		</li>
+		<li <?php echo $step == 6 ? 'class="completed"' : ''; ?>>
+			<span class="bubble"></span>
+			<?php echo JText::_('COM_NENO_INSTALLATION_STEP_6'); ?>
+		</li>
 	</ul>
 </div>
