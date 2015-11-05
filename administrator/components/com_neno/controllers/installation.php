@@ -44,7 +44,7 @@ class NenoControllerInstallation extends JControllerAdmin
 			$sidebar = JHtmlSidebar::render();
 		}
 
-		echo json_encode(array('installation_step' => $layout, 'jsidebar' => $sidebar));
+		echo json_encode(array( 'installation_step' => $layout, 'jsidebar' => $sidebar ));
 
 		JFactory::getApplication()->close();
 	}
@@ -90,17 +90,16 @@ class NenoControllerInstallation extends JControllerAdmin
 				{
 					if ($knownLanguage['tag'] != $default)
 					{
-						$insert                                    = true;
-						$languagesData[$key]                       = $knownLanguage;
-						$languagesData[$key]['lang_code']          = $knownLanguage['tag'];
-						$languagesData[$key]['title']              = $knownLanguage['name'];
-						$languagesData[$key]['translationMethods'] = $defaultTranslationsMethods;
-						$languagesData[$key]['errors']             = NenoHelper::getLanguageErrors($languagesData[$key]);
-						$languagesData[$key]['placement']          = 'installation';
-						$languagesData[$key]['image']              = NenoHelper::getLanguageImage($knownLanguage['tag']);
-						$languagesData[$key]['published']          = NenoHelper::isLanguagePublished($knownLanguage['tag']);
-						$languagesData[$key]['comment']            = NenoHelper::getLanguageTranslatorComment($knownLanguage['tag']);
-
+						$insert                                      = true;
+						$languagesData[ $key ]                       = $knownLanguage;
+						$languagesData[ $key ]['lang_code']          = $knownLanguage['tag'];
+						$languagesData[ $key ]['title']              = $knownLanguage['name'];
+						$languagesData[ $key ]['translationMethods'] = $defaultTranslationsMethods;
+						$languagesData[ $key ]['errors']             = NenoHelper::getLanguageErrors($languagesData[ $key ]);
+						$languagesData[ $key ]['placement']          = 'installation';
+						$languagesData[ $key ]['image']              = NenoHelper::getLanguageImage($knownLanguage['tag']);
+						$languagesData[ $key ]['published']          = NenoHelper::isLanguagePublished($knownLanguage['tag']);
+						$languagesData[ $key ]['comment']            = NenoHelper::getLanguageTranslatorComment($knownLanguage['tag']);
 
 						foreach ($defaultTranslationsMethods as $ordering => $defaultTranslationsMethod)
 						{
@@ -190,7 +189,7 @@ class NenoControllerInstallation extends JControllerAdmin
 				foreach ($groups as $key => $group)
 				{
 					$group->getTables();
-					$groups[$key] = $group->prepareDataForView();
+					$groups[ $key ] = $group->prepareDataForView();
 				}
 				$data->groups = $groups;
 				break;
@@ -227,11 +226,11 @@ class NenoControllerInstallation extends JControllerAdmin
 			{
 				if ($field->isTranslatableType($field->getFieldType()))
 				{
-					$fields[$key] = $field->prepareDataForView();
+					$fields[ $key ] = $field->prepareDataForView();
 				}
 				else
 				{
-					unset($fields[$key]);
+					unset($fields[ $key ]);
 				}
 			}
 
@@ -253,7 +252,7 @@ class NenoControllerInstallation extends JControllerAdmin
 		$step        = NenoSettings::get('installation_status', 0);
 		$moveForward = true;
 		$app         = JFactory::getApplication();
-		$response    = array('status' => 'ok');
+		$response    = array( 'status' => 'ok' );
 
 		if ($step != 0)
 		{
@@ -358,13 +357,27 @@ class NenoControllerInstallation extends JControllerAdmin
 					}
 					else
 					{
-						NenoSettings::set('installation_level', implode('.', array($firstPart, $secondPart)));
+						NenoSettings::set('installation_level', implode('.', array( $firstPart, $secondPart )));
 					}
 				}
 				else
 				{
 					/* @var $element NenoContentElementGroup */
-					$element->discoverElement();
+					$element->discoverElement(false);
+				}
+			}
+			else
+			{
+				list($firstPart, $secondPart) = explode('.', $level);
+				$firstPart--;
+
+				if ($firstPart == 0)
+				{
+					NenoSettings::set('installation_level', $firstPart);
+				}
+				else
+				{
+					NenoSettings::set('installation_level', implode('.', array( $firstPart, $secondPart )));
 				}
 			}
 		}
@@ -386,7 +399,7 @@ class NenoControllerInstallation extends JControllerAdmin
 	{
 		list($branch, $branchLevel) = explode('.', $level);
 
-		return $branchLevel == 2;
+		return $branch == 2;
 	}
 
 	/**
@@ -443,7 +456,7 @@ class NenoControllerInstallation extends JControllerAdmin
 				}
 				else
 				{
-					NenoSettings::set('installation_level', implode('.', array($firstPart, $secondPart)));
+					NenoSettings::set('installation_level', implode('.', array( $firstPart, $secondPart )));
 				}
 			}
 			else
@@ -533,7 +546,7 @@ class NenoControllerInstallation extends JControllerAdmin
 					}
 					else
 					{
-						$group = new NenoContentElementGroup(array('group_name' => $extension['name']));
+						$group = new NenoContentElementGroup(array( 'group_name' => $extension['name'] ));
 					}
 
 					/* @var $group NenoContentElementGroup */

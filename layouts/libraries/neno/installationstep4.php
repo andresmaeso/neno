@@ -16,32 +16,32 @@ JHtml::_('bootstrap.tooltip');
 
 <style>
 	#task-messages {
-		height: 200px;
-		background-color: #f5f5f5;
-		padding: 20px;
-		color: #808080;
-		overflow: auto;
+		height           : 200px;
+		background-color : #f5f5f5;
+		padding          : 20px;
+		color            : #808080;
+		overflow         : auto;
 	}
 
 	.log-level-2 {
-		margin-left: 20px;
-		font-weight: bold;
-		margin-top: 16px;
+		margin-left : 20px;
+		font-weight : bold;
+		margin-top  : 16px;
 	}
 
 	.log-level-3 {
-		margin-left: 40px;
+		margin-left : 40px;
 	}
 
 	#proceed-button {
-		margin-top: 15px;
+		margin-top : 15px;
 	}
 </style>
 
 <div class="installation-step">
 	<div class="installation-body span12">
 		<div class="error-messages"></div>
-		<div id="installation-wrapper" class="hide">
+		<div id="installation-wrapper">
 			<h2><?php echo JText::_('COM_NENO_INSTALLATION_SETUP_COMPLETING_TITLE'); ?></h2>
 
 			<div class="progress progress-striped active" id="progress-bar">
@@ -53,27 +53,6 @@ JHtml::_('bootstrap.tooltip');
 
 			</div>
 		</div>
-		<div id="warning-message">
-			<div class="alert"><?php echo JText::_('COM_NENO_INSTALLATION_WARNING_MESSAGE_TITLE'); ?></div>
-			<p><?php echo JText::_('COM_NENO_INSTALLATION_WARNING_MESSAGE_P1'); ?></p>
-
-			<?php if (!empty($displayData->tablesFound)): ?>
-				<p><?php echo JText::_('COM_NENO_INSTALLATION_WARNING_MESSAGE_P2'); ?></p>
-				<ul>
-					<?php foreach ($displayData->tablesFound as $tableFound): ?>
-						<li><?php echo JText::sprintf('COM_NENO_INSTALLATION_WARNING_MESSAGE_TABLE_MESSAGE', $tableFound->table, $tableFound->counter, $tableFound->language); ?></li>
-					<?php endforeach; ?>
-				</ul>
-			<?php endif; ?>
-
-			<label class="checkbox">
-				<input type="checkbox" class="no-data"
-				       id="backup-created-checkbox"><?php echo JText::_('COM_NENO_INSTALLATION_WARNING_MESSAGE_CHECKBOX_MESSAGE'); ?>
-			</label>
-			<button type="button" class="btn no-data" id="proceed-button" disabled>
-				<?php echo JText::_('COM_NENO_INSTALLATION_WARNING_MESSAGE_PROCEED_BUTTON'); ?>
-			</button>
-		</div>
 	</div>
 
 	<?php echo JLayoutHelper::render('installationbottom', 4, JPATH_NENO_LAYOUTS); ?>
@@ -81,11 +60,12 @@ JHtml::_('bootstrap.tooltip');
 
 <script>
 	jQuery.installation = false;
+	interval = setInterval(checkStatus, 2000);
 	sendDiscoveringStep();
 
 	function sendDiscoveringStep() {
 		jQuery.ajax({
-			url: 'index.php?option=com_neno&task=installation.processDiscoveringStep&contentType=structure&r=' + Math.random(),
+			url    : 'index.php?option=com_neno&task=installation.processDiscoveringStep&contentType=structure&r=' + Math.random(),
 			success: function (data) {
 				if (data != 'ok') {
 					sendDiscoveringStep();
@@ -96,7 +76,7 @@ JHtml::_('bootstrap.tooltip');
 					window.clearInterval(interval);
 				}
 			},
-			error: function () {
+			error  : function () {
 				sendDiscoveringStep();
 			}
 		});
@@ -104,9 +84,9 @@ JHtml::_('bootstrap.tooltip');
 
 	function checkStatus() {
 		jQuery.ajax({
-			url: 'index.php?option=com_neno&task=installation.getSetupStatus&r=' + Math.random(),
+			url     : 'index.php?option=com_neno&task=installation.getSetupStatus&r=' + Math.random(),
 			dataType: 'json',
-			success: printMessages
+			success : printMessages
 		});
 	}
 
