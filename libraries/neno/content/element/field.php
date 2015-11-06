@@ -731,8 +731,9 @@ class NenoContentElementField extends NenoContentElement implements NenoContentE
 		// If the table has primary key, let's go through them
 		if (!empty($primaryKey))
 		{
-			$db    = JFactory::getDbo();
-			$query = $db->getQuery(true);
+			$db             = JFactory::getDbo();
+			$query          = $db->getQuery(true);
+			$filtersApplied = false;
 
 			$primaryKeyData = $this->getTable()->getPrimaryKey();
 			$breakpoint     = NenoSettings::get('installation_completed') ? null : NenoSettings::get('field_breakpoint', null);
@@ -749,10 +750,12 @@ class NenoContentElementField extends NenoContentElement implements NenoContentE
 				if (!empty($recordId[ $primaryKey ]))
 				{
 					$query->where($db->quoteName($primaryKey) . ' = ' . $recordId[ $primaryKey ]);
+					$filtersApplied = true;
 				}
 				elseif (!empty($breakpoint[ $primaryKey ]))
 				{
 					$query->where($db->quoteName($primaryKey) . ' >= ' . $breakpoint[ $primaryKey ]);
+					$filtersApplied = true;
 				}
 
 				$query->order($db->quoteName($primaryKey) . ' ASC');
@@ -769,6 +772,17 @@ class NenoContentElementField extends NenoContentElement implements NenoContentE
 			else
 			{
 				$query->select('1 AS state');
+			}
+
+			// If there's no filter applied, let's applied the ones for the tables
+			if (!$filtersApplied)
+			{
+				$filters = $this->getTable()->getTableFilters();
+
+				foreach ($filters as $filter)
+				{
+					$query->where($db->quoteName($filter['field']) . ' ' . $filter['operator'] . ' ' . $db->quote($filter['value']));
+				}
 			}
 
 			$db->setQuery($query);
