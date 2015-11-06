@@ -116,6 +116,8 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 
 	jQuery(document).ready(function () {
 		statusChanged = false;
+		warning_message = '<?php echo JText::_('COM_NENO_VIEW_GROUPSELEMENTS_RELOAD_WARNING'); ?>';
+		warning_button = '<?php echo JText::_('COM_NENO_VIEW_GROUPSELEMENTS_RELOAD_BTN'); ?>';
 		//Bind
 		bindEvents();
 
@@ -226,7 +228,7 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 
 		//Show an alert that count no longer is accurate
 		jQuery('#reload-notice').remove();
-		jQuery('.navbar-fixed-top .navbar-inner').append('<div style="padding:10px 30px;" id="reload-notice"><div class="alert alert-warning"><?php echo JText::_('COM_NENO_VIEW_GROUPSELEMENTS_RELOAD_WARNING'); ?><a href="index.php?option=com_neno&view=groupselements" class="btn btn-info pull-right" style="height: 16px; font-size: 12px;margin-top:-4px"><?php echo JText::_('COM_NENO_VIEW_GROUPSELEMENTS_RELOAD_BTN'); ?></a></div></div>').height('92');
+		jQuery('.navbar-fixed-top .navbar-inner').append('<div style="padding:10px 30px;" id="reload-notice"><div class="alert alert-warning">' + warning_message + '<a href="index.php?option=com_neno&view=groupselements" class="btn btn-info pull-right" style="height: 16px; font-size: 12px;margin-top:-4px">' + warning_button + '</a></div></div>').height('92');
 		jQuery('body').css('padding-top', '93px');
 
 		jQuery.ajax({
