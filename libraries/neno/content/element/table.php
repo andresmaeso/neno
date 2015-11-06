@@ -107,6 +107,13 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 			->select('COUNT(*) AS counter')
 			->from($db->quoteName($this->getTableName()));
 
+		$filters = $this->getTableFilters();
+
+		foreach ($filters as $filter)
+		{
+			$query->where($db->quoteName($filter['field']) . ' ' . $filter['operator'] . ' ' . $db->quoteName($filter['value']));
+		}
+
 		$db->setQuery($query);
 		$this->recordCount = $db->loadResult();
 	}
@@ -836,7 +843,43 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 
 		$db->setQuery($query);
 		$translationIds = $db->loadColumn();
+		$filters        = $this->getTableFilters();
 
+		foreach ($translationIds as $translationId)
+		{
+			/* @var $translation NenoContentElementTranslation */
+			$translation = NenoContentElementTranslation::load($translationId, false, true);
+			$sqlQuery    = $translation->generateSQLStatement();
+
+			$sqlQuery
+				->clear('select')
+				->select('1');
+
+			foreach ($filters as $filter)
+			{
+				$query->where($db->quoteName($filter['field']) . ' ' . $filter['operator'] . ' ' . $db->quote($filter['value']));
+			}
+
+			$db->setQuery($query);
+			$result = $db->loadResult();
+
+			// If the translation does not meet this requirements, let's delete it
+			if (empty($result))
+			{
+				$translation->remove();
+			}
+		}
+	}
+
+	/**
+	 * Get table filters
+	 *
+	 * @return array
+	 */
+	public function getTableFilters()
+	{
+		$db    = JFactory::getDbo();
+		$query = $db->getQuery(true);
 		$query
 			->clear()
 			->select(
@@ -853,30 +896,7 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 		$db->setQuery($query);
 		$filters = $db->loadAssocList();
 
-		foreach ($translationIds as $translationId)
-		{
-			/* @var $translation NenoContentElementTranslation */
-			$translation = NenoContentElementTranslation::load($translationId, false, true);
-			$sqlQuery    = $translation->generateSQLStatement();
-
-			$sqlQuery
-				->clear('select')
-				->select('1');
-
-			foreach ($filters as $filter)
-			{
-				$query->where($db->quoteName($filter['field']) . ' ' . $filter['operator'] . ' ' . $filter['value']);
-			}
-
-			$db->setQuery($query);
-			$result = $db->loadResult();
-
-			// If the translation does not meet this requirements, let's delete it
-			if (empty($result))
-			{
-				$translation->remove();
-			}
-		}
+		return $filters;
 	}
 
 	/**
