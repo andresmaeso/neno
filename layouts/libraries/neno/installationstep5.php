@@ -57,7 +57,12 @@ JHtml::_('bootstrap.tooltip');
 								<i class="icon-eye"></i>
 							</button>
 						</td>
-						<td><?php echo $table->record_count; ?> rows</td>
+						<td>
+							<span id="record-count-<?php echo $table->id; ?>"><?php echo $table->record_count; ?></span> rows
+							<button type="button" class="btn btn-mini record-refresher-btn" data-table-id="<?php echo $table->id; ?>">
+								<i class="icon-loop"></i>
+							</button>
+						</td>
 						<td colspan="2">
 							<div class="pull-right">
 								<?php echo JLayoutHelper::render('translatewidget', $table, JPATH_NENO_LAYOUTS); ?>
@@ -109,6 +114,21 @@ JHtml::_('bootstrap.tooltip');
 	});
 
 	jQuery('.preview-btn').off('click').on('click', previewContent);
+
+	jQuery('.record-refresher-btn').off('click').on('click', refreshRecordCounter);
+
+	function refreshRecordCounter() {
+		var button = jQuery(this);
+		jQuery.post(
+			'index.php?option=com_neno&task=installation.refreshRecordCounter&r=' + Math.random(),
+			{
+				tableId: button.data('table-id')
+			},
+			function (text) {
+				jQuery('#record-count-' + button.data('table-id')).text(text);
+			}
+		)
+	}
 
 	function previewContent() {
 		var button = jQuery(this);

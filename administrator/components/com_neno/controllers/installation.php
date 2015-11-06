@@ -819,4 +819,23 @@ class NenoControllerInstallation extends JControllerAdmin
 
 		return false;
 	}
+
+	/**
+	 * @throws Exception
+	 *
+	 * @return void
+	 */
+	public function refreshRecordCounter()
+	{
+		$app     = JFactory::getApplication();
+		$input   = $app->input;
+		$tableId = $input->getInt('tableId');
+
+		/* @var $table NenoContentElementTable */
+		$table = NenoContentElementTable::load($tableId);
+
+		echo $table->recordCount,
+
+		$app->close();
+	}
 }

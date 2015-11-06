@@ -107,11 +107,14 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 			->select('COUNT(*) AS counter')
 			->from($db->quoteName($this->getTableName()));
 
-		$filters = $this->getTableFilters();
-
-		foreach ($filters as $filter)
+		if ($this->translate == 2)
 		{
-			$query->where($db->quoteName($filter['field']) . ' ' . $filter['operator'] . ' ' . $db->quoteName($filter['value']));
+			$filters = $this->getTableFilters();
+
+			foreach ($filters as $filter)
+			{
+				$query->where($db->quoteName($filter['field']) . ' ' . $filter['operator'] . ' ' . $db->quote($filter['value']));
+			}
 		}
 
 		$db->setQuery($query);
@@ -891,7 +894,7 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 			)
 			->from('#__neno_content_element_table_filters AS tf')
 			->innerJoin('#__neno_content_element_fields AS f ON tf.field_id = f.id')
-			->where('table_id = ' . (int) $this->id);
+			->where('tf.table_id = ' . (int) $this->id);
 
 		$db->setQuery($query);
 		$filters = $db->loadAssocList();
