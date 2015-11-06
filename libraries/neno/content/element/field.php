@@ -775,7 +775,7 @@ class NenoContentElementField extends NenoContentElement implements NenoContentE
 			}
 
 			// If there's no filter applied, let's applied the ones for the tables
-			if (!$filtersApplied)
+			if (!$filtersApplied && $this->getTable()->isTranslate() == 2)
 			{
 				$filters = $this->getTable()->getTableFilters();
 
