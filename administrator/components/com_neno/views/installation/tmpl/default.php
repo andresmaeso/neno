@@ -30,9 +30,9 @@ if (!empty($this->extra_sidebar))
 
 	function loadInstallationStep() {
 		jQuery.ajax({
-			url: 'index.php?option=com_neno&task=installation.loadInstallationStep&r=' + Math.random(),
+			url     : 'index.php?option=com_neno&task=installation.loadInstallationStep&r=' + Math.random(),
 			dataType: 'json',
-			success: function (html) {
+			success : function (html) {
 				jQuery('.installation-form').empty().append(html.installation_step);
 				if (html.jsidebar !== '') {
 					showNotification();
@@ -44,118 +44,86 @@ if (!empty($this->extra_sidebar))
 					sidebar.show();
 				}
 
-				bindEvents();
+				bindEvents(html.step);
 			}
 		});
 	}
 
-	function changeTableTranslateState() {
-		var id = jQuery(this).parent('fieldset').attr('data-field');
-		var status = jQuery(this).val();
-		var row = jQuery('.row-table[data-id="table-' + id + '"]');
-		var toggler = row.find('.toggle-fields');
+	function bindEvents(step) {
 
-		if (status == 1) {
-			row.find('.bar').removeClass('bar-disabled');
-			jQuery('[for="check-toggle-translate-table-' + id + '-1"]').addClass('active btn-success');
-			jQuery('[for="check-toggle-translate-table-' + id + '-0"]').removeClass('active btn-danger');
+		if (step != 5) {
+			jQuery('.next-step-button').off('click').on('click', processInstallationStep);
+			// Turn radios into btn-group
+			jQuery('.radio.btn-group label').addClass('btn');
+			jQuery(".btn-group label:not(.active)").click(function () {
+				var label = jQuery(this);
+				var input = jQuery('#' + label.attr('for'));
 
-			//Add field toggler
-			toggler.off('click').on('click', toggleFieldVisibility);
-			toggler.addClass('toggler toggler-collapsed');
-			toggler.find('span').addClass('icon-arrow-right-3');
-		} else {
-			row.find('.bar').addClass('bar-disabled');
-			jQuery('[for="check-toggle-translate-table-' + id + '-0"]').addClass('active btn-danger');
-			jQuery('[for="check-toggle-translate-table-' + id + '-1"]').removeClass('active btn-success');
-
-			//Remove fields
-			if (toggler.hasClass('toggler-expanded')) {
-				toggler.click();
-			}
-			toggler.off('click');
-			toggler.removeClass('toggler toggler-collapsed');
-			toggler.find('span').removeClass();
-		}
-
-		jQuery.ajax({
-				beforeSend: onBeforeAjax,
-				url: 'index.php?option=com_neno&task=groupselements.toggleContentElementTable&tableId=' + id + '&translateStatus=' + status
-			}
-		);
-	}
-
-	function bindEvents() {
-		jQuery('.next-step-button').off('click').on('click', processInstallationStep);
-		jQuery('.hasTooltip').tooltip();
-		jQuery('select').chosen();
-		// Turn radios into btn-group
-		jQuery('.radio.btn-group label').addClass('btn');
-		jQuery(".btn-group label:not(.active)").click(function () {
-			var label = jQuery(this);
-			var input = jQuery('#' + label.attr('for'));
-
-			if (!input.prop('checked')) {
-				label.closest('.btn-group').find("label").removeClass('active btn-success btn-danger btn-primary');
-				if (input.val() == '') {
-					label.addClass('active btn-primary');
-				} else if (input.val() == 0) {
-					label.addClass('active btn-danger');
-				} else {
-					label.addClass('active btn-success');
-				}
-				input.prop('checked', true);
-			}
-		});
-		jQuery(".btn-group input[checked=checked]").each(function () {
-			if (jQuery(this).val() == '') {
-				jQuery("label[for=" + jQuery(this).attr('id') + "]").addClass('active btn-primary');
-			} else if (jQuery(this).val() == 0) {
-				jQuery("label[for=" + jQuery(this).attr('id') + "]").addClass('active btn-danger');
-			} else {
-				jQuery("label[for=" + jQuery(this).attr('id') + "]").addClass('active btn-success');
-			}
-		});
-
-		jQuery("[data-issue]").off('click').on('click', fixIssue);
-		jQuery(".remove-language-button").off('click').on('click', function () {
-			var result = confirm("<?php echo JText::_('COM_NENO_DASHBOARD_REMOVING_LANGUAGE_MESSAGE_1') ?>\n\n<?php echo JText::_('COM_NENO_DASHBOARD_REMOVING_LANGUAGE_MESSAGE_2'); ?>");
-
-			if (result) {
-				jQuery(this).closest('.language-wrapper').slideUp();
-				jQuery.ajax({
-					beforeSend: onBeforeAjax,
-					url: 'index.php?option=com_neno&task=removeLanguage&language=' + jQuery(this).data('language')
-				});
-			}
-
-		});
-
-		jQuery('.save-translator-comment').off('click').on('click', function () {
-			var language = jQuery(this).data('language');
-
-			jQuery.post(
-				'index.php?option=com_neno&task=saveExternalTranslatorsComment&r=' + Math.random(),
-				{
-					placement: 'language',
-					language: language,
-					comment: jQuery(".comment-to-translator[data-language='" + language + "']").val()
-				},
-				function (response) {
-
-					if (response == 'ok') {
-						var text = '<?php echo JText::_('COM_NENO_COMMENTS_TO_TRANSLATOR_LANGUAGE_EDIT'); ?>';
-						text = text.replace('%s', language);
-						jQuery(".add-comment-to-translator-button[data-language='" + language + "']").html('<span class="icon-pencil"></span> ' + text);
+				if (!input.prop('checked')) {
+					label.closest('.btn-group').find("label").removeClass('active btn-success btn-danger btn-primary');
+					if (input.val() == '') {
+						label.addClass('active btn-primary');
+					} else if (input.val() == 0) {
+						label.addClass('active btn-danger');
+					} else {
+						label.addClass('active btn-success');
 					}
-
-					jQuery('#addCommentFor' + language).modal('toggle');
+					input.prop('checked', true);
 				}
-			);
-		});
+			});
+			jQuery(".btn-group input[checked=checked]").each(function () {
+				if (jQuery(this).val() == '') {
+					jQuery("label[for=" + jQuery(this).attr('id') + "]").addClass('active btn-primary');
+				} else if (jQuery(this).val() == 0) {
+					jQuery("label[for=" + jQuery(this).attr('id') + "]").addClass('active btn-danger');
+				} else {
+					jQuery("label[for=" + jQuery(this).attr('id') + "]").addClass('active btn-success');
+				}
+			});
 
-		//Attach the translate state toggler
-		jQuery('.check-toggle-translate-table-radio').off('change').on('change', changeTableTranslateState);
+			jQuery("[data-issue]").off('click').on('click', fixIssue);
+			jQuery(".remove-language-button").off('click').on('click', function () {
+				var result = confirm("<?php echo JText::_('COM_NENO_DASHBOARD_REMOVING_LANGUAGE_MESSAGE_1') ?>\n\n<?php echo JText::_('COM_NENO_DASHBOARD_REMOVING_LANGUAGE_MESSAGE_2'); ?>");
+
+				if (result) {
+					jQuery(this).closest('.language-wrapper').slideUp();
+					jQuery.ajax({
+						beforeSend: onBeforeAjax,
+						url       : 'index.php?option=com_neno&task=removeLanguage&language=' + jQuery(this).data('language')
+					});
+				}
+
+			});
+
+			jQuery('.save-translator-comment').off('click').on('click', function () {
+				var language = jQuery(this).data('language');
+
+				jQuery.post(
+					'index.php?option=com_neno&task=saveExternalTranslatorsComment&r=' + Math.random(),
+					{
+						placement: 'language',
+						language : language,
+						comment  : jQuery(".comment-to-translator[data-language='" + language + "']").val()
+					},
+					function (response) {
+
+						if (response == 'ok') {
+							var text = '<?php echo JText::_('COM_NENO_COMMENTS_TO_TRANSLATOR_LANGUAGE_EDIT'); ?>';
+							text = text.replace('%s', language);
+							jQuery(".add-comment-to-translator-button[data-language='" + language + "']").html('<span class="icon-pencil"></span> ' + text);
+						}
+
+						jQuery('#addCommentFor' + language).modal('toggle');
+					}
+				);
+			});
+
+			jQuery('.hasTooltip').tooltip();
+			jQuery('select').chosen();
+		}
+		else {
+			bindTranslateSomeButtonEvents();
+		}
 	}
 
 	function showNotification() {
@@ -163,7 +131,7 @@ if (!empty($this->extra_sidebar))
 			try {
 				installationNotification = new Notification('<?php echo JText::_('COM_NENO_INSTALLATION_POPUP'); ?>', {
 					body: '<?php echo JText::_('COM_NENO_INSTALLATION_POPUP'); ?>',
-					dir: 'auto',
+					dir : 'auto',
 					lang: '',
 					icon: '<?php echo JUri::root(); ?>/media/neno/images/neno_alert.png'
 				});
@@ -199,11 +167,11 @@ if (!empty($this->extra_sidebar))
 		});
 		jQuery('#system-message-container').empty();
 		jQuery.ajax({
-			url: 'index.php?option=com_neno&task=installation.processInstallationStep&r=' + Math.random(),
-			type: 'POST',
-			data: data,
+			url     : 'index.php?option=com_neno&task=installation.processInstallationStep&r=' + Math.random(),
+			type    : 'POST',
+			data    : data,
 			dataType: "json",
-			success: function (response) {
+			success : function (response) {
 				if (response.status == 'ok') {
 					loadInstallationStep();
 				}
@@ -225,7 +193,12 @@ if (!empty($this->extra_sidebar))
 
 <style>
 	#j-sidebar-container {
-		display: none;
+		display : none;
+	}
+
+	#nenomodal-table-filters {
+		width       : 80% !important;
+		margin-left : -40% !important;
 	}
 </style>
 
@@ -243,6 +216,27 @@ if (!empty($this->extra_sidebar))
 	</div>
 	<div class="modal-footer">
 		<a href="#" id="close-button" class="btn" data-dismiss="modal">Close</a>
+	</div>
+</div>
+<!-- Empty hidden modal -->
+<div class="modal fade" id="nenomodal-table-filters" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h2 class="modal-title"
+					id="nenomodaltitle"><?php echo JText::_('COM_NENO_VIEW_GROUPSELEMENTS_MODAL_GROUPFORM_TITLE'); ?></h2>
+			</div>
+			<div class="modal-body">
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" id="filters-close-button">
+					<?php echo JText::_('COM_NENO_VIEW_GROUPSELEMENTS_MODAL_GROUPFORM_BTN_CLOSE'); ?>
+				</button>
+				<button type="button" class="btn btn-primary" id="save-filters-btn">
+					<?php echo JText::_('COM_NENO_VIEW_GROUPSELEMENTS_MODAL_GROUPFORM_BTN_SAVE'); ?>
+				</button>
+			</div>
+		</div>
 	</div>
 </div>
 
