@@ -333,7 +333,7 @@ function setTranslateStatus(tableId, status) {
 /**
  * Get view name
  *
- * @returns {boolean}
+ * @returns {boolean|string}
  */
 function getViewName() {
 	var sPageURL = decodeURIComponent(window.location.search.substring(1)),
@@ -371,10 +371,7 @@ function markLabelAsActiveByStatus(id, status, showFiltersModal) {
 			doNotTranslateButton.removeClass('active btn-danger');
 			translateSomeButton.removeClass('active btn-warning');
 
-			//Add field toggler
-			toggler.off('click').on('click', toggleFieldVisibility);
-			toggler.addClass('toggler toggler-collapsed');
-			toggler.find('span').addClass('icon-arrow-right-3');
+			bindToggleFieldVisibilityEvent(toggler);
 			break;
 		case 2:
 			row.find('.bar').removeClass('bar-disabled');
@@ -382,13 +379,7 @@ function markLabelAsActiveByStatus(id, status, showFiltersModal) {
 			translateButton.removeClass('active btn-success');
 			doNotTranslateButton.removeClass('active btn-danger');
 			translateSomeButton.addClass('active btn-warning');
-
-			if (getViewName() == 'groupselements') {
-				//Add field toggler
-				toggler.off('click').on('click', toggleFieldVisibility);
-				toggler.addClass('toggler toggler-collapsed');
-				toggler.find('span').addClass('icon-arrow-right-3');
-			}
+			bindToggleFieldVisibilityEvent(toggler);
 
 			if (showFiltersModal) {
 				showTableFiltersModal(id, currentStatus);
@@ -412,6 +403,15 @@ function markLabelAsActiveByStatus(id, status, showFiltersModal) {
 	}
 
 	jQuery('#check-toggle-translate-table-' + id + '-' + status).click();
+}
+
+function bindToggleFieldVisibilityEvent(toggler) {
+	if (getViewName() == 'groupselements') {
+		//Add field toggler
+		toggler.off('click').on('click', toggleFieldVisibility);
+		toggler.addClass('toggler toggler-collapsed');
+		toggler.find('span').addClass('icon-arrow-right-3');
+	}
 }
 
 /**
