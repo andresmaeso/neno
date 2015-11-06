@@ -113,8 +113,6 @@ JHtml::_('bootstrap.tooltip');
 		jQuery('#proceed-button').attr('disabled', !jQuery(this).prop('checked'));
 	});
 
-	jQuery('.preview-btn').off('click').on('click', previewContent);
-
 	jQuery('.record-refresher-btn').off('click').on('click', refreshRecordCounter);
 
 	function refreshRecordCounter() {
@@ -126,21 +124,6 @@ JHtml::_('bootstrap.tooltip');
 			},
 			function (text) {
 				jQuery('#record-count-' + button.data('table-id')).text(text);
-			}
-		)
-	}
-
-	function previewContent() {
-		var button = jQuery(this);
-		jQuery.post(
-			'index.php?option=com_neno&task=installation.previewContentFromTable&r=' + Math.random(),
-			{
-				tableId: button.data('table-id')
-			},
-			function (html) {
-				var modal = jQuery('#preview-modal');
-				modal.find('.modal-body').empty().append(html);
-				modal.modal('show');
 			}
 		)
 	}

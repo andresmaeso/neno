@@ -215,6 +215,7 @@ class NenoControllerInstallation extends JControllerAdmin
 		$table                  = NenoContentElementTable::load($tableId);
 		$displayData            = new stdClass;
 		$displayData->tableName = $table->getTableName();
+		$displayData->tableId   = $table->getId();
 
 		if (!empty($table))
 		{

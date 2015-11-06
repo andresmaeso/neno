@@ -122,6 +122,7 @@ if (!empty($this->extra_sidebar))
 			jQuery('select').chosen();
 		}
 		else {
+			jQuery('.preview-btn').off('click').on('click', previewContent);
 			bindTranslateSomeButtonEvents();
 		}
 	}

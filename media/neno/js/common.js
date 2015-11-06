@@ -567,3 +567,19 @@ function removeFilterRow() {
 		jQuery(this).closest('tr').remove();
 	}
 }
+
+function previewContent() {
+	var button = jQuery(this);
+	jQuery.post(
+		'index.php?option=com_neno&task=installation.previewContentFromTable&r=' + Math.random(),
+		{
+			tableId: button.data('table-id')
+		},
+		function (html) {
+			var modal = jQuery('#preview-modal');
+			modal.find('.modal-body').empty().append(html);
+			jQuery('.preview-btn').off('click').on('click', previewContent);
+			modal.modal('show');
+		}
+	)
+}

@@ -1,14 +1,17 @@
 <style>
 	.preview-box {
-		overflow-y: scroll;
-		height: 250px;
-		border: 2px solid #ccc;
-		padding: 5px;
+		overflow-y : scroll;
+		height     : 250px;
+		border     : 2px solid #ccc;
+		padding    : 5px;
 	}
 </style>
 
 <h1>Preview Content</h1>
 <h6>Below is some random content from the table: <?php echo $displayData->tableName; ?></h6>
+<button type="button" class="btn preview-btn" data-table-id="<?php echo $displayData->tableId; ?>">
+	<i class="icon-loop"></i> Refresh
+</button>
 <div class="preview-box">
 	<?php foreach ($displayData->fields as $field): ?>
 		<?php if (!empty($displayData->records[0]->{$field->field_name})): ?>
