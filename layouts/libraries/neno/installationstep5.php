@@ -40,9 +40,9 @@ JHtml::_('bootstrap.tooltip');
 <div class="installation-step">
 	<div class="installation-body span12">
 		<div class="error-messages"></div>
-		<h1><?php echo JText::_('Database Tables'); ?></h1>
+		<h1><?php echo JText::_('COM_NENO_INSTALLATION_INSTALLATION_STEP_5_TITLE'); ?></h1>
 
-		<p><?php echo JText::_('Please select the database tables that contain content that you need translated. After installation you can configure this in more detail including which fields from each table should be translated'); ?></p>
+		<p><?php echo JText::_('COM_NENO_INSTALLATION_INSTALLATION_STEP_5_SUBTITLE'); ?></p>
 		<table class="table">
 			<?php foreach ($displayData->groups as $group): ?>
 				<tr>
@@ -53,15 +53,20 @@ JHtml::_('bootstrap.tooltip');
 						<td><h6><?php echo $table->table_name; ?></h6></td>
 						<td>
 							<button class="btn btn-mini preview-btn" type="button"
-								data-table-id="<?php echo $table->id; ?>">
+								data-table-id="<?php echo $table->id; ?>"
+								data-toogle="tooltip" title="<?php echo JText::_('COM_NENO_INSTALLATION_INSTALLATION_STEP_5_PREVIEW_BTN_TOOLTIP'); ?>">
 								<i class="icon-eye"></i>
 							</button>
 						</td>
 						<td>
-							<span id="record-count-<?php echo $table->id; ?>"><?php echo $table->record_count; ?></span> rows
-							<button type="button" class="btn btn-mini record-refresher-btn" data-table-id="<?php echo $table->id; ?>">
+							<?php echo JText::sprintf('COM_NENO_INSTALLATION_INSTALLATION_STEP_5_RECORD_COUNT', $table->id, $table->record_count); ?>
+							<button type="button" class="btn btn-mini record-refresher-btn" data-table-id="<?php echo $table->id; ?>"
+								data-toogle="tooltip" title="<?php echo JText::_('COM_NENO_INSTALLATION_INSTALLATION_STEP_5_RECORD_COUNT_REFRESH_BTN'); ?>">
 								<i class="icon-loop"></i>
 							</button>
+							<?php if ($table->record_count > 100): ?>
+								<i class="icon-warning" data-toogle="tooltip" title="<?php echo JText::_('COM_NENO_INSTALLATION_INSTALLATION_STEP_5_RECORD_COUNT_WARNING'); ?>"></i>
+							<?php endif; ?>
 						</td>
 						<td colspan="2">
 							<div class="pull-right">
@@ -80,11 +85,13 @@ JHtml::_('bootstrap.tooltip');
 <div class="modal hide fade" id="preview-modal">
 	<div class="modal-header">
 		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-		<h3>Content Preview</h3>
+		<h3><?php echo JText::_('COM_NENO_INSTALLATION_INSTALLATION_STEP_5_PREVIEW_CONTENT_LAYOUT_TITLE'); ?></h3>
 	</div>
 	<div class="modal-body"></div>
 	<div class="modal-footer">
-		<a href="#" class="btn" data-dismiss="modal" aria-hidden="true">Close</a>
+		<a href="#" class="btn" data-dismiss="modal" aria-hidden="true">
+			<?php echo JText::_('COM_NENO_VIEW_GROUPSELEMENTS_MODAL_GROUPFORM_BTN_CLOSE'); ?>
+		</a>
 	</div>
 </div>
 
