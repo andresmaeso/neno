@@ -96,6 +96,8 @@ JHtml::_('bootstrap.tooltip');
 </div>
 
 <script>
+	var tableFiltersCallback = refreshRecordCounter;
+
 	jQuery('#proceed-button').off('click').on('click', function () {
 		if (jQuery('#backup-created-checkbox').prop('checked')) {
 			jQuery('#warning-message').slideToggle(400, function () {
@@ -122,15 +124,21 @@ JHtml::_('bootstrap.tooltip');
 
 	jQuery('.record-refresher-btn').off('click').on('click', refreshRecordCounter);
 
-	function refreshRecordCounter() {
-		var button = jQuery(this);
+	/**
+	 *
+	 * @param tableId
+	 */
+	function refreshRecordCounter(tableId) {
+		if (typeof tableId == 'undefined') {
+			tableId = jQuery(this).data('table-id');
+		}
 		jQuery.post(
 			'index.php?option=com_neno&task=installation.refreshRecordCounter&r=' + Math.random(),
 			{
-				tableId: button.data('table-id')
+				tableId: tableId
 			},
 			function (text) {
-				jQuery('#record-count-' + button.data('table-id')).text(text);
+				jQuery('#record-count-' + tableId).text(text);
 			}
 		)
 	}

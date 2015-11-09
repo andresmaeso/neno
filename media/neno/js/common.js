@@ -300,7 +300,12 @@ function changeTableTranslateState() {
 
 	jQuery.ajax({
 			beforeSend: onBeforeAjax,
-			url       : 'index.php?option=com_neno&task=groupselements.toggleContentElementTable&tableId=' + id + '&translateStatus=' + status
+			url       : 'index.php?option=com_neno&task=groupselements.toggleContentElementTable&tableId=' + id + '&translateStatus=' + status,
+			success   : function () {
+				if (typeof tableFiltersCallback != 'undefined') {
+					tableFiltersCallback(id);
+				}
+			}
 		}
 	);
 }
@@ -475,6 +480,10 @@ function saveTableFilters() {
 				if (data = 'ok') {
 					var modal = jQuery('#nenomodal-table-filters');
 					setTranslateStatus(modal.data('table-id'), 2);
+
+					if (typeof tableFiltersCallback != 'undefined') {
+						tableFiltersCallback(modal.data('table-id'));
+					}
 
 					statusChanged = true;
 					modal.modal('hide');
