@@ -19,6 +19,16 @@ defined('_JEXEC') or die;
 class NenoControllerInstallation extends JControllerAdmin
 {
 	/**
+	 * Field hierarchy level
+	 */
+	const FIELD_LEVEL = '2.1';
+
+	/**
+	 * Language string hierarchy level
+	 */
+	const LANGUAGE_STRING_LEVEL = '2.2';
+
+	/**
 	 * Load installation step
 	 *
 	 * @return void
@@ -243,6 +253,15 @@ class NenoControllerInstallation extends JControllerAdmin
 		$app->close();
 	}
 
+	public function resetDiscoveringVariables()
+	{
+		NenoSettings::set('discovering_element_1.1', null);
+		NenoSettings::set('discovering_element_0', null);
+		NenoSettings::set('installation_level', null);
+		NenoSettings::set('current_percent', null);
+		NenoSettings::set('percent_per_extension', null);
+	}
+
 	/**
 	 * Process installation step
 	 *
@@ -417,14 +436,16 @@ class NenoControllerInstallation extends JControllerAdmin
 
 		if (!$finished)
 		{
-			$level   = NenoSettings::get('installation_level', 0);
-			$element = $this->getElementByLevel($level);
+			// Get all the fields that haven't been discovered already
+			$element = $this->getLeafElement(self::FIELD_LEVEL);
 
-			if ($element == null && $level == 0)
+			if ($element === null)
 			{
-				// If there aren't any, let's create do not translate group if it doesn't exist
-				NenoHelperBackend::createDoNotTranslateGroup();
+				$element = $this->getLeafElement(self::LANGUAGE_STRING_LEVEL);
+			}
 
+			if ($element == null)
+			{
 				// Let's publish language plugins
 				$query
 					->clear()
@@ -445,20 +466,6 @@ class NenoControllerInstallation extends JControllerAdmin
 
 				NenoSettings::set('installation_completed', 1);
 				$finished = true;
-			}
-			elseif ($element == null && $level != 0)
-			{
-				list($firstPart, $secondPart) = explode('.', $level);
-				$firstPart--;
-
-				if ($firstPart == 0)
-				{
-					NenoSettings::set('installation_level', $firstPart);
-				}
-				else
-				{
-					NenoSettings::set('installation_level', implode('.', array( $firstPart, $secondPart )));
-				}
 			}
 			else
 			{
@@ -497,6 +504,11 @@ class NenoControllerInstallation extends JControllerAdmin
 		}
 
 		$app->close();
+	}
+
+	protected function getLeafElement($type)
+	{
+		return $this->getElementByLevel($type);
 	}
 
 	/**
@@ -640,8 +652,7 @@ class NenoControllerInstallation extends JControllerAdmin
 						array(
 							'discovered' => 0,
 							'_limit'     => 1,
-							'translate'  => 1,
-							'table_id'   => NenoSettings::get('discovering_element_1.1')
+							'translate'  => 1
 						), false, true
 					);
 				}
@@ -665,9 +676,8 @@ class NenoControllerInstallation extends JControllerAdmin
 					// Get one table that hasn't been discovered yet
 					$languageString = NenoContentElementLanguageString::load(
 						array(
-							'discovered'      => 0,
-							'_limit'          => 1,
-							'languagefile_id' => NenoSettings::get('discovering_element_1.2')
+							'discovered' => 0,
+							'_limit'     => 1
 						), false, true
 					);
 				}
