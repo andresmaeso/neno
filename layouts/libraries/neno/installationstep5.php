@@ -145,7 +145,7 @@ JHtml::_('bootstrap.tooltip');
 
 		jQuery.installation = false;
 
-		sendDiscoveringStep();
+		sendDiscoveringContentStep();
 	});
 
 	jQuery('#backup-created-checkbox').off('click').on('click', function () {

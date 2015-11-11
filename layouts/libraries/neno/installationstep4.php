@@ -61,66 +61,7 @@ JHtml::_('bootstrap.tooltip');
 <script>
 	jQuery.installation = false;
 	interval = setInterval(checkStatus, 2000);
-	sendDiscoveringStep();
-
-	function sendDiscoveringStep() {
-		jQuery.ajax({
-			url    : 'index.php?option=com_neno&task=installation.processDiscoveringStep&contentType=structure&r=' + Math.random(),
-			success: function (data) {
-				if (data != 'ok') {
-					sendDiscoveringStep();
-				} else {
-					checkStatus();
-					jQuery.installation = true;
-					processInstallationStep();
-					window.clearInterval(interval);
-				}
-			},
-			error  : function () {
-				sendDiscoveringStep();
-			}
-		});
-	}
-
-	function checkStatus() {
-		jQuery.ajax({
-			url     : 'index.php?option=com_neno&task=installation.getSetupStatus&r=' + Math.random(),
-			dataType: 'json',
-			success : printMessages
-		});
-	}
-
-	function printMessages(messages) {
-		var percent = 0;
-		var scroll = 1;
-		var container = jQuery("#task-messages");
-		for (var i = 0; i < messages.length; i++) {
-			var percent = 0;
-			var log_line = jQuery('#installation-status-' + messages[i].level).clone().removeAttr('id').html(messages[i].message);
-			if (messages[i].level == 1) {
-				log_line.addClass('alert-' + messages[i].type);
-			}
-			//Check if scroll is already at the bottom of the container
-			//scroll = (container.scrollTop() == 0 || container.scrollTop() == container[0].scrollHeight - container.height());
-
-			container.append(log_line);
-
-			//Scroll to bottom
-			//if (scroll) {
-			container.stop().animate({
-				scrollTop: container[0].scrollHeight - container.height()
-			}, 100);
-			//}
-
-			if (messages[i].percent != 0) {
-				percent = messages[i].percent;
-			}
-		}
-
-		if (percent != 0) {
-			jQuery('#progress-bar .bar').width(percent + '%');
-		}
-	}
+	sendDiscoveringStructureStep();
 
 </script>
 

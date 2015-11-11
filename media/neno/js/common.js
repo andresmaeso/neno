@@ -520,12 +520,12 @@ function printMessages(messages) {
 	}
 }
 
-function sendDiscoveringStep() {
+function sendDiscoveringContentStep() {
 	jQuery.ajax({
 		url    : 'index.php?option=com_neno&task=installation.processDiscoveringStep&contentType=content&r=' + Math.random(),
 		success: function (data) {
 			if (data != 'ok') {
-				sendDiscoveringStep();
+				sendDiscoveringContentStep();
 			} else {
 				checkStatus();
 				jQuery.installation = true;
@@ -534,7 +534,26 @@ function sendDiscoveringStep() {
 			}
 		},
 		error  : function () {
-			sendDiscoveringStep();
+			sendDiscoveringContentStep();
+		}
+	});
+}
+
+function sendDiscoveringStructureStep() {
+	jQuery.ajax({
+		url    : 'index.php?option=com_neno&task=installation.processDiscoveringStep&contentType=structure&r=' + Math.random(),
+		success: function (data) {
+			if (data != 'ok') {
+				sendDiscoveringStructureStep();
+			} else {
+				checkStatus();
+				jQuery.installation = true;
+				processInstallationStep();
+				window.clearInterval(interval);
+			}
+		},
+		error  : function () {
+			sendDiscoveringStructureStep();
 		}
 	});
 }
