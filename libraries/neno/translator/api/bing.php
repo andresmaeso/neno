@@ -99,6 +99,15 @@ class NenoTranslatorApiBing extends NenoTranslatorApi
 		return $iso;
 	}
 
+	/**
+	 * Request Access token
+	 *
+	 * @param string $clientId Client Id
+	 * @param string $clientSecret Client secret
+	 *
+	 * @return string
+	 * @throws Exception
+	 */
 	protected function requestAccessToken($clientId, $clientSecret)
 	{
 		//Create the request Array.
