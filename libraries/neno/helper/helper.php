@@ -829,6 +829,12 @@ class NenoHelper
 			$percent = $percent + NenoSettings::get('percent_per_extension');
 			NenoSettings::set('current_percent', $percent);
 		}
+		elseif ($level == '3.1' && $type == 'info')
+		{
+			$level   = 3;
+			$percent = $percent + NenoSettings::get('percent_per_content_element');
+			NenoSettings::set('current_percent', $percent);
+		}
 
 		$query
 			->select('1')

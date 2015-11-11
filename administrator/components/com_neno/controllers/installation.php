@@ -259,7 +259,21 @@ class NenoControllerInstallation extends JControllerAdmin
 		NenoSettings::set('discovering_element_0', null);
 		NenoSettings::set('installation_level', null);
 		NenoSettings::set('current_percent', null);
-		NenoSettings::set('percent_per_extension', null);
+
+		$db    = JFactory::getDbo();
+		$query = $db->getQuery(true);
+
+		$query
+			->select(
+				'(SELECT COUNT(*) FROM #__neno_content_element_fields WHERE translate = 1) + (SELECT COUNT(*) FROM #__neno_content_element_language_strings) AS counter'
+			);
+
+		$db->setQuery($query);
+		$elementsCounter = $db->loadResult();
+
+		NenoSettings::set('percent_per_content_element', 100 / $elementsCounter);
+
+		JFactory::getApplication()->close();
 	}
 
 	/**

@@ -482,7 +482,7 @@ class NenoContentElementField extends NenoContentElement implements NenoContentE
 				$this->getTable()->getTableName(),
 				$this->getFieldName()
 			),
-			3
+			'3.1'
 		);
 
 		if ($this->persistTranslations() === true)
