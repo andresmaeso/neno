@@ -42,12 +42,12 @@ JHtml::_('bootstrap.tooltip');
 	<div class="installation-body span12">
 		<div class="error-messages"></div>
 		<div id="installation-wrapper">
-			<h2><?php echo JText::_('COM_NENO_INSTALLATION_SETUP_COMPLETING_TITLE'); ?></h2>
+			<h2><?php echo JText::_('COM_NENO_INSTALLATION_DISCOVERING_CONTENT_TITLE'); ?></h2>
 
 			<div class="progress progress-striped active" id="progress-bar">
 				<div class="bar"></div>
 			</div>
-			<p><?php echo JText::_('COM_NENO_INSTALLATION_SETUP_COMPLETING_FINISH_SETUP_MESSAGE'); ?></p>
+			<p><?php echo JText::_('COM_NENO_INSTALLATION_DISCOVERING_CONTENT_MESSAGE'); ?></p>
 
 			<div id="task-messages">
 
