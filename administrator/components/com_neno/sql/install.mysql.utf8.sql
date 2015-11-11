@@ -369,7 +369,7 @@ CREATE TABLE IF NOT EXISTS `#__neno_content_element_table_filters` (
 	UNIQUE KEY `table_id` (`table_id`, `field_id`)
 );
 
-INSERT IGNORE INTO `#__neno_machine_translation_apis` VALUES (1, 'Google', 'machine'), (3, 'Yandex', 'machine');
+INSERT IGNORE INTO `#__neno_machine_translation_apis` VALUES (1, 'Google', 'machine'), (3, 'Yandex', 'machine'), (4, 'Bing', 'machine');
 
 INSERT IGNORE INTO `#__neno_translation_methods`
 VALUES (1, 'COM_NENO_TRANSLATION_METHOD_MANUAL', '0', 0), (2, 'COM_NENO_TRANSLATION_METHOD_MACHINE', '1,3', 1),
