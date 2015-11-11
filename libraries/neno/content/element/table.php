@@ -541,7 +541,7 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 
 		if ($isNew && $this->translate)
 		{
-			$this->checkTranslatableStatusFromContentElementFile();
+			$this->checkTranslatableStatus();
 		}
 
 		$result = parent::persist();
@@ -618,7 +618,7 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 		// If the table has been marked as translatable, let's check for the content element file
 		if ($this->translate && !$force)
 		{
-			$this->checkTranslatableStatusFromContentElementFile();
+			$this->checkTranslatableStatus();
 		}
 
 		return $this;
@@ -629,7 +629,7 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 	 *
 	 * @return void
 	 */
-	public function checkTranslatableStatusFromContentElementFile()
+	public function checkTranslatableStatus()
 	{
 		$filePath = $this->getContentElementFilename();
 
@@ -641,6 +641,14 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 		else // Let's have a look to the table name
 		{
 			$this->translate = !(int) preg_match('/(log_)|(_log)[^a-zA-Z1-9]/', $this->tableName);
+
+			// Let's check the amount of records
+			if ($this->translate)
+			{
+				$this->getRecordCount();
+
+				$this->translate = $this->recordCount < 1000;
+			}
 		}
 	}
 
