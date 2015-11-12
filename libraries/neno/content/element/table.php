@@ -107,6 +107,16 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 			->select('COUNT(*) AS counter')
 			->from($db->quoteName($this->getTableName()));
 
+		if ($this->translate == 2)
+		{
+			$filters = $this->getTableFilters();
+
+			foreach ($filters as $filter)
+			{
+				$query->where($db->quoteName($filter['field']) . ' ' . $filter['operator'] . ' ' . $db->quote($filter['value']));
+			}
+		}
+
 		$db->setQuery($query);
 		$this->recordCount = $db->loadResult();
 	}
@@ -165,7 +175,7 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 
 				for ($i = 0; $i < count($fieldsInfo); $i++)
 				{
-					$fieldInfo        = $fieldsInfo[$i];
+					$fieldInfo        = $fieldsInfo[ $i ];
 					$fieldInfo->table = $this;
 					$field            = new NenoContentElementField($fieldInfo, $loadExtraData);
 
@@ -469,42 +479,54 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 	/**
 	 * Discover the element
 	 *
+	 * @param bool $leafLevels Go deeper into the hierarchy.
+	 *
 	 * @return bool True on success
 	 */
-	public function discoverElement()
+	public function discoverElement($leafLevels = true)
 	{
 		NenoHelper::setSetupState(
 			JText::sprintf('COM_NENO_INSTALLATION_MESSAGE_PARSING_GROUP_TABLE', $this->group->getGroupName(), $this->getTableName()), 2
 		);
 
-		if ($this->translate)
+		if ($leafLevels)
 		{
-			// Check if there are children not discovered
-			$field = NenoContentElementField::load(array(
-				'discovered' => 0,
-				'table_id'   => $this->id,
-				'_limit'     => 1,
-				'translate'  => 1
-			));
-
-			if (!empty($field))
+			if ($this->translate)
 			{
-				NenoSettings::set('installation_level', '2.1');
-				NenoSettings::set('discovering_element_1.1', $this->id);
+				// Check if there are children not discovered
+				$field = NenoContentElementField::load(array(
+					'discovered' => 0,
+					'table_id'   => $this->id,
+					'_limit'     => 1,
+					'translate'  => 1
+				));
+
+				if (!empty($field))
+				{
+					NenoSettings::set('installation_level', '2.1');
+					NenoSettings::set('discovering_element_1.1', $this->id);
+				}
+				else
+				{
+					NenoSettings::set('discovering_element_1.1', 0);
+					$this
+						->setDiscovered(true)
+						->persist();
+				}
 			}
 			else
 			{
-				NenoSettings::set('discovering_element_1.1', 0);
-				$this
-					->setDiscovered(true)
-					->persist();
+				NenoHelper::setSetupState(
+					JText::sprintf('COM_NENO_INSTALLATION_MESSAGE_TABLE_TOO_MANY_RECORDS', $this->group->getGroupName(), $this->getTableName()), 2, 'error'
+				);
 			}
 		}
 		else
 		{
-			NenoHelper::setSetupState(
-				JText::sprintf('COM_NENO_INSTALLATION_MESSAGE_TABLE_TOO_MANY_RECORDS', $this->group->getGroupName(), $this->getTableName()), 2, 'error'
-			);
+			NenoSettings::set('discovering_element_1.1', 0);
+			$this
+				->setDiscovered(true)
+				->persist();
 		}
 	}
 
@@ -519,7 +541,7 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 
 		if ($isNew && $this->translate)
 		{
-			$this->checkTranslatableStatusFromContentElementFile();
+			$this->checkTranslatableStatus();
 		}
 
 		$result = parent::persist();
@@ -596,7 +618,7 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 		// If the table has been marked as translatable, let's check for the content element file
 		if ($this->translate && !$force)
 		{
-			$this->checkTranslatableStatusFromContentElementFile();
+			$this->checkTranslatableStatus();
 		}
 
 		return $this;
@@ -607,7 +629,7 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 	 *
 	 * @return void
 	 */
-	public function checkTranslatableStatusFromContentElementFile()
+	public function checkTranslatableStatus()
 	{
 		$filePath = $this->getContentElementFilename();
 
@@ -619,6 +641,14 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 		else // Let's have a look to the table name
 		{
 			$this->translate = !(int) preg_match('/(log_)|(_log)[^a-zA-Z1-9]/', $this->tableName);
+
+			// Let's check the amount of records
+			if ($this->translate)
+			{
+				$this->getRecordCount();
+
+				$this->translate = $this->recordCount < 1000;
+			}
 		}
 	}
 
@@ -745,7 +775,7 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 							if ($field->getId() == $fieldId)
 							{
 								$reArrangeFields = true;
-								unset($this->fields[$key]);
+								unset($this->fields[ $key ]);
 								break;
 							}
 						}
@@ -824,22 +854,7 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 
 		$db->setQuery($query);
 		$translationIds = $db->loadColumn();
-
-		$query
-			->clear()
-			->select(
-				array(
-					'f.field_name AS field',
-					'comparaison_operator AS operator',
-					'filter_value AS value'
-				)
-			)
-			->from('#__neno_content_element_table_filters AS tf')
-			->innerJoin('#__neno_content_element_fields AS f ON tf.field_id = f.id')
-			->where('table_id = ' . (int) $this->id);
-
-		$db->setQuery($query);
-		$filters = $db->loadAssocList();
+		$filters        = $this->getTableFilters();
 
 		foreach ($translationIds as $translationId)
 		{
@@ -853,7 +868,7 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 
 			foreach ($filters as $filter)
 			{
-				$query->where($db->quoteName($filter['field']) . ' ' . $filter['operator'] . ' ' . $filter['value']);
+				$query->where($db->quoteName($filter['field']) . ' ' . $filter['operator'] . ' ' . $db->quote($filter['value']));
 			}
 
 			$db->setQuery($query);
@@ -865,6 +880,34 @@ class NenoContentElementTable extends NenoContentElement implements NenoContentE
 				$translation->remove();
 			}
 		}
+	}
+
+	/**
+	 * Get table filters
+	 *
+	 * @return array
+	 */
+	public function getTableFilters()
+	{
+		$db    = JFactory::getDbo();
+		$query = $db->getQuery(true);
+		$query
+			->clear()
+			->select(
+				array(
+					'f.field_name AS field',
+					'comparaison_operator AS operator',
+					'filter_value AS value'
+				)
+			)
+			->from('#__neno_content_element_table_filters AS tf')
+			->innerJoin('#__neno_content_element_fields AS f ON tf.field_id = f.id')
+			->where('tf.table_id = ' . (int) $this->id);
+
+		$db->setQuery($query);
+		$filters = $db->loadAssocList();
+
+		return $filters;
 	}
 
 	/**

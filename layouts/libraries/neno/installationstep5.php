@@ -15,58 +15,95 @@ JHtml::_('bootstrap.tooltip');
 ?>
 <style>
 	#task-messages {
-		height: 200px;
-		background-color: #f5f5f5;
-		padding: 20px;
-		color: #808080;
-		overflow: auto;
+		height           : 200px;
+		background-color : #f5f5f5;
+		padding          : 20px;
+		color            : #808080;
+		overflow         : auto;
 	}
 
 	.log-level-2 {
-		margin-left: 20px;
-		font-weight: bold;
-		margin-top: 16px;
+		margin-left : 20px;
+		font-weight : bold;
+		margin-top  : 16px;
 	}
 
 	.log-level-3 {
-		margin-left: 40px;
+		margin-left : 40px;
 	}
 
 	#proceed-button {
-		margin-top: 15px;
+		margin-top : 15px;
 	}
 </style>
 
 <div class="installation-step">
 	<div class="installation-body span12">
 		<div class="error-messages"></div>
-		<h1><?php echo JText::_('Database Tables'); ?></h1>
+		<div id="database-tables-wrapper">
+			<h1><?php echo JText::_('COM_NENO_INSTALLATION_INSTALLATION_STEP_5_TITLE'); ?></h1>
 
-		<p><?php echo JText::_('Please select the database tables that contain content that you need translated. After installation you can configure this in more detail including which fields from each table should be translated'); ?></p>
-		<table class="table">
-			<?php foreach ($displayData->groups as $group): ?>
-				<tr>
-					<td colspan="5"><h3><?php echo $group->group_name; ?></h3></td>
-				</tr>
-				<?php foreach ($group->tables as $table): ?>
+			<p><?php echo JText::_('COM_NENO_INSTALLATION_INSTALLATION_STEP_5_SUBTITLE'); ?></p>
+			<table class="table">
+				<?php foreach ($displayData->groups as $group): ?>
 					<tr>
-						<td><h6><?php echo $table->table_name; ?></h6></td>
-						<td>
-							<button class="btn btn-mini preview-btn" type="button"
-							        data-table-id="<?php echo $table->id; ?>">
-								<i class="icon-eye"></i>
-							</button>
-						</td>
-						<td><?php echo $table->record_count; ?> rows</td>
-						<td colspan="2">
-							<div class="pull-right">
-								<?php echo JLayoutHelper::render('translatewidget', $table, JPATH_NENO_LAYOUTS); ?>
-							</div>
-						</td>
+						<td colspan="5"><h3><?php echo $group->group_name; ?></h3></td>
 					</tr>
+					<?php foreach ($group->tables as $table): ?>
+						<tr>
+							<td><h6><?php echo $table->table_name; ?></h6></td>
+							<td>
+								<button class="btn btn-mini preview-btn" type="button"
+									data-table-id="<?php echo $table->id; ?>"
+									data-toogle="tooltip" title="<?php echo JText::_('COM_NENO_INSTALLATION_INSTALLATION_STEP_5_PREVIEW_BTN_TOOLTIP'); ?>">
+									<i class="icon-eye"></i>
+								</button>
+							</td>
+							<td>
+								<?php echo JText::sprintf('COM_NENO_INSTALLATION_INSTALLATION_STEP_5_RECORD_COUNT', $table->id, $table->record_count); ?>
+								<button type="button" class="btn btn-mini record-refresher-btn" data-table-id="<?php echo $table->id; ?>"
+									data-toogle="tooltip" title="<?php echo JText::_('COM_NENO_INSTALLATION_INSTALLATION_STEP_5_RECORD_COUNT_REFRESH_BTN'); ?>">
+									<i class="icon-loop"></i>
+								</button>
+								<?php if ($table->record_count > 1000): ?>
+									<i class="icon-warning" data-toogle="tooltip" title="<?php echo JText::_('COM_NENO_INSTALLATION_INSTALLATION_STEP_5_RECORD_COUNT_WARNING'); ?>"></i>
+								<?php endif; ?>
+							</td>
+							<td colspan="2">
+								<div class="pull-right">
+									<?php echo JLayoutHelper::render('translatewidget', $table, JPATH_NENO_LAYOUTS); ?>
+								</div>
+							</td>
+						</tr>
+					<?php endforeach; ?>
 				<?php endforeach; ?>
-			<?php endforeach; ?>
-		</table>
+			</table>
+		</div>
+
+		<div id="installation-wrapper" class="hide">
+			<h2><?php echo JText::_('COM_NENO_INSTALLATION_SETUP_COMPLETING_TITLE'); ?></h2>
+
+			<div class="progress progress-striped active" id="progress-bar">
+				<div class="bar" style="width: 2%;"></div>
+			</div>
+			<p><?php echo JText::_('COM_NENO_INSTALLATION_SETUP_COMPLETING_FINISH_SETUP_MESSAGE'); ?></p>
+
+			<div id="task-messages">
+
+			</div>
+		</div>
+		<div id="warning-message">
+			<div class="alert"><?php echo JText::_('COM_NENO_INSTALLATION_WARNING_MESSAGE_TITLE'); ?></div>
+			<p><?php echo JText::_('COM_NENO_INSTALLATION_WARNING_MESSAGE_P1'); ?></p>
+
+			<label class="checkbox">
+				<input type="checkbox" class="no-data"
+					id="backup-created-checkbox"><?php echo JText::_('COM_NENO_INSTALLATION_WARNING_MESSAGE_CHECKBOX_MESSAGE'); ?>
+			</label>
+			<button type="button" class="btn no-data" id="proceed-button" disabled>
+				<?php echo JText::_('COM_NENO_INSTALLATION_WARNING_MESSAGE_PROCEED_BUTTON'); ?>
+			</button>
+		</div>
 	</div>
 
 	<?php echo JLayoutHelper::render('installationbottom', 4, JPATH_NENO_LAYOUTS); ?>
@@ -75,21 +112,25 @@ JHtml::_('bootstrap.tooltip');
 <div class="modal hide fade" id="preview-modal">
 	<div class="modal-header">
 		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-		<h3>Modal header</h3>
+		<h3><?php echo JText::_('COM_NENO_INSTALLATION_INSTALLATION_STEP_5_PREVIEW_CONTENT_LAYOUT_TITLE'); ?></h3>
 	</div>
-	<div class="modal-body">
-
-	</div>
+	<div class="modal-body"></div>
 	<div class="modal-footer">
-		<a href="#" class="btn" data-dismiss="modal" aria-hidden="true">Close</a>
-		<a href="#" class="btn btn-primary">Save changes</a>
+		<a href="#" class="btn" data-dismiss="modal" aria-hidden="true">
+			<?php echo JText::_('COM_NENO_VIEW_GROUPSELEMENTS_MODAL_GROUPFORM_BTN_CLOSE'); ?>
+		</a>
 	</div>
 </div>
 
 <script>
+	var tableFiltersCallback = refreshRecordCounter;
+
+	resetDiscoveringVariables();
+
 	jQuery('#proceed-button').off('click').on('click', function () {
 		if (jQuery('#backup-created-checkbox').prop('checked')) {
-			jQuery('#warning-message').slideToggle(400, function () {
+			jQuery('#database-tables-wrapper').slideToggle(400, function () {
+				jQuery('#warning-message').slideToggle();
 				jQuery('#installation-wrapper').slideToggle();
 			});
 
@@ -104,87 +145,36 @@ JHtml::_('bootstrap.tooltip');
 
 		jQuery.installation = false;
 
-		sendDiscoveringStep();
+		sendDiscoveringContentStep();
 	});
 
 	jQuery('#backup-created-checkbox').off('click').on('click', function () {
 		jQuery('#proceed-button').attr('disabled', !jQuery(this).prop('checked'));
 	});
 
-	jQuery('.preview-btn').off('click').on('click', previewContent);
+	jQuery('.record-refresher-btn').off('click').on('click', refreshRecordCounter);
 
-	function previewContent() {
-		var button = jQuery(this);
+	/**
+	 *
+	 * @param tableId
+	 */
+	function refreshRecordCounter(tableId) {
+		if (typeof tableId == 'undefined') {
+			tableId = jQuery(this).data('table-id');
+		}
 		jQuery.post(
-			'index.php?option=com_neno&task=installation.previewContentFromTable&r=' + Math.random(),
+			'index.php?option=com_neno&task=installation.refreshRecordCounter&r=' + Math.random(),
 			{
-				tableId: button.data('table-id')
+				tableId: tableId
 			},
-			function (html) {
-				var modal = jQuery('#preview-modal');
-				modal.find('.modal-body').empty().append(html);
-				modal.modal('show');
+			function (text) {
+				jQuery('#record-count-' + tableId).text(text);
 			}
 		)
 	}
 
-	function sendDiscoveringStep() {
-		jQuery.ajax({
-			url: 'index.php?option=com_neno&task=installation.processDiscoveringStep&contentType=content&r=' + Math.random(),
-			success: function (data) {
-				if (data != 'ok') {
-					sendDiscoveringStep();
-				} else {
-					checkStatus();
-					jQuery.installation = true;
-					processInstallationStep();
-					window.clearInterval(interval);
-				}
-			},
-			error: function () {
-				sendDiscoveringStep();
-			}
-		});
-	}
-
-	function checkStatus() {
-		jQuery.ajax({
-			url: 'index.php?option=com_neno&task=installation.getSetupStatus&r=' + Math.random(),
-			dataType: 'json',
-			success: printMessages
-		});
-	}
-
-	function printMessages(messages) {
-		var percent = 0;
-		var scroll = 1;
-		var container = jQuery("#task-messages");
-		for (var i = 0; i < messages.length; i++) {
-			var percent = 0;
-			var log_line = jQuery('#installation-status-' + messages[i].level).clone().removeAttr('id').html(messages[i].message);
-			if (messages[i].level == 1) {
-				log_line.addClass('alert-' + messages[i].type);
-			}
-			//Check if scroll is already at the bottom of the container
-			//scroll = (container.scrollTop() == 0 || container.scrollTop() == container[0].scrollHeight - container.height());
-
-			container.append(log_line);
-
-			//Scroll to bottom
-			//if (scroll) {
-			container.stop().animate({
-				scrollTop: container[0].scrollHeight - container.height()
-			}, 100);
-			//}
-
-			if (messages[i].percent != 0) {
-				percent = messages[i].percent;
-			}
-		}
-
-		if (percent != 0) {
-			jQuery('#progress-bar .bar').width(percent + '%');
-		}
+	function resetDiscoveringVariables() {
+		jQuery.get('index.php?option=com_neno&task=installation.resetDiscoveringVariables&r=' + Math.random());
 	}
 
 </script>

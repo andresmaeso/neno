@@ -369,7 +369,7 @@ CREATE TABLE IF NOT EXISTS `#__neno_content_element_table_filters` (
 	UNIQUE KEY `table_id` (`table_id`, `field_id`)
 );
 
-INSERT IGNORE INTO `#__neno_machine_translation_apis` VALUES (1, 'Google', 'machine'), (3, 'Yandex', 'machine');
+INSERT IGNORE INTO `#__neno_machine_translation_apis` VALUES (1, 'Google', 'machine'), (3, 'Yandex', 'machine'), (4, 'Bing', 'machine');
 
 INSERT IGNORE INTO `#__neno_translation_methods`
 VALUES (1, 'COM_NENO_TRANSLATION_METHOD_MANUAL', '0', 0), (2, 'COM_NENO_TRANSLATION_METHOD_MACHINE', '1,3', 1),
@@ -385,7 +385,7 @@ VALUES ('translate_automatically_professional', '0', 0),
 	('hide_empty_strings', '1', 0), ('installation_completed', '0', 0), ('default_translate_action', '', 2),
 	('copy_unpublished', '1', 2), ('copy_trashed', '0', 2),
 	('server_url', 'https://www.neno-translate.com/', 1), ('external_translators_notes', '', 0), ('only_prefix', 1, 0),
-	('load_related_content', '', 0);
+	('load_related_content', '', 0),('default_translate_action', '0', 0);
 
 INSERT IGNORE INTO `#__neno_machine_translation_api_language_pairs`
 VALUES (1, 1, 'af', 'ar'), (2, 1, 'af', 'az'), (3, 1, 'af', 'be'), (4, 1, 'af', 'bg'), (5, 1, 'af', 'bn'),

@@ -11,7 +11,6 @@
 // No direct access.
 defined('_JEXEC') or die;
 
-
 require_once JPATH_COMPONENT_ADMINISTRATOR . '/controllers/strings.php';
 
 /**
@@ -34,7 +33,7 @@ class NenoControllerEditor extends NenoControllerStrings
 		$workingLanguage = NenoHelper::getWorkingLanguage();
 		$defaultLanguage = NenoSettings::get('source_language');
 		$translator      = NenoSettings::get('translator');
-		$result          = array ();
+		$result          = array();
 
 		try
 		{
@@ -45,15 +44,13 @@ class NenoControllerEditor extends NenoControllerStrings
 			{
 				$result['text']   = $nenoTranslate->translate($text, $defaultLanguage, $workingLanguage);
 				$result['status'] = 'ok';
-			}
-			catch (Exception $e)
+			} catch (Exception $e)
 			{
 				$result['text']   = $text;
 				$result['status'] = 'err';
 				$result['error']  = $e->getMessage();
 			}
-		}
-		catch (UnexpectedValueException $e)
+		} catch (UnexpectedValueException $e)
 		{
 			$result['text']   = $text;
 			$result['status'] = 'err';
@@ -80,21 +77,22 @@ class NenoControllerEditor extends NenoControllerStrings
 			$translation = NenoContentElementTranslation::getTranslation($translationId, true);
 
 			echo JLayoutHelper::render('editor', $translation->prepareDataForView(true), JPATH_NENO_LAYOUTS);
-            
-            //Show related
-            if (!empty($translation->related))
-            {
-                // Get the setting for load_related_content
-                $loadRelatedContent = NenoSettings::get('load_related_content');
-                echo JLayoutHelper::render('editorrelatedcontentheader', $loadRelatedContent, JPATH_NENO_LAYOUTS);
-                
-                if ($loadRelatedContent) {
-                    foreach($translation->related as $related)
-                    {
-                        echo JLayoutHelper::render('editor', $related->prepareDataForView(true), JPATH_NENO_LAYOUTS);
-                    }
-                }
-            }
+
+			//Show related
+			if (!empty($translation->related))
+			{
+				// Get the setting for load_related_content
+				$loadRelatedContent = NenoSettings::get('load_related_content');
+				echo JLayoutHelper::render('editorrelatedcontentheader', $loadRelatedContent, JPATH_NENO_LAYOUTS);
+
+				if ($loadRelatedContent)
+				{
+					foreach ($translation->related as $related)
+					{
+						echo JLayoutHelper::render('editor', $related->prepareDataForView(true), JPATH_NENO_LAYOUTS);
+					}
+				}
+			}
 		}
 
 		JFactory::getApplication()->close();
@@ -119,8 +117,6 @@ class NenoControllerEditor extends NenoControllerStrings
 		JFactory::getApplication()->close();
 	}
 
-    
-    
 	/**
 	 * Save translation as draft
 	 *
@@ -130,7 +126,7 @@ class NenoControllerEditor extends NenoControllerStrings
 	{
 		$input           = $this->input;
 		$translationId   = $input->getInt('id');
-		$translationText = $input->getHtml('text');
+		$translationText = NenoHelper::cleanXssString($input->get('text', '', 'RAW'));
 
 		if ($this->saveTranslation($translationId, $translationText, NenoContentElementTranslation::NOT_TRANSLATED_STATE))
 		{
@@ -188,59 +184,61 @@ class NenoControllerEditor extends NenoControllerStrings
 	 */
 	public function saveAllAsCompleted()
 	{
-        // Get input and turn it into an array with objects
-		$input           = $this->input;
+		// Get input and turn it into an array with objects
+		$input       = $this->input;
 		$stringsJson = $input->get('strings', '', 'RAW');
-        $strings = json_decode($stringsJson);
-        
-        // Create an array to hold info about the translations
-        $messages = array();
-        
-        if (!empty($strings) && count($strings) > 0)
-        {
-            $checkedStrings = array();
-            foreach ($strings as $string)
-            {
-                // Save the translation
-                if ($this->saveTranslation($string->translation_id, $string->text, NenoContentElementTranslation::TRANSLATED_STATE))
-                {
-                    /* @var $translation NenoContentElementTranslation */
-                    $translation = NenoContentElementTranslation::load($string->translation_id, false);
-                    
-                    // Check for number of same translations to offer consolidation
-                    // Only check for one string once
-                    $counter = 0;
-                    $originalText = $translation->getOriginalText();
-                    if (in_array(strtolower(trim($originalText)), $checkedStrings) === false)
-                    {
-                        $checkedStrings[] = strtolower(trim($originalText));
-                        $model   = $this->getModel();
-                        $counter = $model->getSimilarTranslationsCounter($string->translation_id, $translation->getLanguage(), $originalText);
-                    }
-                    
-                    // If we found matches prepare data to return
-                    $message = array();
-                    if ($counter != 0)
-                    {
-                        $message['translation_id'] = $string->translation_id;
-                        $message['message'] = '<div><input type="checkbox" class="consolidate-checkbox" value="'.$string->translation_id.'" checked="checked"> '
-                                                .JText::sprintf('COM_NENO_EDITOR_CONSOLIDATE_MESSAGE', $counter, NenoHelper::html2text($originalText, 200), NenoHelper::html2text($string->text, 200))
-                                                .'</div>';
-                        $message['counter'] = $counter;
-                    }
-                    
-                    if ( ! empty($message))
-                    {
-                        $messages[] = $message;
-                    }
-                }                
-            }
-        }
-        
-        // Echo any messages
-        if (count($messages) > 0) {
-            echo json_encode($messages);
-        }
+		$strings     = json_decode($stringsJson);
+
+		// Create an array to hold info about the translations
+		$messages = array();
+
+		if (!empty($strings) && count($strings) > 0)
+		{
+			$checkedStrings = array();
+			foreach ($strings as $string)
+			{
+				$string->text = NenoHelper::cleanXssString($string->text);
+				// Save the translation
+				if ($this->saveTranslation($string->translation_id, $string->text, NenoContentElementTranslation::TRANSLATED_STATE))
+				{
+					/* @var $translation NenoContentElementTranslation */
+					$translation = NenoContentElementTranslation::load($string->translation_id, false);
+
+					// Check for number of same translations to offer consolidation
+					// Only check for one string once
+					$counter      = 0;
+					$originalText = $translation->getOriginalText();
+					if (in_array(strtolower(trim($originalText)), $checkedStrings) === false)
+					{
+						$checkedStrings[] = strtolower(trim($originalText));
+						$model            = $this->getModel();
+						$counter          = $model->getSimilarTranslationsCounter($string->translation_id, $translation->getLanguage(), $originalText);
+					}
+
+					// If we found matches prepare data to return
+					$message = array();
+					if ($counter != 0)
+					{
+						$message['translation_id'] = $string->translation_id;
+						$message['message']        = '<div><input type="checkbox" class="consolidate-checkbox" value="' . $string->translation_id . '" checked="checked"> '
+						                             . JText::sprintf('COM_NENO_EDITOR_CONSOLIDATE_MESSAGE', $counter, NenoHelper::html2text($originalText, 200), NenoHelper::html2text($string->text, 200))
+						                             . '</div>';
+						$message['counter']        = $counter;
+					}
+
+					if (!empty($message))
+					{
+						$messages[] = $message;
+					}
+				}
+			}
+		}
+
+		// Echo any messages
+		if (count($messages) > 0)
+		{
+			echo json_encode($messages);
+		}
 
 		JFactory::getApplication()->close();
 	}
@@ -254,7 +252,7 @@ class NenoControllerEditor extends NenoControllerStrings
 	 *
 	 * @return NenoModelEditor
 	 */
-	public function getModel($name = 'Editor', $prefix = 'NenoModel', $config = array ())
+	public function getModel($name = 'Editor', $prefix = 'NenoModel', $config = array())
 	{
 		return parent::getModel($name, $prefix, $config);
 	}
@@ -266,23 +264,27 @@ class NenoControllerEditor extends NenoControllerStrings
 	 */
 	public function consolidateTranslations()
 	{
-		$input = $this->input;
+		$input    = $this->input;
 		$json_ids = $input->post->get('ids', '', 'RAW');
-        $ids = json_decode($json_ids);
-        
+		$ids      = json_decode($json_ids);
+
 		if (!empty($ids))
 		{
 			foreach ($ids as $id)
-            {
-                $model = $this->getModel();
-                $model->consolidateTranslations($id);
-            }
+			{
+				$model = $this->getModel();
+				$model->consolidateTranslations($id);
+			}
 		}
-        
-        exit;
-        
+
+		JFactory::getApplication()->close();
 	}
 
+	/**
+	 * Save translator configuration (API key)
+	 *
+	 * @return void
+	 */
 	public function saveTranslatorConfig()
 	{
 		$input         = $this->input;
@@ -292,23 +294,37 @@ class NenoControllerEditor extends NenoControllerStrings
 		NenoSettings::set('translator', $translator);
 		NenoSettings::set('translator_api_key', $translatorKey);
 	}
-    
-    public function saveDefaultAction()
-    {
-		$input         = $this->input;
-		$action    = $input->get->getInt('action');
+
+	/**
+	 * Set default translate action (Copy or Copy&Translate)
+	 *
+	 * @throws Exception
+	 *
+	 * @return void
+	 */
+	public function saveDefaultAction()
+	{
+		$input  = $this->input;
+		$action = $input->get->getInt('action');
 		NenoSettings::set('default_translate_action', $action);
-    }
-    
-    
-    public function toggleShowRelated() {
-        
-        $currentState = NenoSettings::get('load_related_content');
-        $newState = 1 - $currentState;
-        NenoSettings::set('load_related_content', $newState);
-        exit();
-        
-    }
-    
-    
+
+		JFactory::getApplication()->close();
+	}
+
+	/**
+	 * Toggle show related content setting
+	 *
+	 * @throws Exception
+	 *
+	 * @return void
+	 */
+	public function toggleShowRelated()
+	{
+		$currentState = NenoSettings::get('load_related_content');
+		$newState     = 1 - $currentState;
+		NenoSettings::set('load_related_content', $newState);
+
+		JFactory::getApplication()->close();
+	}
+
 }
