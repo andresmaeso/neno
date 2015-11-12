@@ -19,6 +19,16 @@ defined('_JEXEC') or die;
 class NenoControllerInstallation extends JControllerAdmin
 {
 	/**
+	 * Field hierarchy level
+	 */
+	const FIELD_LEVEL = '2.1';
+
+	/**
+	 * Language string hierarchy level
+	 */
+	const LANGUAGE_STRING_LEVEL = '2.2';
+
+	/**
 	 * Load installation step
 	 *
 	 * @return void
@@ -38,13 +48,13 @@ class NenoControllerInstallation extends JControllerAdmin
 
 		$sidebar = '';
 
-		if ($step == 5)
+		if ($step == 6)
 		{
 			NenoHelperBackend::addSubmenu();
 			$sidebar = JHtmlSidebar::render();
 		}
 
-		echo json_encode(array ('installation_step' => $layout, 'jsidebar' => $sidebar));
+		echo json_encode(array( 'installation_step' => $layout, 'jsidebar' => $sidebar, 'step' => $step ));
 
 		JFactory::getApplication()->close();
 	}
@@ -70,14 +80,14 @@ class NenoControllerInstallation extends JControllerAdmin
 				$language                   = JFactory::getLanguage();
 				$default                    = NenoSettings::get('source_language');
 				$knownLanguages             = $language->getKnownLanguages();
-				$languagesData              = array ();
+				$languagesData              = array();
 				$defaultTranslationsMethods = NenoHelper::getDefaultTranslationMethods();
 				$db                         = JFactory::getDbo();
 				$query                      = $db->getQuery(true);
 				$query
 					->insert('#__neno_content_language_defaults')
 					->columns(
-						array (
+						array(
 							'lang',
 							'translation_method_id',
 							'ordering'
@@ -90,17 +100,16 @@ class NenoControllerInstallation extends JControllerAdmin
 				{
 					if ($knownLanguage['tag'] != $default)
 					{
-						$insert                                    = true;
-						$languagesData[$key]                       = $knownLanguage;
-						$languagesData[$key]['lang_code']          = $knownLanguage['tag'];
-						$languagesData[$key]['title']              = $knownLanguage['name'];
-						$languagesData[$key]['translationMethods'] = $defaultTranslationsMethods;
-						$languagesData[$key]['errors']             = NenoHelper::getLanguageErrors($languagesData[$key]);
-						$languagesData[$key]['placement']          = 'installation';
-						$languagesData[$key]['image']              = NenoHelper::getLanguageImage($knownLanguage['tag']);
-						$languagesData[$key]['published']          = NenoHelper::isLanguagePublished($knownLanguage['tag']);
-						$languagesData[$key]['comment']            = NenoHelper::getLanguageTranslatorComment($knownLanguage['tag']);
-
+						$insert                                      = true;
+						$languagesData[ $key ]                       = $knownLanguage;
+						$languagesData[ $key ]['lang_code']          = $knownLanguage['tag'];
+						$languagesData[ $key ]['title']              = $knownLanguage['name'];
+						$languagesData[ $key ]['translationMethods'] = $defaultTranslationsMethods;
+						$languagesData[ $key ]['errors']             = NenoHelper::getLanguageErrors($languagesData[ $key ]);
+						$languagesData[ $key ]['placement']          = 'installation';
+						$languagesData[ $key ]['image']              = NenoHelper::getLanguageImage($knownLanguage['tag']);
+						$languagesData[ $key ]['published']          = NenoHelper::isLanguagePublished($knownLanguage['tag']);
+						$languagesData[ $key ]['comment']            = NenoHelper::getLanguageTranslatorComment($knownLanguage['tag']);
 
 						foreach ($defaultTranslationsMethods as $ordering => $defaultTranslationsMethod)
 						{
@@ -131,7 +140,7 @@ class NenoControllerInstallation extends JControllerAdmin
 					->select('DISTINCT TABLE_NAME')
 					->from('INFORMATION_SCHEMA.COLUMNS')
 					->where(
-						array (
+						array(
 							'COLUMN_NAME = ' . $db->quote('language'),
 							'TABLE_SCHEMA = ' . $db->quote($config->get('db')),
 							'TABLE_NAME NOT LIKE ' . $db->quote('%neno%'),
@@ -143,7 +152,7 @@ class NenoControllerInstallation extends JControllerAdmin
 				$db->setQuery($query);
 				$tables = $db->loadArray();
 
-				$tablesFound = array ();
+				$tablesFound = array();
 
 				foreach ($tables as $table)
 				{
@@ -154,7 +163,7 @@ class NenoControllerInstallation extends JControllerAdmin
 						$query
 							->clear()
 							->select(
-								array (
+								array(
 									'COUNT(*) AS counter',
 									'language',
 									$db->quote($table) . ' AS `table`'
@@ -162,7 +171,7 @@ class NenoControllerInstallation extends JControllerAdmin
 							)
 							->from($db->quoteName($table))
 							->where(
-								array (
+								array(
 									'language <> ' . $db->quote('*'),
 									'language <> ' . $db->quote(''),
 									'language <> ' . $db->quote($sourceLanguage),
@@ -183,9 +192,88 @@ class NenoControllerInstallation extends JControllerAdmin
 
 				$data->tablesFound = $tablesFound;
 				break;
+			case 5:
+				$groups = NenoHelper::getGroups();
+
+				/* @var $group NenoContentElementGroup */
+				foreach ($groups as $key => $group)
+				{
+					$group->getTables();
+					$groups[ $key ] = $group->prepareDataForView();
+				}
+				$data->groups = $groups;
+				break;
 		}
 
 		return $data;
+	}
+
+	/**
+	 *
+	 *
+	 * @return void
+	 *
+	 * @throws Exception
+	 */
+	public function previewContentFromTable()
+	{
+		$app     = JFactory::getApplication();
+		$input   = $app->input;
+		$tableId = $input->getInt('tableId');
+
+		/* @var $table NenoContentElementTable */
+		$table                  = NenoContentElementTable::load($tableId);
+		$displayData            = new stdClass;
+		$displayData->tableName = $table->getTableName();
+		$displayData->tableId   = $table->getId();
+
+		if (!empty($table))
+		{
+			$displayData->records = $table->getRandomContentFromTable();
+			$fields               = $table->getFields();
+
+			/* @var $field NenoContentElementField */
+			foreach ($fields as $key => $field)
+			{
+				if ($field->isTranslatableType($field->getFieldType()))
+				{
+					$fields[ $key ] = $field->prepareDataForView();
+				}
+				else
+				{
+					unset($fields[ $key ]);
+				}
+			}
+
+			$displayData->fields = $fields;
+		}
+
+		echo JLayoutHelper::render('previewcontent', $displayData, JPATH_NENO_LAYOUTS);
+
+		$app->close();
+	}
+
+	public function resetDiscoveringVariables()
+	{
+		NenoSettings::set('discovering_element_1.1', null);
+		NenoSettings::set('discovering_element_0', null);
+		NenoSettings::set('installation_level', null);
+		NenoSettings::set('current_percent', null);
+
+		$db    = JFactory::getDbo();
+		$query = $db->getQuery(true);
+
+		$query
+			->select(
+				'(SELECT COUNT(*) FROM #__neno_content_element_fields WHERE translate = 1) + (SELECT COUNT(*) FROM #__neno_content_element_language_strings) AS counter'
+			);
+
+		$db->setQuery($query);
+		$elementsCounter = $db->loadResult();
+
+		NenoSettings::set('percent_per_content_element', 100 / $elementsCounter);
+
+		JFactory::getApplication()->close();
 	}
 
 	/**
@@ -198,7 +286,7 @@ class NenoControllerInstallation extends JControllerAdmin
 		$step        = NenoSettings::get('installation_status', 0);
 		$moveForward = true;
 		$app         = JFactory::getApplication();
-		$response    = array ('status' => 'ok');
+		$response    = array( 'status' => 'ok' );
 
 		if ($step != 0)
 		{
@@ -219,7 +307,7 @@ class NenoControllerInstallation extends JControllerAdmin
 		{
 			$response['status'] = 'err';
 			$messagesQueued     = $app->getMessageQueue();
-			$messages           = array ();
+			$messages           = array();
 
 			foreach ($messagesQueued as $messageQueued)
 			{
@@ -251,13 +339,13 @@ class NenoControllerInstallation extends JControllerAdmin
 			->select('*')
 			->from('#__neno_installation_messages as m1')
 			->where(
-				array (
+				array(
 					'm1.fetched = 1'
 				)
 			)
 			->group('level')
 			->order(
-				array (
+				array(
 					'level ASC',
 					'id DESC'
 				)
@@ -270,11 +358,90 @@ class NenoControllerInstallation extends JControllerAdmin
 	}
 
 	/**
-	 * Execute discovering process
+	 * Discovers components structure
 	 *
 	 * @return void
 	 */
-	public function processDiscoveringStep()
+	protected function discoverStructure()
+	{
+		$finished = NenoSettings::get('installation_completed') == 1;
+
+		if (!$finished)
+		{
+			$level = NenoSettings::get('installation_level', 0);
+
+			if (!$this->isLeafLevel($level))
+			{
+				$element = $this->getElementByLevel($level);
+
+				if ($element == null && $level == 0)
+				{
+					// If there aren't any, let's create do not translate group if it doesn't exist
+					NenoHelperBackend::createDoNotTranslateGroup();
+					$finished = true;
+				}
+				elseif ($element == null && $level != 0)
+				{
+					list($firstPart, $secondPart) = explode('.', $level);
+					$firstPart--;
+
+					if ($firstPart == 0)
+					{
+						NenoSettings::set('installation_level', $firstPart);
+					}
+					else
+					{
+						NenoSettings::set('installation_level', implode('.', array( $firstPart, $secondPart )));
+					}
+				}
+				else
+				{
+					/* @var $element NenoContentElementGroup */
+					$element->discoverElement(false);
+				}
+			}
+			else
+			{
+				list($firstPart, $secondPart) = explode('.', $level);
+				$firstPart--;
+
+				if ($firstPart == 0)
+				{
+					NenoSettings::set('installation_level', $firstPart);
+				}
+				else
+				{
+					NenoSettings::set('installation_level', implode('.', array( $firstPart, $secondPart )));
+				}
+			}
+		}
+
+		if ($finished)
+		{
+			echo 'ok';
+		}
+	}
+
+	/**
+	 * Checks if a level is a leaf
+	 *
+	 * @param string $level level
+	 *
+	 * @return bool
+	 */
+	protected function isLeafLevel($level)
+	{
+		list($branch, $branchLevel) = explode('.', $level);
+
+		return $branch == 2;
+	}
+
+	/**
+	 * Discovers components content
+	 *
+	 * @throws Exception
+	 */
+	protected function discoverContent()
 	{
 		/* @var $db NenoDatabaseDriverMysqlx */
 		$db       = JFactory::getDbo();
@@ -283,21 +450,23 @@ class NenoControllerInstallation extends JControllerAdmin
 
 		if (!$finished)
 		{
-			$level   = NenoSettings::get('installation_level', 0);
-			$element = $this->getElementByLevel($level);
+			// Get all the fields that haven't been discovered already
+			$element = $this->getLeafElement(self::FIELD_LEVEL);
 
-			if ($element == null && $level == 0)
+			if ($element === null)
 			{
-				// If there aren't any, let's create do not translate group if it doesn't exist
-				NenoHelperBackend::createDoNotTranslateGroup();
+				$element = $this->getLeafElement(self::LANGUAGE_STRING_LEVEL);
+			}
 
+			if ($element == null)
+			{
 				// Let's publish language plugins
 				$query
 					->clear()
 					->update('#__extensions')
 					->set('enabled = 1')
 					->where(
-						array (
+						array(
 							'element LIKE ' . $db->quote('languagecode'),
 							'element LIKE ' . $db->quote('languagefilter')
 						), 'OR'
@@ -312,20 +481,6 @@ class NenoControllerInstallation extends JControllerAdmin
 				NenoSettings::set('installation_completed', 1);
 				$finished = true;
 			}
-			elseif ($element == null && $level != 0)
-			{
-				list($firstPart, $secondPart) = explode('.', $level);
-				$firstPart--;
-
-				if ($firstPart == 0)
-				{
-					NenoSettings::set('installation_level', $firstPart);
-				}
-				else
-				{
-					NenoSettings::set('installation_level', implode('.', array ($firstPart, $secondPart)));
-				}
-			}
 			else
 			{
 				/* @var $element NenoContentElementGroup */
@@ -337,8 +492,37 @@ class NenoControllerInstallation extends JControllerAdmin
 		{
 			echo 'ok';
 		}
+	}
 
-		JFactory::getApplication()->close();
+	/**
+	 * Execute discovering process
+	 *
+	 * @return void
+	 */
+	public function processDiscoveringStep()
+	{
+		$app   = JFactory::getApplication();
+		$input = $app->input;
+
+		$contentType = $input->getCmd('contentType');
+
+		switch ($contentType)
+		{
+			case 'structure':
+				$this->discoverStructure();
+				break;
+
+			case 'content':
+				$this->discoverContent();
+				break;
+		}
+
+		$app->close();
+	}
+
+	protected function getLeafElement($type)
+	{
+		return $this->getElementByLevel($type);
 	}
 
 	/**
@@ -368,7 +552,7 @@ class NenoControllerInstallation extends JControllerAdmin
 					->select('e.*')
 					->from('`#__extensions` AS e')
 					->where(
-						array (
+						array(
 							'e.type IN (' . implode(',', $extensions) . ')',
 							'e.name NOT LIKE \'com_neno\'',
 							'NOT EXISTS (SELECT 1 FROM #__neno_content_element_groups_x_extensions AS ge WHERE ge.extension_id = e.extension_id)'
@@ -389,7 +573,7 @@ class NenoControllerInstallation extends JControllerAdmin
 					}
 					else
 					{
-						$group = new NenoContentElementGroup(array ('group_name' => $extension['name']));
+						$group = new NenoContentElementGroup(array( 'group_name' => $extension['name'] ));
 					}
 
 					/* @var $group NenoContentElementGroup */
@@ -425,7 +609,7 @@ class NenoControllerInstallation extends JControllerAdmin
 				{
 					// Get one table that hasn't been discovered yet
 					$table = NenoContentElementTable::load(
-						array (
+						array(
 							'discovered' => 0,
 							'_limit'     => 1,
 							'translate'  => 1,
@@ -453,7 +637,7 @@ class NenoControllerInstallation extends JControllerAdmin
 				{
 					// Get one table that hasn't been discovered yet
 					$languageFile = NenoContentElementLanguageFile::load(
-						array (
+						array(
 							'discovered' => 0,
 							'_limit'     => 1,
 							'group_id'   => NenoSettings::get('discovering_element_0')
@@ -479,11 +663,10 @@ class NenoControllerInstallation extends JControllerAdmin
 				{
 					// Get one table that hasn't been discovered yet
 					$field = NenoContentElementField::load(
-						array (
+						array(
 							'discovered' => 0,
 							'_limit'     => 1,
-							'translate'  => 1,
-							'table_id'   => NenoSettings::get('discovering_element_1.1')
+							'translate'  => 1
 						), false, true
 					);
 				}
@@ -506,10 +689,9 @@ class NenoControllerInstallation extends JControllerAdmin
 				{
 					// Get one table that hasn't been discovered yet
 					$languageString = NenoContentElementLanguageString::load(
-						array (
-							'discovered'      => 0,
-							'_limit'          => 1,
-							'languagefile_id' => NenoSettings::get('discovering_element_1.2')
+						array(
+							'discovered' => 0,
+							'_limit'     => 1
 						), false, true
 					);
 				}
@@ -550,7 +732,7 @@ class NenoControllerInstallation extends JControllerAdmin
 				->select('COUNT(e.extension_id)')
 				->from('`#__extensions` AS e')
 				->where(
-					array (
+					array(
 						'e.type IN (' . implode(',', $extensions) . ')',
 						'e.name NOT LIKE \'%neno%\'',
 					)
@@ -646,7 +828,7 @@ class NenoControllerInstallation extends JControllerAdmin
 		$input = $this->input;
 		$app   = JFactory::getApplication();
 
-		$jform = $input->post->get('jform', array (), 'ARRAY');
+		$jform = $input->post->get('jform', array(), 'ARRAY');
 
 		if (!empty($jform['translation_methods']))
 		{
@@ -661,5 +843,24 @@ class NenoControllerInstallation extends JControllerAdmin
 		$app->enqueueMessage('', 'error');
 
 		return false;
+	}
+
+	/**
+	 * @throws Exception
+	 *
+	 * @return void
+	 */
+	public function refreshRecordCounter()
+	{
+		$app     = JFactory::getApplication();
+		$input   = $app->input;
+		$tableId = $input->getInt('tableId');
+
+		/* @var $table NenoContentElementTable */
+		$table = NenoContentElementTable::load($tableId);
+
+		echo $table->recordCount,
+
+		$app->close();
 	}
 }

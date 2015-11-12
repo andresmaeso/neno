@@ -628,7 +628,8 @@ class NenoHelperBackend
 		$phpInfo                   = array();
 		$xml                       = new SimpleXMLElement(file_get_contents(JPATH_ADMINISTRATOR . '/components/com_neno/neno.xml'));
 		$phpInfo['neno_version']   = (string) $xml->version;
-		$phpInfo['neno_log']       = self::tailCustom(JPATH_ROOT . '/logs/neno_log.php', 100);
+		$config                    = JFactory::getConfig();
+		$phpInfo['neno_log']       = self::tailCustom($config->get('log_path') . '/neno_log.php', 100);
 		$phpInfo['joomla_version'] = JVERSION;
 
 		/* @var $db NenoDatabaseDriverMysqlx */

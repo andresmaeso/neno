@@ -240,7 +240,7 @@ class NenoContentElementGroup extends NenoContentElement implements NenoContentE
 				->where(
 					array(
 						't.group_id = ' . $this->getId(),
-						't.translate = 1',
+						't.translate IN (1,2)',
 						'f.translate = 1'
 					)
 				)

@@ -1438,7 +1438,7 @@ class NenoContentElementTranslation extends NenoContentElement
 					$query->update($tableName);
 				}
 
-				$query->set($db->quoteName($fieldName) . ' = ' . $updateAssignment);
+				$query->set($db->quoteName($fieldName) . ' = ' . $db->quote($updateAssignment));
 				break;
 		}
 

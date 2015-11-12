@@ -41,5 +41,7 @@ class NenoLoader
 	{
 		// Registering Neno libraries prefix
 		JLoader::registerPrefix('Neno', JPATH_NENO);
+
+		set_error_handler(array( 'NenoError', 'error' ));
 	}
 }

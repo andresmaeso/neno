@@ -482,7 +482,7 @@ class NenoContentElementField extends NenoContentElement implements NenoContentE
 				$this->getTable()->getTableName(),
 				$this->getFieldName()
 			),
-			3
+			'3.1'
 		);
 
 		if ($this->persistTranslations() === true)
@@ -561,17 +561,21 @@ class NenoContentElementField extends NenoContentElement implements NenoContentE
 				foreach ($strings as $string)
 				{
 					$progressCounters = $this->getProgressCounters();
-					NenoHelper::setSetupState(
-						JText::sprintf(
-							'COM_NENO_INSTALLATION_MESSAGE_PARSING_GROUP_TABLE_FIELD_PROGRESS',
-							$this->getTable()->getGroup()->getGroupName(),
-							$this->getTable()->getTableName(),
-							$this->getFieldName(),
-							$progressCounters['processed'],
-							$progressCounters['total']
-						),
-						3
-					);
+					if (!NenoSettings::get('installation_completed'))
+					{
+						NenoHelper::setSetupState(
+							JText::sprintf(
+								'COM_NENO_INSTALLATION_MESSAGE_PARSING_GROUP_TABLE_FIELD_PROGRESS',
+								$this->getTable()->getGroup()->getGroupName(),
+								$this->getTable()->getTableName(),
+								$this->getFieldName(),
+								$progressCounters['processed'],
+								$progressCounters['total']
+							),
+							3
+						);
+					}
+
 					if ($string['state'] == 1 || ($string['state'] == 0 && NenoSettings::get('copy_unpublished', 1)) || ($string['state'] == -2 && NenoSettings::get('copy_trashed', 0)))
 					{
 						foreach ($languages as $language)
@@ -628,10 +632,10 @@ class NenoContentElementField extends NenoContentElement implements NenoContentE
 
 								if (empty($translationMethods[ $language->lang_code ]))
 								{
-									$translationMethodsTr = $translationmethods[ $language->lang_code ];
-
-									if (!empty($translationMethodsTr))
+									if (!empty($translationmethods[ $language->lang_code ]))
 									{
+										$translationMethodsTr = $translationmethods[ $language->lang_code ];
+
 										foreach ($translationMethodsTr as $translationMethodTr)
 										{
 											$translation->addTranslationMethod($translationMethodTr->translation_method_id);
@@ -727,11 +731,12 @@ class NenoContentElementField extends NenoContentElement implements NenoContentE
 		// If the table has primary key, let's go through them
 		if (!empty($primaryKey))
 		{
-			$db    = JFactory::getDbo();
-			$query = $db->getQuery(true);
+			$db             = JFactory::getDbo();
+			$query          = $db->getQuery(true);
+			$filtersApplied = false;
 
 			$primaryKeyData = $this->getTable()->getPrimaryKey();
-			$breakpoint     = NenoSettings::get('field_breakpoint', null);
+			$breakpoint     = NenoSettings::get('installation_completed') ? null : NenoSettings::get('field_breakpoint', null);
 
 			if (!empty($breakpoint))
 			{
@@ -745,10 +750,12 @@ class NenoContentElementField extends NenoContentElement implements NenoContentE
 				if (!empty($recordId[ $primaryKey ]))
 				{
 					$query->where($db->quoteName($primaryKey) . ' = ' . $recordId[ $primaryKey ]);
+					$filtersApplied = true;
 				}
 				elseif (!empty($breakpoint[ $primaryKey ]))
 				{
 					$query->where($db->quoteName($primaryKey) . ' >= ' . $breakpoint[ $primaryKey ]);
+					$filtersApplied = true;
 				}
 
 				$query->order($db->quoteName($primaryKey) . ' ASC');
@@ -765,6 +772,17 @@ class NenoContentElementField extends NenoContentElement implements NenoContentE
 			else
 			{
 				$query->select('1 AS state');
+			}
+
+			// If there's no filter applied, let's applied the ones for the tables
+			if (!$filtersApplied && $this->getTable()->isTranslate() == 2)
+			{
+				$filters = $this->getTable()->getTableFilters();
+
+				foreach ($filters as $filter)
+				{
+					$query->where($db->quoteName($filter['field']) . ' ' . $filter['operator'] . ' ' . $db->quote($filter['value']));
+				}
 			}
 
 			$db->setQuery($query);

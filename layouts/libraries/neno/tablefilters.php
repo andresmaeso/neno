@@ -16,9 +16,9 @@ $step = $displayData;
 
 <table class="table" id="filters-table">
 	<tr>
-		<th>Field</th>
-		<th>Comparaison Operator</th>
-		<th>Value</th>
+		<th><?php echo JText::_('COM_NENO_TABLE_FILTERS_FIELD_HEADER'); ?></th>
+		<th><?php echo JText::_('COM_NENO_TABLE_FILTERS_COMPARAISON_OPERATOR_HEADER'); ?></th>
+		<th><?php echo JText::_('COM_NENO_TABLE_FILTERS_VALUE_HEADER'); ?></th>
 		<th></th>
 	</tr>
 
