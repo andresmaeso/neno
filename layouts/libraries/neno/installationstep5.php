@@ -44,6 +44,7 @@ JHtml::_('bootstrap.tooltip');
 			<h1><?php echo JText::_('COM_NENO_INSTALLATION_INSTALLATION_STEP_5_TITLE'); ?></h1>
 
 			<p><?php echo JText::_('COM_NENO_INSTALLATION_INSTALLATION_STEP_5_SUBTITLE'); ?></p>
+			<p><?php echo JText::_('COM_NENO_INSTALLATION_INSTALLATION_STEP_5_SUBTITLE_2'); ?></p>
 			<table class="table">
 				<?php foreach ($displayData->groups as $group): ?>
 					<tr>
