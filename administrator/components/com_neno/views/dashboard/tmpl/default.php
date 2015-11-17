@@ -11,6 +11,7 @@
 // No direct access
 defined('_JEXEC') or die;
 
+JHtml::_('behavior.keepalive');
 JHtml::_('bootstrap.tooltip');
 JHtml::_('behavior.multiselect');
 JHtml::_('formbehavior.chosen', 'select');
@@ -42,7 +43,6 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 
 		jQuery(".radio").off('change').on('change', function () {
 			jQuery.ajax({
-				beforeSend: onBeforeAjax,
 				url       : 'index.php?option=com_neno&task=dashboard.toggleLanguage&language=' + jQuery(this).data('language')
 			});
 		});
@@ -53,7 +53,6 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 			if (result) {
 				jQuery(this).closest('.language-wrapper').slideUp();
 				jQuery.ajax({
-					beforeSend: onBeforeAjax,
 					url       : 'index.php?option=com_neno&task=removeLanguage&language=' + jQuery(this).data('language')
 				});
 			}
@@ -154,7 +153,6 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 <script>
 	jQuery('#add-languages-button').click(function () {
 		jQuery.ajax({
-			beforeSend: onBeforeAjax,
 			url       : 'index.php?option=com_neno&task=showInstallLanguagesModal&placement=dashboard',
 			success   : function (html) {
 				var modal = jQuery('#languages-modal');

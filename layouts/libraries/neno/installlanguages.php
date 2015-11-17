@@ -11,6 +11,8 @@
 defined('_JEXEC') or die;
 $languages = $displayData->languages;
 
+JHtml::_('behavior.keepalive');
+
 ?>
 <table class="table table-striped">
 	<tr>
@@ -24,8 +26,8 @@ $languages = $displayData->languages;
 			<td><?php echo $language['version']; ?></td>
 			<td class="action-cell" data-language-iso="<?php echo $language['iso'] ?>">
 				<button type="button" class="btn" id="<?php echo $language['iso'] ?>"
-				        data-update="<?php echo $language['update_id']; ?>"
-				        data-language="<?php echo $language['iso'] ?>">
+					data-update="<?php echo $language['update_id']; ?>"
+					data-language="<?php echo $language['iso'] ?>">
 					<?php echo JText::_('JTOOLBAR_INSTALL'); ?>
 				</button>
 			</td>
@@ -40,14 +42,13 @@ $languages = $displayData->languages;
 		button.hide();
 		button.parent().append('<div class="loading loading-iso-' + button.attr('data-language') + '"></div>')
 		jQuery.ajax({
-			beforeSend: onBeforeAjax,
-			url: 'index.php?option=com_neno&task=installLanguage',
-			data: {
-				update: jQuery(this).data('update'),
-				language: jQuery(this).data('language'),
+			url    : 'index.php?option=com_neno&task=installLanguage',
+			data   : {
+				update   : jQuery(this).data('update'),
+				language : jQuery(this).data('language'),
 				placement: '<?php echo $displayData->placement; ?>'
 			},
-			type: 'POST',
+			type   : 'POST',
 			success: function (html) {
 				if (html != 'err') {
 					var response = jQuery(html);

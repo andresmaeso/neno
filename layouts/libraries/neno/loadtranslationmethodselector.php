@@ -10,6 +10,8 @@
 // No direct access
 defined('_JEXEC') or die;
 
+JHtml::_('behavior.keepalive');
+
 $groupId = $displayData;
 
 ?>
@@ -43,7 +45,6 @@ $groupId = $displayData;
 		});
 
 		jQuery.ajax({
-				beforeSend: onBeforeAjax,
 				url: 'index.php?option=com_neno&task=groupselements.getTranslationMethodSelector&group_id=' + groupId + '&n=' + n + selected_methods_string,
 				success: function (html) {
 					if (html !== '') {

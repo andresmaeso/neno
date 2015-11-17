@@ -20,30 +20,18 @@ function highlightBox(selector) {
 }
 
 /**
- * Check if the user has lost the session
- */
-function onBeforeAjax() {
-	jQuery.get('index.php?option=com_neno&task=checkSession', function (response) {
-		if (response != 'ok') {
-			document.location.reload();
-		}
-	});
-}
-
-/**
  * Fixes issues with a language such as "language out of date" or "missing content"
  */
 function fixIssue() {
 	var button = jQuery(this);
 	button.closest('.alert').remove();
 	jQuery.ajax({
-		beforeSend: onBeforeAjax,
-		url       : 'index.php?option=com_neno&task=fixLanguageIssue',
-		data      : {
+		url : 'index.php?option=com_neno&task=fixLanguageIssue',
+		data: {
 			language: button.data('language'),
 			issue   : button.data('issue')
 		},
-		type      : 'POST'
+		type: 'POST'
 	});
 }
 
@@ -170,9 +158,8 @@ function executeAjaxForTranslationMethodSelectors(listSelector, placement, n, se
 		otherParams = '';
 	}
 	jQuery.ajax({
-		beforeSend: onBeforeAjax,
-		url       : 'index.php?option=com_neno&task=getTranslationMethodSelector&placement=' + placement + '&n=' + n + selected_methods_string + otherParams,
-		success   : function (html) {
+		url    : 'index.php?option=com_neno&task=getTranslationMethodSelector&placement=' + placement + '&n=' + n + selected_methods_string + otherParams,
+		success: function (html) {
 			if (html !== '') {
 				jQuery(element).closest(listSelector).append(html);
 
@@ -220,10 +207,9 @@ function saveTranslationMethod(translationMethod, language, ordering, applyToEle
 	applyToElements = applyToElements ? 1 : 0;
 
 	jQuery.ajax({
-		beforeSend: onBeforeAjax,
-		url       : 'index.php?option=com_neno&task=saveTranslationMethod',
-		type      : 'POST',
-		data      : {
+		url : 'index.php?option=com_neno&task=saveTranslationMethod',
+		type: 'POST',
+		data: {
 			translationMethod: translationMethod,
 			language         : language,
 			ordering         : ordering,
@@ -299,9 +285,8 @@ function changeTableTranslateState() {
 	setTranslateStatus(id, status);
 
 	jQuery.ajax({
-			beforeSend: onBeforeAjax,
-			url       : 'index.php?option=com_neno&task=groupselements.toggleContentElementTable&tableId=' + id + '&translateStatus=' + status,
-			success   : function () {
+			url    : 'index.php?option=com_neno&task=groupselements.toggleContentElementTable&tableId=' + id + '&translateStatus=' + status,
+			success: function () {
 				if (typeof tableFiltersCallback != 'undefined') {
 					tableFiltersCallback(id);
 				}
@@ -329,8 +314,7 @@ function setTranslateStatus(tableId, status) {
 	}
 
 	jQuery.ajax({
-			beforeSend: onBeforeAjax,
-			url       : 'index.php?option=com_neno&task=groupselements.toggleContentElementTable&tableId=' + tableId + '&translateStatus=' + status
+			url: 'index.php?option=com_neno&task=groupselements.toggleContentElementTable&tableId=' + tableId + '&translateStatus=' + status
 		}
 	);
 }
@@ -427,9 +411,8 @@ function bindToggleFieldVisibilityEvent(toggler) {
 function showTableFiltersModal(id, currentStatus) {
 	//Load group form html
 	jQuery.ajax({
-			beforeSend: onBeforeAjax,
-			url       : 'index.php?option=com_neno&task=groupselements.getTableFilterModalLayout&tableId=' + id,
-			success   : function (html) {
+			url    : 'index.php?option=com_neno&task=groupselements.getTableFilterModalLayout&tableId=' + id,
+			success: function (html) {
 
 				statusChanged = false;
 
