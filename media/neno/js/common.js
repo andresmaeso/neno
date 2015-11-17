@@ -323,7 +323,7 @@ function setTranslateStatus(tableId, status) {
 			warning_message +
 			'<a href="index.php?option=com_neno&view=groupselements" class="btn btn-info pull-right" style="height: 16px; font-size: 12px;margin-top:-4px">' +
 			warning_button +
-			'/a></div></div>'
+			'</a></div></div>'
 		).height('92');
 		jQuery('body').css('padding-top', '93px');
 	}
