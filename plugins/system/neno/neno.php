@@ -171,8 +171,12 @@ class PlgSystemNeno extends JPlugin
 	 */
 	public function onContentAfterSave($context, $content, $isNew)
 	{
-		// We only can process a record if the content is a JTable instance.
-		if ($content instanceof JTable)
+		//  If the user has create a new menu item, let's create it.
+		if ($context == 'com_menus.item' && $isNew)
+		{
+			NenoHelper::createMenuStructure();
+		}
+		elseif ($content instanceof JTable) // We only can process a record if the content is a JTable instance.
 		{
 			/* @var $db NenoDatabaseDriverMysqlx */
 			$db        = JFactory::getDbo();
