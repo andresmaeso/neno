@@ -10,6 +10,7 @@
 // No direct access
 defined('_JEXEC') or die;
 
+JHtml::_('behavior.keepalive');
 JHtml::_('formbehavior.chosen', 'select');
 
 $document = JFactory::getDocument();
@@ -88,8 +89,7 @@ if (!empty($this->extra_sidebar))
 				if (result) {
 					jQuery(this).closest('.language-wrapper').slideUp();
 					jQuery.ajax({
-						beforeSend: onBeforeAjax,
-						url       : 'index.php?option=com_neno&task=removeLanguage&language=' + jQuery(this).data('language')
+						url: 'index.php?option=com_neno&task=removeLanguage&language=' + jQuery(this).data('language')
 					});
 				}
 

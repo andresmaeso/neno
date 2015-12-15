@@ -295,6 +295,14 @@ class NenoControllerGroupsElements extends JControllerAdmin
 			array(
 				'value' => '>=',
 				'text'  => '>='
+			),
+			array(
+				'value' => 'LIKE',
+				'text'  => 'LIKE'
+			),
+			array(
+				'value' => 'IN',
+				'text'  => 'IN'
 			)
 		);
 	}

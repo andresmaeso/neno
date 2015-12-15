@@ -13,6 +13,7 @@ defined('_JEXEC') or die;
 
 JHtml::_('bootstrap.tooltip');
 JHtml::_('behavior.multiselect');
+JHtml::_('behavior.keepalive');
 
 $listOrder     = $this->state->get('list.ordering');
 $listDirection = $this->state->get('list.direction');

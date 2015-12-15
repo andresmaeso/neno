@@ -11,6 +11,7 @@
 // No direct access
 defined('_JEXEC') or die;
 
+JHtml::_('behavior.keepalive');
 JHtml::_('bootstrap.tooltip');
 JHtml::_('behavior.multiselect');
 
@@ -165,9 +166,8 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 			row.after('<tr id="loader-' + id + '"><td colspan="9" class="loading-row">&nbsp;</td></tr>');
 
 			jQuery.ajax({
-					beforeSend: onBeforeAjax,
-					url       : 'index.php?option=com_neno&task=groupselements.getElements&group_id=' + id,
-					success   : function (html) {
+					url    : 'index.php?option=com_neno&task=groupselements.getElements&group_id=' + id,
+					success: function (html) {
 						jQuery('#loader-' + id).replaceWith(html);
 
 						//Bind events to new fields
@@ -232,8 +232,7 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 		jQuery('body').css('padding-top', '93px');
 
 		jQuery.ajax({
-				beforeSend: onBeforeAjax,
-				url       : 'index.php?option=com_neno&task=groupselements.toggleContentElementField&fieldId=' + id + '&translateStatus=' + status
+				url: 'index.php?option=com_neno&task=groupselements.toggleContentElementField&fieldId=' + id + '&translateStatus=' + status
 			}
 		);
 	}
@@ -275,9 +274,8 @@ $workingLanguage = NenoHelper::getWorkingLanguage();
 
 		//Load group form html
 		jQuery.ajax({
-				beforeSend: onBeforeAjax,
-				url       : 'index.php?option=com_neno&view=groupelement&id=' + id + '&format=raw',
-				success   : function (html) {
+				url    : 'index.php?option=com_neno&view=groupelement&id=' + id + '&format=raw',
+				success: function (html) {
 
 					//Inject HTML into the modal
 					var modal = jQuery('#nenomodal');

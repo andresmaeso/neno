@@ -60,7 +60,6 @@ class NenoTranslatorApiBing extends NenoTranslatorApi
 			}
 			else
 			{
-				$responseBody       = json_decode($response->body);
 				$translatedChunks[] = $responseBody[0];
 			}
 		}
